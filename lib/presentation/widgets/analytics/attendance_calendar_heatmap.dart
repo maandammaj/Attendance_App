@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_helpers.dart';
@@ -87,7 +88,8 @@ class _DayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final base = statusColor(cell.status, theme);
+    final palette = context.palette;
+    final base = statusColor(cell.status, theme, palette);
     // الأيام المنجزة تتدرج مع نسبة الإنجاز؛ البقية بلون ثابت.
     final opacity = cell.status == DayStatus.worked ||
             cell.status == DayStatus.overtime
@@ -132,11 +134,11 @@ class _DayTile extends StatelessWidget {
   }
 }
 
-Color statusColor(DayStatus status, ThemeData theme) {
+Color statusColor(DayStatus status, ThemeData theme, AppPalette palette) {
   return switch (status) {
     DayStatus.worked => theme.colorScheme.primary,
-    DayStatus.overtime => Colors.green.shade600,
-    DayStatus.deficit => Colors.orange.shade700,
+    DayStatus.overtime => palette.positive,
+    DayStatus.deficit => palette.warning,
     DayStatus.absent => theme.colorScheme.error,
     DayStatus.dayOff => theme.disabledColor,
     DayStatus.future => Colors.transparent,
@@ -162,6 +164,7 @@ class _LegendChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -169,7 +172,7 @@ class _LegendChip extends StatelessWidget {
           width: 12,
           height: 12,
           decoration: BoxDecoration(
-            color: statusColor(status, theme).withValues(alpha: 0.75),
+            color: statusColor(status, theme, palette).withValues(alpha: 0.75),
             borderRadius: BorderRadius.circular(3),
           ),
         ),

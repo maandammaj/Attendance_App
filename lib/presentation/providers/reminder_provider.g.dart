@@ -203,12 +203,12 @@ class _BudgetStatusProviderElement
 }
 
 String _$reminderControllerHash() =>
-    r'a12ed5f51384cb4fbf01c9c68da4476271b1fe8d';
+    r'f72eca235da916c21bb97ddaad1f70d7e6086c4f';
 
 /// See also [ReminderController].
 @ProviderFor(ReminderController)
 final reminderControllerProvider =
-    AutoDisposeAsyncNotifierProvider<ReminderController, void>.internal(
+    AsyncNotifierProvider<ReminderController, void>.internal(
       ReminderController.new,
       name: r'reminderControllerProvider',
       debugGetCreateSourceHash:
@@ -219,6 +219,6 @@ final reminderControllerProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$ReminderController = AutoDisposeAsyncNotifier<void>;
+typedef _$ReminderController = AsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

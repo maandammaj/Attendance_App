@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/transaction_provider.dart';
@@ -9,6 +10,7 @@ class TransactionListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.palette;
     final now = DateTime.now();
     final transactions = ref.watch(monthlyTransactionsProvider(year: now.year, month: now.month));
     final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
@@ -27,7 +29,7 @@ class TransactionListScreen extends ConsumerWidget {
               return Card(
                 child: ListTile(
                   leading: Icon(isExpense ? Icons.remove_circle : Icons.add_circle, 
-                      color: isExpense ? Colors.red : Colors.green),
+                      color: isExpense ? palette.negative : palette.positive),
                   title: Text(trans.categoryName),
                   subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(trans.date)),
                   trailing: Row(
@@ -36,7 +38,8 @@ class TransactionListScreen extends ConsumerWidget {
                       Text('${trans.amount.toStringAsFixed(2)} $currency', 
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
+              tooltip: 'حذف',
+                        icon: Icon(Icons.delete, color: palette.onSurfaceVariant, size: 20),
                         onPressed: () => _confirmDelete(context, ref, trans.id),
                       ),
                     ],
@@ -53,6 +56,7 @@ class TransactionListScreen extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, int id) {
+  final palette = context.palette;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -65,7 +69,7 @@ class TransactionListScreen extends ConsumerWidget {
               await ref.read(transactionControllerProvider.notifier).deleteTransaction(id);
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text('حذف', style: TextStyle(color: palette.negative)),
           ),
         ],
       ),

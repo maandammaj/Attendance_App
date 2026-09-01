@@ -1,4 +1,5 @@
 import 'package:isar_community/isar.dart';
+
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/profile_repository.dart';
 import '../../models/profile_model.dart';
@@ -11,15 +12,22 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<ProfileEntity?> getProfile() async {
     final isar = await _db;
     final model = await isar.profileModels.get(0);
-    if (model == null) return null;
-    return _mapToEntity(model);
+    return model == null ? null : _mapToEntity(model);
   }
 
   @override
-  Future<void> updateProfile(ProfileEntity entity) async {
+  Future<void> updateProfile(ProfileEntity profile) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
     await isar.writeTxn(() async {
+      // نقرأ الصف القائم لنحفظ `activeCompanyId` وحقول الترحيل: الكيان لا
+      // يحمل كل ما في النموذج، والكتابة الكاملة كانت ستمحوها.
+      final model = await isar.profileModels.get(0) ?? ProfileModel();
+      model
+        ..id = 0
+        ..fullName = profile.fullName
+        ..currency = profile.currency
+        ..activeCompanyId = profile.activeCompanyId ?? model.activeCompanyId
+        ..updatedAt = DateTime.now();
       await isar.profileModels.put(model);
     });
   }
@@ -28,64 +36,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
     return ProfileEntity(
       id: m.id,
       fullName: m.fullName,
-      jobTitle: m.jobTitle,
-      baseMonthlySalary: m.baseMonthlySalary,
-      hourlyRate: m.hourlyRate,
-      overtimeRate: m.overtimeRate,
-      workSchedule: m.workSchedule
-          .map((w) => WorkDayConfigEntity(
-        dayOfWeek: w.dayOfWeek,
-        isWorkingDay: w.isWorkingDay,
-        requiredHours: w.requiredHours,
-        requiredMinutes: w.requiredMinutes,
-        isHoliday: w.isHoliday,
-        startTime: w.startTime,
-        endTime: w.endTime,
-        isCrossDay: w.isCrossDay,
-      ))
-          .toList(),
-      adjustments: m.adjustments.map((a) => SalaryAdjustmentEntity(
-        title: a.title,
-        amount: a.amount,
-        isAddition: a.isAddition,
-      )).toList(),
+      activeCompanyId: m.activeCompanyId,
       currency: m.currency,
-      companyName: m.companyName,
-      employmentStartDate: m.employmentStartDate,
       updatedAt: m.updatedAt,
     );
-  }
-
-  ProfileModel _mapToModel(ProfileEntity e) {
-    final model = ProfileModel()
-      ..id = e.id
-      ..fullName = e.fullName
-      ..jobTitle = e.jobTitle
-      ..baseMonthlySalary = e.baseMonthlySalary
-      ..hourlyRate = e.hourlyRate
-      ..overtimeRate = e.overtimeRate
-      ..currency = e.currency
-      ..companyName = e.companyName
-      ..employmentStartDate = e.employmentStartDate
-      ..updatedAt = e.updatedAt;
-
-    model.workSchedule = e.workSchedule
-        .map((w) => WorkDayConfig()
-      ..dayOfWeek = w.dayOfWeek
-      ..isWorkingDay = w.isWorkingDay
-      ..requiredHours = w.requiredHours
-      ..requiredMinutes = w.requiredMinutes
-      ..isHoliday = w.isHoliday
-      ..startTime = w.startTime
-      ..endTime = w.endTime
-      ..isCrossDay = w.isCrossDay)
-        .toList();
-        
-    model.adjustments = e.adjustments.map((a) => SalaryAdjustment()
-      ..title = a.title
-      ..amount = a.amount
-      ..isAddition = a.isAddition).toList();
-
-    return model;
   }
 }

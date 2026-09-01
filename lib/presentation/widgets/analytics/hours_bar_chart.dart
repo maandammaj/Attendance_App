@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/analytics_report_entity.dart';
@@ -12,6 +13,7 @@ class HoursBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     if (points.isEmpty) return const _NoData();
 
     final maxValue = points
@@ -113,7 +115,7 @@ class HoursBarChart extends StatelessWidget {
                           BarChartRodStackItem(
                             points[i].value,
                             points[i].value + points[i].secondaryValue,
-                            Colors.green.shade500,
+                            palette.positive,
                           ),
                         ],
                       ),

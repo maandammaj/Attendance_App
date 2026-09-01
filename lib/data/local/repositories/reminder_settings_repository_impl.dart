@@ -56,6 +56,9 @@ class ReminderSettingsRepositoryImpl implements ReminderSettingsRepository {
       quietHoursEnabled: m.quietHoursEnabled,
       quietHoursStart: m.quietHoursStart,
       quietHoursEnd: m.quietHoursEnd,
+      requireBiometricForAttendance: m.requireBiometricForAttendance,
+      appLockEnabled: m.appLockEnabled,
+      allowDeviceCredential: m.allowDeviceCredential,
     );
   }
 
@@ -92,6 +95,9 @@ class ReminderSettingsRepositoryImpl implements ReminderSettingsRepository {
       ..quietHoursEnabled = e.quietHoursEnabled
       ..quietHoursStart = e.quietHoursStart
       ..quietHoursEnd = e.quietHoursEnd
+      ..requireBiometricForAttendance = e.requireBiometricForAttendance
+      ..appLockEnabled = e.appLockEnabled
+      ..allowDeviceCredential = e.allowDeviceCredential
       ..updatedAt = DateTime.now();
   }
 }

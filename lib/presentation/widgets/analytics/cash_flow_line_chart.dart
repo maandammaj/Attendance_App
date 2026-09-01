@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/analytics_report_entity.dart';
@@ -17,6 +18,7 @@ class CashFlowLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     if (points.length < 2) {
       return SizedBox(
         height: 120,
@@ -47,7 +49,7 @@ class CashFlowLineChart extends StatelessWidget {
                     return LineTooltipItem(
                       '${isIncome ? "دخل" : "مصروف"} ${spot.y.toStringAsFixed(0)} $currency',
                       TextStyle(
-                        color: isIncome ? Colors.green.shade300 : Colors.red.shade300,
+                        color: isIncome ? palette.positive : palette.negative,
                         fontSize: 11,
                       ),
                     );
@@ -102,7 +104,7 @@ class CashFlowLineChart extends StatelessWidget {
                     for (int i = 0; i < points.length; i++)
                       FlSpot(i.toDouble(), points[i].value),
                   ],
-                  Colors.green.shade600,
+                  palette.positive,
                 ),
                 _line(
                   [
@@ -119,7 +121,7 @@ class CashFlowLineChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _Legend(color: Colors.green.shade600, label: 'الدخل'),
+            _Legend(color: palette.positive, label: 'الدخل'),
             const SizedBox(width: 20),
             _Legend(color: theme.colorScheme.error, label: 'المصروف'),
           ],

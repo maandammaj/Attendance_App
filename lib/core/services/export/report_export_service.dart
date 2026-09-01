@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Rect;
 
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
@@ -17,7 +18,11 @@ enum CsvDataset { attendance, finance, salary }
 class ReportExportService {
   const ReportExportService();
 
-  Future<void> sharePdf(AnalyticsReport report) async {
+  /// [origin] موضع العنصر الذي أطلق المشاركة بإحداثيات الشاشة.
+  ///
+  /// إلزامي عملياً على iPad: ورقة المشاركة هناك منبثقة تحتاج نقطة ارتساء،
+  /// وبدونها تظهر في موضع غير معرّف أو يرفضها النظام.
+  Future<void> sharePdf(AnalyticsReport report, {Rect? origin}) async {
     final builder = await ReportPdfBuilder.create();
     final bytes = await builder.build(report);
     final file = await _write(
@@ -28,6 +33,7 @@ class ReportExportService {
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/pdf')],
       subject: 'تقرير ${report.period.label}',
+      sharePositionOrigin: origin,
     );
   }
 
@@ -41,7 +47,11 @@ class ReportExportService {
     );
   }
 
-  Future<void> shareCsv(AnalyticsReport report, CsvDataset dataset) async {
+  Future<void> shareCsv(
+    AnalyticsReport report,
+    CsvDataset dataset, {
+    Rect? origin,
+  }) async {
     final content = switch (dataset) {
       CsvDataset.attendance => ReportCsvBuilder.attendance(report),
       CsvDataset.finance => ReportCsvBuilder.finance(report),
@@ -62,6 +72,7 @@ class ReportExportService {
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'text/csv')],
       subject: 'تقرير ${report.period.label}',
+      sharePositionOrigin: origin,
     );
   }
 

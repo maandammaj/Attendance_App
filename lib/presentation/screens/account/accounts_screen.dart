@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../widgets/app_button.dart';
@@ -12,6 +13,7 @@ class AccountsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.palette;
     final accounts = ref.watch(allAccountsProvider);
     final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
 
@@ -41,13 +43,14 @@ class AccountsScreen extends ConsumerWidget {
                       Text(
                         '${account.totalBalance.toStringAsFixed(2)} $currency',
                         style: TextStyle(
-                          color: account.totalBalance >= 0 ? Colors.green : Colors.red,
+                          color: account.totalBalance >= 0 ? palette.positive : palette.negative,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
+              tooltip: 'حذف',
+                        icon: Icon(Icons.delete, color: palette.onSurfaceVariant, size: 20),
                         onPressed: () => _confirmDelete(context, ref, account),
                       ),
                     ],
@@ -80,6 +83,7 @@ class AccountsScreen extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, AccountEntity account) {
+  final palette = context.palette;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -93,7 +97,7 @@ class AccountsScreen extends ConsumerWidget {
               if (ctx.mounted) Navigator.pop(ctx);
               if (context.mounted) UIHelpers.showSuccessSnackBar(context, 'تم حذف الحساب');
             },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text('حذف', style: TextStyle(color: palette.negative)),
           ),
         ],
       ),

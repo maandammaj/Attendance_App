@@ -12,7 +12,7 @@ import '../../domain/services/reminder_scheduler.dart';
 import '../../domain/services/smart_insights_service.dart';
 import 'attendance_provider.dart';
 import 'debt_provider.dart';
-import 'profile_provider.dart';
+import 'company_provider.dart';
 import 'transaction_provider.dart';
 
 part 'reminder_provider.g.dart';
@@ -58,7 +58,11 @@ Future<List<BudgetStatusEntity>> budgetStatus(
   return await ref.read(budgetLimitRepositoryProvider).getStatus(year, month);
 }
 
-@riverpod
+// keepAlive: هذه المتحكّمات بعمر التطبيق لا بعمر شاشة. بدونها يُتلَف
+// المتحكّم حين تُبدَّل شاشته أثناء عملية جارية — بوابة الإعداد تفعل ذلك فور
+// إنشاء أول جهة — فتُكتب الحالة على مزوّد مُتلَف ويُرمى
+// "Bad state: Future already completed".
+@Riverpod(keepAlive: true)
 class ReminderController extends _$ReminderController {
   @override
   FutureOr<void> build() => null;
@@ -113,7 +117,7 @@ class ReminderController extends _$ReminderController {
     await _reschedule(settings);
 
     await ref.read(smartInsightsServiceProvider).run(
-          profile: await ref.read(profileProvider.future),
+          company: await ref.read(activeCompanyProvider.future),
           settings: settings,
           todayRecord: await ref.read(todayAttendanceProvider.future),
         );
@@ -121,7 +125,7 @@ class ReminderController extends _$ReminderController {
 
   Future<void> _reschedule(ReminderSettingsEntity settings) async {
     await ref.read(reminderSchedulerProvider).rescheduleAll(
-          profile: await ref.read(profileProvider.future),
+          company: await ref.read(activeCompanyProvider.future),
           settings: settings,
         );
   }

@@ -6,7 +6,7 @@ import '../../core/utils/salary_calculator.dart';
 import '../../data/models/notification_model.dart';
 import '../entities/attendance_entity.dart';
 import '../entities/budget_limit_entity.dart';
-import '../entities/profile_entity.dart';
+import '../entities/company_entity.dart';
 import '../entities/reminder_settings_entity.dart';
 import '../entities/transaction_entity.dart';
 import '../repositories/budget_limit_repository.dart';
@@ -59,7 +59,7 @@ class SmartInsightsService {
 
   /// يقيّم كل القواعد ويطلق ما ينطبق منها. يعيد ما أُطلق فعلاً.
   Future<List<Insight>> run({
-    required ProfileEntity? profile,
+    required CompanyEntity? company,
     required ReminderSettingsEntity settings,
     required AttendanceEntity? todayRecord,
   }) async {
@@ -68,7 +68,7 @@ class SmartInsightsService {
 
     insights.addAll(_attendanceInsights(
       now: now,
-      profile: profile,
+      company: company,
       settings: settings,
       todayRecord: todayRecord,
     ));
@@ -90,14 +90,14 @@ class SmartInsightsService {
       if (insight != null) insights.add(insight);
     }
 
-    if (settings.debtRatioEnabled && profile != null) {
+    if (settings.debtRatioEnabled && company != null) {
       final summary = await GetDebtsSummaryUseCase(debtRepository)();
-      final insight = _debtRatioInsight(summary, profile, settings, now);
+      final insight = _debtRatioInsight(summary, company, settings, now);
       if (insight != null) insights.add(insight);
     }
 
-    if (settings.monthEndForecastEnabled && profile != null) {
-      final insight = _forecastInsight(transactions, profile, now);
+    if (settings.monthEndForecastEnabled && company != null) {
+      final insight = _forecastInsight(transactions, company, now);
       if (insight != null) insights.add(insight);
     }
 
@@ -129,7 +129,7 @@ class SmartInsightsService {
 
   List<Insight> _attendanceInsights({
     required DateTime now,
-    required ProfileEntity? profile,
+    required CompanyEntity? company,
     required ReminderSettingsEntity settings,
     required AttendanceEntity? todayRecord,
   }) {
@@ -160,9 +160,9 @@ class SmartInsightsService {
         requiredMinutes > 0 &&
         elapsed.inMinutes >= requiredMinutes) {
       final overtimeMinutes = elapsed.inMinutes - requiredMinutes;
-      final extra = profile == null
+      final extra = company == null
           ? ''
-          : ' كسبت ${_money(SalaryCalculator(profile).calculateOvertimeValue(overtimeMinutes ~/ 60, overtimeMinutes % 60), profile)} إضافي حتى الآن.';
+          : ' كسبت ${_money(SalaryCalculator(company).calculateOvertimeValue(overtimeMinutes ~/ 60, overtimeMinutes % 60), company)} إضافي حتى الآن.';
       insights.add(Insight(
         id: NotificationIds.attendanceLive.idFor(1),
         title: 'أكملت ساعاتك المطلوبة',
@@ -248,19 +248,19 @@ class SmartInsightsService {
 
   Insight? _debtRatioInsight(
     DebtSummary summary,
-    ProfileEntity profile,
+    CompanyEntity company,
     ReminderSettingsEntity settings,
     DateTime now,
   ) {
-    if (profile.baseMonthlySalary <= 0) return null;
-    final ratio = summary.remainingOwe / profile.baseMonthlySalary;
+    if (company.baseMonthlySalary <= 0) return null;
+    final ratio = summary.remainingOwe / company.baseMonthlySalary;
     if (ratio < settings.debtRatioThreshold) return null;
 
     return Insight(
       id: NotificationIds.finance.idFor(91),
       title: 'نسبة الدين إلى الراتب مرتفعة',
       body:
-          'ما عليك ${_money(summary.remainingOwe, profile)} أي ${(ratio * 100).toStringAsFixed(0)}% من راتبك الشهري. راجع خطة السداد.',
+          'ما عليك ${_money(summary.remainingOwe, company)} أي ${(ratio * 100).toStringAsFixed(0)}% من راتبك الشهري. راجع خطة السداد.',
       category: NotificationCategory.finance,
       dedupeKey: 'debt_ratio:${now.year}-${now.month}',
       severity: InsightSeverity.warning,
@@ -271,7 +271,7 @@ class SmartInsightsService {
   /// يستقرئ مصروفات ما تبقى من الشهر بمعدل الصرف اليومي حتى الآن.
   Insight? _forecastInsight(
     List<TransactionEntity> transactions,
-    ProfileEntity profile,
+    CompanyEntity company,
     DateTime now,
   ) {
     if (now.day < 7) return null;
@@ -281,7 +281,7 @@ class SmartInsightsService {
 
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final projected = (spent / now.day) * daysInMonth;
-    final income = profile.baseMonthlySalary +
+    final income = company.baseMonthlySalary +
         _sumIncome(transactions);
     if (projected <= income) return null;
 
@@ -289,7 +289,7 @@ class SmartInsightsService {
       id: NotificationIds.finance.idFor(92),
       title: 'توقّع عجز في نهاية الشهر',
       body:
-          'بمعدل صرفك الحالي ستنفق ${_money(projected, profile)} مقابل دخل ${_money(income, profile)} — بعجز متوقع ${_money(projected - income, profile)}.',
+          'بمعدل صرفك الحالي ستنفق ${_money(projected, company)} مقابل دخل ${_money(income, company)} — بعجز متوقع ${_money(projected - income, company)}.',
       category: NotificationCategory.finance,
       dedupeKey: 'forecast:${now.year}-${now.month}-${now.day ~/ 7}',
       severity: InsightSeverity.warning,
@@ -346,6 +346,6 @@ class SmartInsightsService {
           .where((t) => t.type == TransactionTypeEntity.income)
           .fold(0.0, (sum, t) => sum + t.amount);
 
-  static String _money(double value, ProfileEntity profile) =>
-      '${value.toStringAsFixed(0)} ${profile.currency ?? AppConstants.defaultCurrency}';
+  static String _money(double value, CompanyEntity company) =>
+      '${value.toStringAsFixed(0)} ${company.currency ?? AppConstants.defaultCurrency}';
 }

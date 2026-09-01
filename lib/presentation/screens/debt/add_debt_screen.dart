@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/debt_entity.dart';
@@ -32,6 +33,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final debtState = ref.watch(debtControllerProvider);
     final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
@@ -85,8 +87,8 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   selected: {_debtType},
                   onSelectionChanged: (set) => setState(() => _debtType = set.first),
                   style: SegmentedButton.styleFrom(
-                    selectedBackgroundColor: _debtType == 'owe' ? Colors.red.shade100 : Colors.green.shade100,
-                    selectedForegroundColor: _debtType == 'owe' ? Colors.red.shade900 : Colors.green.shade900,
+                    selectedBackgroundColor: _debtType == 'owe' ? palette.negative.withValues(alpha: 0.12) : palette.positive.withValues(alpha: 0.12),
+                    selectedForegroundColor: _debtType == 'owe' ? palette.negative : palette.positive,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -146,7 +148,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   label: 'حفظ الدين',
                   icon: Icons.save_rounded,
                   isLoading: debtState.isLoading,
-                  backgroundColor: _debtType == 'owe' ? Colors.red.shade700 : Colors.blue.shade700,
+                  backgroundColor: _debtType == 'owe' ? palette.negative : palette.info,
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       final amount = double.parse(_amountController.text);

@@ -187,7 +187,7 @@ class _MonthlyAttendanceProviderElement
   int get month => (origin as MonthlyAttendanceProvider).month;
 }
 
-String _$attendanceStatsHash() => r'1a6f2b7e07e53ff6aa2cf128fb5ec9458475bf0f';
+String _$attendanceStatsHash() => r'e5c6d597ac38cdabd7439d640f8e4557ed0546df';
 
 /// See also [attendanceStats].
 @ProviderFor(attendanceStats)
@@ -324,13 +324,34 @@ class _AttendanceStatsProviderElement
   int get month => (origin as AttendanceStatsProvider).month;
 }
 
+String _$anyOpenSessionHash() => r'0004c38ed2c0e6b8fe123bcdc61083c63d299abe';
+
+/// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
+///
+/// Copied from [anyOpenSession].
+@ProviderFor(anyOpenSession)
+final anyOpenSessionProvider =
+    AutoDisposeFutureProvider<AttendanceEntity?>.internal(
+      anyOpenSession,
+      name: r'anyOpenSessionProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$anyOpenSessionHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AnyOpenSessionRef = AutoDisposeFutureProviderRef<AttendanceEntity?>;
 String _$attendanceControllerHash() =>
-    r'4f7b509eddde3795089feeace33dadc77d73d107';
+    r'12729d4538ed72e9de676861af6624963ae54612';
 
 /// See also [AttendanceController].
 @ProviderFor(AttendanceController)
 final attendanceControllerProvider =
-    AutoDisposeAsyncNotifierProvider<AttendanceController, void>.internal(
+    AsyncNotifierProvider<AttendanceController, void>.internal(
       AttendanceController.new,
       name: r'attendanceControllerProvider',
       debugGetCreateSourceHash:
@@ -341,6 +362,6 @@ final attendanceControllerProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$AttendanceController = AutoDisposeAsyncNotifier<void>;
+typedef _$AttendanceController = AsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

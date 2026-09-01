@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../../core/utils/ui_helpers.dart';
@@ -33,6 +34,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final transactionState = ref.watch(transactionControllerProvider);
     final isExpense = widget.type == TransactionTypeEntity.expense;
@@ -93,7 +95,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           AppButton(
             label: isExpense ? 'إضافة مصروف' : 'إضافة دخل',
             icon: isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline,
-            backgroundColor: isExpense ? Colors.red.shade600 : Colors.green.shade600,
+            backgroundColor: isExpense ? palette.negative : palette.positive,
             isLoading: transactionState is AsyncLoading,
             onPressed: () async {
               if (_formKey.currentState!.validate()) {

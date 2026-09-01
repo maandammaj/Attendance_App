@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/design_tokens.dart';
+import '../../../../core/constants/theme.dart';
 
 import '../../../../domain/entities/analytics_report_entity.dart';
 
@@ -18,7 +20,8 @@ class SalaryWaterfall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final positive = Colors.green.shade600;
+    final palette = context.palette;
+    final positive = palette.positive;
     final negative = theme.colorScheme.error;
 
     final lines = <(String, double, Color?)>[
@@ -55,7 +58,7 @@ class SalaryWaterfall extends StatelessWidget {
           label: 'إجمالي المستحق',
           value: salary.gross,
           currency: currency,
-          color: theme.colorScheme.primary,
+          color: palette.accent,
         ),
         const SizedBox(height: 12),
         for (final line in afterGross)
@@ -65,7 +68,7 @@ class SalaryWaterfall extends StatelessWidget {
           label: 'الصافي بعد المصروفات',
           value: salary.net,
           currency: currency,
-          color: salary.net >= 0 ? positive : negative,
+          color: salary.net >= 0 ? palette.accent : negative,
         ),
         const SizedBox(height: 12),
         Row(
@@ -161,8 +164,9 @@ class _Total extends StatelessWidget {
           Text(label, style: theme.textTheme.titleSmall),
           Text(
             '${value.toStringAsFixed(0)} $currency',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(color: color, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(color: color)
+                .merge(tabularFigures),
           ),
         ],
       ),

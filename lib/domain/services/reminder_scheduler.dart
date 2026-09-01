@@ -5,7 +5,7 @@ import '../../core/constants/notification_ids.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/utils/date_helpers.dart';
 import '../../data/models/notification_model.dart';
-import '../entities/profile_entity.dart';
+import '../entities/company_entity.dart';
 import '../entities/reminder_settings_entity.dart';
 import '../repositories/debt_repository.dart';
 
@@ -24,15 +24,15 @@ class ReminderScheduler {
   final NotificationService _notifications;
 
   Future<void> rescheduleAll({
-    required ProfileEntity? profile,
+    required CompanyEntity? company,
     required ReminderSettingsEntity settings,
   }) async {
     for (final range in NotificationIds.scheduledRanges) {
       await _notifications.cancelRange(range);
     }
 
-    if (profile != null) {
-      await _scheduleShiftReminders(profile, settings);
+    if (company != null) {
+      await _scheduleShiftReminders(company, settings);
     }
     await _scheduleDebtReminders(settings);
     await _scheduleSummaries(settings);
@@ -47,10 +47,10 @@ class ReminderScheduler {
   // ── الدوام ──────────────────────────────────────────────────────
 
   Future<void> _scheduleShiftReminders(
-    ProfileEntity profile,
+    CompanyEntity company,
     ReminderSettingsEntity settings,
   ) async {
-    for (final day in profile.workSchedule) {
+    for (final day in company.workSchedule) {
       if (!day.isWorkingDay || day.isHoliday) continue;
 
       final start = _parseTime(day.startTime);

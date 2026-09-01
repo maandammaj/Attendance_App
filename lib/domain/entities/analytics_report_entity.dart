@@ -92,6 +92,9 @@ class CalendarDayCell {
     required this.overtimeMinutes,
     required this.deficitMinutes,
     required this.status,
+    this.sessionCount = 0,
+    this.firstCheckIn,
+    this.lastCheckOut,
   });
 
   final DateTime date;
@@ -100,6 +103,12 @@ class CalendarDayCell {
   final int overtimeMinutes;
   final int deficitMinutes;
   final DayStatus status;
+
+  /// عدد جلسات اليوم — يوم مقطّع يظهر هنا بأكثر من واحدة.
+  final int sessionCount;
+
+  final DateTime? firstCheckIn;
+  final DateTime? lastCheckOut;
 
   /// نسبة الإنجاز مقابل المطلوب، مقصوصة عند 1.5 حتى لا يبتلع يومٌ واحد التدرّج.
   double get completion {
@@ -116,6 +125,8 @@ class AttendanceAnalytics {
     required this.calendar,
     required this.averageByWeekday,
     required this.totalWorkedMinutes,
+    this.totalRequiredMinutes = 0,
+    this.totalPresenceMinutes = 0,
     required this.totalOvertimeMinutes,
     required this.totalDeficitMinutes,
     required this.expectedWorkingDays,
@@ -125,6 +136,8 @@ class AttendanceAnalytics {
     required this.averageCheckOutMinutes,
     required this.punctualityRate,
     required this.longestStreak,
+    required this.totalSessions,
+    required this.averageSessionsPerDay,
   });
 
   final List<TimeSeriesPoint> dailySeries;
@@ -134,6 +147,13 @@ class AttendanceAnalytics {
   final List<double> averageByWeekday;
 
   final int totalWorkedMinutes;
+
+  /// إجمالي الدقائق المطلوبة لأيام العمل التي مضت في الفترة.
+  final int totalRequiredMinutes;
+
+  /// إجمالي دقائق التواجد الفعلي عبر كل الجلسات.
+  final int totalPresenceMinutes;
+
   final int totalOvertimeMinutes;
   final int totalDeficitMinutes;
   final int expectedWorkingDays;
@@ -150,8 +170,17 @@ class AttendanceAnalytics {
   /// أطول سلسلة أيام عمل متتالية بحضور مسجّل.
   final int longestStreak;
 
+  /// إجمالي الجلسات في الفترة، ومتوسطها لكل يوم حضور.
+  final int totalSessions;
+  final double averageSessionsPerDay;
+
   double get attendanceRate =>
       expectedWorkingDays == 0 ? 0 : attendedDays / expectedWorkingDays;
+
+  /// نسبة الساعات المنجزة إلى المطلوبة — تكمّل نسبة الحضور: قد يحضر كل
+  /// الأيام وينجز نصف الساعات.
+  double get completionRate =>
+      totalRequiredMinutes == 0 ? 0 : totalWorkedMinutes / totalRequiredMinutes;
 }
 
 class FinanceAnalytics {

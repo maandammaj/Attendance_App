@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/utils/date_helpers.dart';
+import '../../../config/routes.dart';
+import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
+import '../../widgets/common/section_header.dart';
+import '../../widgets/common/state_switcher.dart';
 import '../../widgets/app_button.dart';
+import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
+import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -46,25 +51,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
-  ProfileEntity _buildProfile(int id) {
-    final now = DateTime.now();
-    return ProfileEntity(
-      id: id,
-      fullName: _nameCtl.text.trim().isEmpty ? 'المستخدم' : _nameCtl.text.trim(),
-      jobTitle: _jobCtl.text.trim().isEmpty ? 'المسمى الوظيفي' : _jobCtl.text.trim(),
-      baseMonthlySalary: double.tryParse(_baseSalaryCtl.text) ?? 0.0,
-      hourlyRate: double.tryParse(_hourlyCtl.text) ?? 0.0,
+  /// الاسم يخص الشخص، وبقية الحقول تخص الجهة — يُحفظان في كيانين.
+  ProfileEntity _buildProfile(ProfileEntity current) {
+    return current.copyWith(
+      fullName:
+          _nameCtl.text.trim().isEmpty ? 'المستخدم' : _nameCtl.text.trim(),
+      currency: _currency,
+    );
+  }
+
+  CompanyEntity _buildCompany(CompanyEntity current) {
+    return current.copyWith(
+      jobTitle: _jobCtl.text.trim().isEmpty
+          ? 'المسمى الوظيفي'
+          : _jobCtl.text.trim(),
+      baseMonthlySalary: double.tryParse(_baseSalaryCtl.text) ?? 0,
+      hourlyRate: double.tryParse(_hourlyCtl.text) ?? 0,
       overtimeRate: double.tryParse(_overtimeCtl.text) ?? 1.5,
       workSchedule: _schedule,
       adjustments: _adjustments,
       currency: _currency,
-      updatedAt: now,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final company = ref.watch(activeCompanyProvider).valueOrNull;
     final profileState = ref.watch(profileControllerProvider);
 
     profileAsync.whenData((profile) {
@@ -72,13 +85,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _inited = true;
         if (profile != null) {
           _nameCtl.text = profile.fullName;
-          _jobCtl.text = profile.jobTitle;
-          _baseSalaryCtl.text = profile.baseMonthlySalary.toString();
-          _hourlyCtl.text = profile.hourlyRate.toString();
-          _overtimeCtl.text = profile.overtimeRate.toString();
+          _jobCtl.text = company?.jobTitle ?? '';
+          _baseSalaryCtl.text = (company?.baseMonthlySalary ?? 0).toStringAsFixed(0);
+          _hourlyCtl.text = (company?.hourlyRate ?? 0).toStringAsFixed(0);
+          _overtimeCtl.text = (company?.overtimeRate ?? 1.5).toString();
           _currency = profile.currency ?? 'ر.ي';
-          _schedule = profile.workSchedule;
-          _adjustments = profile.adjustments;
+          _schedule = company?.workSchedule ?? const [];
+          _adjustments = company?.adjustments ?? const [];
         } else {
           _schedule = List.generate(7, (i) => WorkDayConfigEntity(
             dayOfWeek: i + 1,
@@ -101,7 +114,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              _buildSectionHeader('البيانات الأساسية'),
+              const SectionHeader(title: 'البيانات الأساسية'),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameCtl,
@@ -132,10 +145,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              _buildSectionHeader('إعدادات الورديات'),
-              const Text('قم بضبط مواعيد العمل الرسمية لكل يوم بدقة', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const SectionHeader(title: 'جدول الدوام'),
               const SizedBox(height: 8),
-              ..._schedule.map((day) => _buildDayTile(day)).toList(),
+              const _ScheduleLink(),
               const SizedBox(height: 32),
               AppButton(
                 label: 'حفظ كافة الإعدادات',
@@ -143,8 +155,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 isLoading: profileState is AsyncLoading,
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
-                    final newProfile = _buildProfile(profile?.id ?? 0);
-                    await ref.read(profileControllerProvider.notifier).saveProfile(newProfile);
+                    await ref
+                        .read(profileControllerProvider.notifier)
+                        .saveProfile(_buildProfile(profile!));
+                    if (company != null) {
+                      await ref
+                          .read(companyControllerProvider.notifier)
+                          .save(_buildCompany(company));
+                    }
                     if (mounted) {
                       final state = ref.read(profileControllerProvider);
                       if (state is! AsyncError) {
@@ -157,149 +175,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              _buildSectionHeader('النظام'),
+              const SectionHeader(title: 'النظام'),
               const SizedBox(height: 8),
               const _SystemLinks(),
               const SizedBox(height: 40),
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('خطأ: $e')),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Column(children: [Skeleton(height: 72), Skeleton(height: 72), Skeleton(height: 140)]),
         ),
+        error: (e, _) => Center(child: Text('تعذّر التحميل: $e')),
       ),
     );
   }
 
-  Widget _buildDayTile(WorkDayConfigEntity day) {
-    final name = DateHelpers.arabicDayNameOfScheduleDay(day.dayOfWeek);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-      ),
-      child: ExpansionTile(
-        title: Text(name, style: TextStyle(fontWeight: day.isWorkingDay ? FontWeight.bold : FontWeight.normal)),
-        leading: Icon(day.isWorkingDay ? Icons.work_outline : Icons.weekend_outlined, 
-                      color: day.isWorkingDay ? Colors.blue : Colors.grey),
-        trailing: Switch(
-          value: day.isWorkingDay,
-          onChanged: (v) {
-            setState(() {
-              final idx = _schedule.indexOf(day);
-              _schedule[idx] = WorkDayConfigEntity(
-                dayOfWeek: day.dayOfWeek,
-                isWorkingDay: v,
-                requiredHours: day.requiredHours,
-                requiredMinutes: day.requiredMinutes,
-                isHoliday: !v,
-                startTime: day.startTime,
-                endTime: day.endTime,
-              );
-            });
-          },
-        ),
-        children: [
-          if (day.isWorkingDay)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildTimePickerField(
-                      label: 'بداية الوردية',
-                      value: day.startTime ?? '08:00',
-                      onTap: () async {
-                        final time = await _selectTime(day.startTime ?? '08:00');
-                        if (time != null) {
-                          setState(() {
-                            final idx = _schedule.indexOf(day);
-                            _schedule[idx] = WorkDayConfigEntity(
-                              dayOfWeek: day.dayOfWeek,
-                              isWorkingDay: true,
-                              requiredHours: day.requiredHours,
-                              requiredMinutes: day.requiredMinutes,
-                              isHoliday: false,
-                              startTime: time,
-                              endTime: day.endTime,
-                            );
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTimePickerField(
-                      label: 'نهاية الوردية',
-                      value: day.endTime ?? '16:00',
-                      onTap: () async {
-                        final time = await _selectTime(day.endTime ?? '16:00');
-                        if (time != null) {
-                          setState(() {
-                            final idx = _schedule.indexOf(day);
-                            _schedule[idx] = WorkDayConfigEntity(
-                              dayOfWeek: day.dayOfWeek,
-                              isWorkingDay: true,
-                              requiredHours: day.requiredHours,
-                              requiredMinutes: day.requiredMinutes,
-                              isHoliday: false,
-                              startTime: day.startTime,
-                              endTime: time,
-                            );
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimePickerField({required String label, required String value, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-        child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-
-  Future<String?> _selectTime(String initial) async {
-    final parts = initial.split(':');
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-    );
-    if (picked != null) {
-      return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-    }
-    return null;
-  }
 }
 
 /// روابط الشاشات التي لا تملك تبويباً في الشريط السفلي.
@@ -310,6 +202,18 @@ class _SystemLinks extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        _LinkTile(
+          icon: Icons.business_outlined,
+          title: 'جهات العمل',
+          subtitle: 'أضف جهة أو بدّل بينها',
+          route: AppRoutes.companies,
+        ),
+        _LinkTile(
+          icon: Icons.event_note_rounded,
+          title: 'جدول الدوام',
+          subtitle: 'أيام العمل وأوقات الورديات',
+          route: '/work-schedule',
+        ),
         _LinkTile(
           icon: Icons.insights_rounded,
           title: 'التقارير والتحليلات',
@@ -371,6 +275,32 @@ class _LinkTile extends StatelessWidget {
         subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
         onTap: () => Navigator.pushNamed(context, route),
+      ),
+    );
+  }
+}
+
+/// مدخل شاشة الجدول — التحرير الكامل صار له شاشته الخاصة.
+class _ScheduleLink extends StatelessWidget {
+  const _ScheduleLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: ListTile(
+        contentPadding:
+            const EdgeInsetsDirectional.fromSTEB(16, 6, 12, 6),
+        leading: CircleAvatar(
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(Icons.event_note_rounded,
+              color: theme.colorScheme.primary),
+        ),
+        title: const Text('تخصيص أيام وأوقات الدوام'),
+        subtitle: Text('قوالب جاهزة، نوافذ ورديات، وورديات ليلية',
+            style: theme.textTheme.bodySmall),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+        onTap: () => Navigator.pushNamed(context, '/work-schedule'),
       ),
     );
   }

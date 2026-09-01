@@ -70,5 +70,16 @@ class ReminderSettingsModel {
   String quietHoursStart = '23:00';
   String quietHoursEnd = '07:00';
 
+  // ── الأمان ──────────────────────────────────────────────────────
+  /// يمنع تسجيل الحضور/الانصراف دون تحقق ناجح. عند تعطيله يُسجَّل الدوام
+  /// مع وسم `isBiometricVerified = false` بدل منعه.
+  bool requireBiometricForAttendance = true;
+
+  /// يطلب تحققاً عند كل فتح للتطبيق.
+  bool appLockEnabled = false;
+
+  /// يسمح بقفل الجهاز (PIN/نمط) كبديل عن البصمة.
+  bool allowDeviceCredential = true;
+
   DateTime updatedAt = DateTime(2020);
 }

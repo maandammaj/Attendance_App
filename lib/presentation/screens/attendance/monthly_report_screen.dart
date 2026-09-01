@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/utils/date_helpers.dart';
+import '../../../domain/entities/attendance_entity.dart';
+import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../providers/attendance_provider.dart';
-import '../../providers/profile_provider.dart';
+import '../../providers/company_provider.dart';
 import 'edit_attendance_dialog.dart';
 
 class MonthlyReportScreen extends ConsumerStatefulWidget {
@@ -24,7 +27,7 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
       month: _selectedMonth.month,
     ));
     
-    final profileAsync = ref.watch(profileProvider);
+    final companyAsync = ref.watch(activeCompanyProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,6 +35,7 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
         centerTitle: true,
         actions: [
           IconButton(
+              tooltip: 'اختيار الشهر',
             icon: const Icon(Icons.calendar_month),
             onPressed: () async {
               final picked = await showDatePicker(
@@ -47,9 +51,17 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
           )
         ],
       ),
-      body: profileAsync.when(
-        data: (profile) => recordsAsync.when(
-          data: (records) => _buildReportTable(context, records, profile),
+      body: companyAsync.when(
+        data: (company) => recordsAsync.when(
+          data: (records) => _ReportTable(
+            records: records,
+            company: company,
+            month: _selectedMonth,
+            onEdit: (record) => showDialog<void>(
+              context: context,
+              builder: (_) => EditAttendanceDialog(record: record),
+            ),
+          ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('خطأ في تحميل السجلات: $e')),
         ),
@@ -58,17 +70,41 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
       ),
     );
   }
+}
 
-  Widget _buildReportTable(BuildContext context, List<dynamic> records, ProfileEntity? profile) {
+/// جدول الشهر يوماً بيوم. ويدجت مستقل لأن `DataTable` يعيد بناء كل صفوفه
+/// عند أي تغيّر في الشاشة الحاضنة؛ فصله يحصر إعادة البناء فيه.
+class _ReportTable extends StatelessWidget {
+  const _ReportTable({
+    required this.records,
+    required this.company,
+    required this.month,
+    required this.onEdit,
+  });
+
+  final List<AttendanceEntity> records;
+  final CompanyEntity? company;
+  final DateTime month;
+  final ValueChanged<AttendanceEntity> onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SingleChildScrollView(
         child: DataTable(
           showCheckboxColumn: false,
           columnSpacing: 20,
-          headingRowColor: WidgetStateProperty.all(Theme.of(context).colorScheme.primaryContainer),
+          headingRowColor:
+              WidgetStatePropertyAll(palette.surfaceAlt),
+          headingTextStyle: theme.textTheme.labelMedium,
+          dataTextStyle: theme.textTheme.bodySmall,
           columns: const [
             DataColumn(label: Text('اليوم')),
+            DataColumn(label: Text('جلسات')),
             DataColumn(label: Text('الحضور')),
             DataColumn(label: Text('الانصراف')),
             DataColumn(label: Text('المطلوب')),
@@ -76,73 +112,83 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
             DataColumn(label: Text('زيادة')),
             DataColumn(label: Text('عجز')),
           ],
-          rows: _buildRows(records, profile),
+          rows: _rows(context, palette),
         ),
       ),
     );
   }
 
-  List<DataRow> _buildRows(List<dynamic> records, ProfileEntity? profile) {
-    final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
+  List<DataRow> _rows(BuildContext context, AppPalette palette) {
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final now = DateTime.now();
-    final List<DataRow> rows = [];
+    final rows = <DataRow>[];
 
     for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
-      final record = records.where((r) => DateHelpers.isSameDay(r.date, date)).firstOrNull;
-      
-      bool isMissingWorkDay = false;
-      int reqHours = record?.requiredHours ?? 0;
+      final date = DateTime(month.year, month.month, day);
+      final record = records
+          .where((r) => DateHelpers.isSameDay(r.date, date))
+          .firstOrNull;
 
-      if (record == null && profile != null && date.isBefore(now)) {
-        final dayConfig = profile.workSchedule.firstWhere(
+      var isMissingWorkDay = false;
+      var requiredHours = record?.requiredHours ?? 0;
+
+      if (record == null && company != null && date.isBefore(now)) {
+        final config = company!.workSchedule.firstWhere(
           (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(date),
-          orElse: () => WorkDayConfigEntity(dayOfWeek: DateHelpers.scheduleDayOf(date), isWorkingDay: false, requiredHours: 0, requiredMinutes: 0, isHoliday: true),
+          orElse: () => WorkDayConfigEntity(
+            dayOfWeek: DateHelpers.scheduleDayOf(date),
+            isWorkingDay: false,
+            requiredHours: 0,
+            requiredMinutes: 0,
+            isHoliday: true,
+          ),
         );
-        if (dayConfig.isWorkingDay && !dayConfig.isHoliday) {
+        if (config.isWorkingDay && !config.isHoliday) {
           isMissingWorkDay = true;
-          reqHours = dayConfig.requiredHours;
+          requiredHours = config.requiredHours;
         }
       }
 
-      rows.add(
-        DataRow(
-          onSelectChanged: (selected) {
-            if (record != null) {
-              showDialog(
-                context: context,
-                builder: (context) => EditAttendanceDialog(record: record),
-              );
-            }
-          },
-          color: isMissingWorkDay ? WidgetStateProperty.all(Colors.red.withValues(alpha: 0.05)) : null,
-          cells: [
-            DataCell(Text(DateFormat('d (EEEE)', 'ar').format(date))),
-            DataCell(Text(record?.checkIn != null ? DateHelpers.formatTime(record!.checkIn!) : (isMissingWorkDay ? 'غائب' : '-'))),
-            DataCell(Text(record?.checkOut != null ? DateHelpers.formatTime(record!.checkOut!) : '-')),
-            DataCell(Text('${reqHours}س')),
-            DataCell(Text(record != null ? '${record.workedHours}س ${record.workedMinutes}د' : (isMissingWorkDay ? '0س' : '-'))),
-            DataCell(
-              Text(
-                record != null && (record.overtimeHours + record.overtimeMinutes > 0)
-                    ? '+${record.overtimeHours}س'
-                    : '-',
-                style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-              ),
-            ),
-            DataCell(
-              Text(
-                isMissingWorkDay 
-                    ? '-${reqHours}س' 
-                    : (record != null && (record.deficitHours + record.deficitMinutes > 0)
-                        ? '-${record.deficitHours}س'
-                        : '-'),
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-      );
+      final overtime =
+          record == null ? 0 : (record.overtimeHours * 60) + record.overtimeMinutes;
+      final deficit =
+          record == null ? 0 : (record.deficitHours * 60) + record.deficitMinutes;
+
+      rows.add(DataRow(
+        onSelectChanged:
+            record == null ? null : (_) => onEdit(record),
+        color: isMissingWorkDay
+            ? WidgetStatePropertyAll(palette.negative.withValues(alpha: 0.06))
+            : null,
+        cells: [
+          DataCell(Text(
+              '$day ${DateHelpers.getArabicDayName(date)}')),
+          DataCell(Text(record == null ? '—' : '${record.sessionCount}')),
+          DataCell(Text(record?.checkIn == null
+              ? (isMissingWorkDay ? 'غائب' : '—')
+              : DateHelpers.formatTime(record!.checkIn!))),
+          DataCell(Text(record?.checkOut == null
+              ? '—'
+              : DateHelpers.formatTime(record!.checkOut!))),
+          DataCell(Text('$requiredHoursس')),
+          DataCell(Text(record == null
+              ? (isMissingWorkDay ? '0س' : '—')
+              : DateHelpers.formatDurationCompact(
+                  (record.workedHours * 60) + record.workedMinutes))),
+          DataCell(Text(
+            overtime == 0 ? '—' : '+${DateHelpers.formatDurationCompact(overtime)}',
+            style: TextStyle(color: palette.positive),
+          )),
+          DataCell(Text(
+            isMissingWorkDay
+                ? '-$requiredHoursس'
+                : (deficit == 0
+                    ? '—'
+                    : '-${DateHelpers.formatDurationCompact(deficit)}'),
+            style: TextStyle(color: palette.negative),
+          )),
+        ],
+      ));
     }
     return rows;
   }

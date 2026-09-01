@@ -18,158 +18,173 @@ const ReminderSettingsModelSchema = CollectionSchema(
   name: r'ReminderSettingsModel',
   id: 1656663795440154833,
   properties: {
-    r'budgetOverrunEnabled': PropertySchema(
+    r'allowDeviceCredential': PropertySchema(
       id: 0,
+      name: r'allowDeviceCredential',
+      type: IsarType.bool,
+    ),
+    r'appLockEnabled': PropertySchema(
+      id: 1,
+      name: r'appLockEnabled',
+      type: IsarType.bool,
+    ),
+    r'budgetOverrunEnabled': PropertySchema(
+      id: 2,
       name: r'budgetOverrunEnabled',
       type: IsarType.bool,
     ),
     r'budgetWarnThreshold': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'budgetWarnThreshold',
       type: IsarType.double,
     ),
     r'dailySummaryEnabled': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'dailySummaryEnabled',
       type: IsarType.bool,
     ),
     r'dailySummaryTime': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'dailySummaryTime',
       type: IsarType.string,
     ),
     r'debtDueEnabled': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'debtDueEnabled',
       type: IsarType.bool,
     ),
     r'debtDueLeadDays': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'debtDueLeadDays',
       type: IsarType.longList,
     ),
     r'debtOverdueEnabled': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'debtOverdueEnabled',
       type: IsarType.bool,
     ),
     r'debtRatioEnabled': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'debtRatioEnabled',
       type: IsarType.bool,
     ),
     r'debtRatioThreshold': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'debtRatioThreshold',
       type: IsarType.double,
     ),
     r'forgotCheckOutAfterHours': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'forgotCheckOutAfterHours',
       type: IsarType.long,
     ),
     r'forgotCheckOutEnabled': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'forgotCheckOutEnabled',
       type: IsarType.bool,
     ),
     r'missedCheckInAfterMinutes': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'missedCheckInAfterMinutes',
       type: IsarType.long,
     ),
     r'missedCheckInEnabled': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'missedCheckInEnabled',
       type: IsarType.bool,
     ),
     r'monthEndForecastEnabled': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'monthEndForecastEnabled',
       type: IsarType.bool,
     ),
     r'monthlySummaryDayOfMonth': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'monthlySummaryDayOfMonth',
       type: IsarType.long,
     ),
     r'monthlySummaryEnabled': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'monthlySummaryEnabled',
       type: IsarType.bool,
     ),
     r'monthlySummaryTime': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'monthlySummaryTime',
       type: IsarType.string,
     ),
     r'quietHoursEnabled': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'quietHoursEnabled',
       type: IsarType.bool,
     ),
     r'quietHoursEnd': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'quietHoursEnd',
       type: IsarType.string,
     ),
     r'quietHoursStart': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'quietHoursStart',
       type: IsarType.string,
     ),
     r'recurringExpenseEnabled': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'recurringExpenseEnabled',
       type: IsarType.bool,
     ),
+    r'requireBiometricForAttendance': PropertySchema(
+      id: 23,
+      name: r'requireBiometricForAttendance',
+      type: IsarType.bool,
+    ),
     r'requiredHoursDoneEnabled': PropertySchema(
-      id: 21,
+      id: 24,
       name: r'requiredHoursDoneEnabled',
       type: IsarType.bool,
     ),
     r'shiftEndEnabled': PropertySchema(
-      id: 22,
+      id: 25,
       name: r'shiftEndEnabled',
       type: IsarType.bool,
     ),
     r'shiftEndLeadMinutes': PropertySchema(
-      id: 23,
+      id: 26,
       name: r'shiftEndLeadMinutes',
       type: IsarType.long,
     ),
     r'shiftStartEnabled': PropertySchema(
-      id: 24,
+      id: 27,
       name: r'shiftStartEnabled',
       type: IsarType.bool,
     ),
     r'shiftStartLeadMinutes': PropertySchema(
-      id: 25,
+      id: 28,
       name: r'shiftStartLeadMinutes',
       type: IsarType.long,
     ),
     r'unusualSpendingEnabled': PropertySchema(
-      id: 26,
+      id: 29,
       name: r'unusualSpendingEnabled',
       type: IsarType.bool,
     ),
     r'updatedAt': PropertySchema(
-      id: 27,
+      id: 30,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'weeklySummaryDayOfWeek': PropertySchema(
-      id: 28,
+      id: 31,
       name: r'weeklySummaryDayOfWeek',
       type: IsarType.long,
     ),
     r'weeklySummaryEnabled': PropertySchema(
-      id: 29,
+      id: 32,
       name: r'weeklySummaryEnabled',
       type: IsarType.bool,
     ),
     r'weeklySummaryTime': PropertySchema(
-      id: 30,
+      id: 33,
       name: r'weeklySummaryTime',
       type: IsarType.string,
     ),
@@ -211,37 +226,40 @@ void _reminderSettingsModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.budgetOverrunEnabled);
-  writer.writeDouble(offsets[1], object.budgetWarnThreshold);
-  writer.writeBool(offsets[2], object.dailySummaryEnabled);
-  writer.writeString(offsets[3], object.dailySummaryTime);
-  writer.writeBool(offsets[4], object.debtDueEnabled);
-  writer.writeLongList(offsets[5], object.debtDueLeadDays);
-  writer.writeBool(offsets[6], object.debtOverdueEnabled);
-  writer.writeBool(offsets[7], object.debtRatioEnabled);
-  writer.writeDouble(offsets[8], object.debtRatioThreshold);
-  writer.writeLong(offsets[9], object.forgotCheckOutAfterHours);
-  writer.writeBool(offsets[10], object.forgotCheckOutEnabled);
-  writer.writeLong(offsets[11], object.missedCheckInAfterMinutes);
-  writer.writeBool(offsets[12], object.missedCheckInEnabled);
-  writer.writeBool(offsets[13], object.monthEndForecastEnabled);
-  writer.writeLong(offsets[14], object.monthlySummaryDayOfMonth);
-  writer.writeBool(offsets[15], object.monthlySummaryEnabled);
-  writer.writeString(offsets[16], object.monthlySummaryTime);
-  writer.writeBool(offsets[17], object.quietHoursEnabled);
-  writer.writeString(offsets[18], object.quietHoursEnd);
-  writer.writeString(offsets[19], object.quietHoursStart);
-  writer.writeBool(offsets[20], object.recurringExpenseEnabled);
-  writer.writeBool(offsets[21], object.requiredHoursDoneEnabled);
-  writer.writeBool(offsets[22], object.shiftEndEnabled);
-  writer.writeLong(offsets[23], object.shiftEndLeadMinutes);
-  writer.writeBool(offsets[24], object.shiftStartEnabled);
-  writer.writeLong(offsets[25], object.shiftStartLeadMinutes);
-  writer.writeBool(offsets[26], object.unusualSpendingEnabled);
-  writer.writeDateTime(offsets[27], object.updatedAt);
-  writer.writeLong(offsets[28], object.weeklySummaryDayOfWeek);
-  writer.writeBool(offsets[29], object.weeklySummaryEnabled);
-  writer.writeString(offsets[30], object.weeklySummaryTime);
+  writer.writeBool(offsets[0], object.allowDeviceCredential);
+  writer.writeBool(offsets[1], object.appLockEnabled);
+  writer.writeBool(offsets[2], object.budgetOverrunEnabled);
+  writer.writeDouble(offsets[3], object.budgetWarnThreshold);
+  writer.writeBool(offsets[4], object.dailySummaryEnabled);
+  writer.writeString(offsets[5], object.dailySummaryTime);
+  writer.writeBool(offsets[6], object.debtDueEnabled);
+  writer.writeLongList(offsets[7], object.debtDueLeadDays);
+  writer.writeBool(offsets[8], object.debtOverdueEnabled);
+  writer.writeBool(offsets[9], object.debtRatioEnabled);
+  writer.writeDouble(offsets[10], object.debtRatioThreshold);
+  writer.writeLong(offsets[11], object.forgotCheckOutAfterHours);
+  writer.writeBool(offsets[12], object.forgotCheckOutEnabled);
+  writer.writeLong(offsets[13], object.missedCheckInAfterMinutes);
+  writer.writeBool(offsets[14], object.missedCheckInEnabled);
+  writer.writeBool(offsets[15], object.monthEndForecastEnabled);
+  writer.writeLong(offsets[16], object.monthlySummaryDayOfMonth);
+  writer.writeBool(offsets[17], object.monthlySummaryEnabled);
+  writer.writeString(offsets[18], object.monthlySummaryTime);
+  writer.writeBool(offsets[19], object.quietHoursEnabled);
+  writer.writeString(offsets[20], object.quietHoursEnd);
+  writer.writeString(offsets[21], object.quietHoursStart);
+  writer.writeBool(offsets[22], object.recurringExpenseEnabled);
+  writer.writeBool(offsets[23], object.requireBiometricForAttendance);
+  writer.writeBool(offsets[24], object.requiredHoursDoneEnabled);
+  writer.writeBool(offsets[25], object.shiftEndEnabled);
+  writer.writeLong(offsets[26], object.shiftEndLeadMinutes);
+  writer.writeBool(offsets[27], object.shiftStartEnabled);
+  writer.writeLong(offsets[28], object.shiftStartLeadMinutes);
+  writer.writeBool(offsets[29], object.unusualSpendingEnabled);
+  writer.writeDateTime(offsets[30], object.updatedAt);
+  writer.writeLong(offsets[31], object.weeklySummaryDayOfWeek);
+  writer.writeBool(offsets[32], object.weeklySummaryEnabled);
+  writer.writeString(offsets[33], object.weeklySummaryTime);
 }
 
 ReminderSettingsModel _reminderSettingsModelDeserialize(
@@ -251,38 +269,41 @@ ReminderSettingsModel _reminderSettingsModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ReminderSettingsModel();
-  object.budgetOverrunEnabled = reader.readBool(offsets[0]);
-  object.budgetWarnThreshold = reader.readDouble(offsets[1]);
-  object.dailySummaryEnabled = reader.readBool(offsets[2]);
-  object.dailySummaryTime = reader.readString(offsets[3]);
-  object.debtDueEnabled = reader.readBool(offsets[4]);
-  object.debtDueLeadDays = reader.readLongList(offsets[5]) ?? [];
-  object.debtOverdueEnabled = reader.readBool(offsets[6]);
-  object.debtRatioEnabled = reader.readBool(offsets[7]);
-  object.debtRatioThreshold = reader.readDouble(offsets[8]);
-  object.forgotCheckOutAfterHours = reader.readLong(offsets[9]);
-  object.forgotCheckOutEnabled = reader.readBool(offsets[10]);
+  object.allowDeviceCredential = reader.readBool(offsets[0]);
+  object.appLockEnabled = reader.readBool(offsets[1]);
+  object.budgetOverrunEnabled = reader.readBool(offsets[2]);
+  object.budgetWarnThreshold = reader.readDouble(offsets[3]);
+  object.dailySummaryEnabled = reader.readBool(offsets[4]);
+  object.dailySummaryTime = reader.readString(offsets[5]);
+  object.debtDueEnabled = reader.readBool(offsets[6]);
+  object.debtDueLeadDays = reader.readLongList(offsets[7]) ?? [];
+  object.debtOverdueEnabled = reader.readBool(offsets[8]);
+  object.debtRatioEnabled = reader.readBool(offsets[9]);
+  object.debtRatioThreshold = reader.readDouble(offsets[10]);
+  object.forgotCheckOutAfterHours = reader.readLong(offsets[11]);
+  object.forgotCheckOutEnabled = reader.readBool(offsets[12]);
   object.id = id;
-  object.missedCheckInAfterMinutes = reader.readLong(offsets[11]);
-  object.missedCheckInEnabled = reader.readBool(offsets[12]);
-  object.monthEndForecastEnabled = reader.readBool(offsets[13]);
-  object.monthlySummaryDayOfMonth = reader.readLong(offsets[14]);
-  object.monthlySummaryEnabled = reader.readBool(offsets[15]);
-  object.monthlySummaryTime = reader.readString(offsets[16]);
-  object.quietHoursEnabled = reader.readBool(offsets[17]);
-  object.quietHoursEnd = reader.readString(offsets[18]);
-  object.quietHoursStart = reader.readString(offsets[19]);
-  object.recurringExpenseEnabled = reader.readBool(offsets[20]);
-  object.requiredHoursDoneEnabled = reader.readBool(offsets[21]);
-  object.shiftEndEnabled = reader.readBool(offsets[22]);
-  object.shiftEndLeadMinutes = reader.readLong(offsets[23]);
-  object.shiftStartEnabled = reader.readBool(offsets[24]);
-  object.shiftStartLeadMinutes = reader.readLong(offsets[25]);
-  object.unusualSpendingEnabled = reader.readBool(offsets[26]);
-  object.updatedAt = reader.readDateTime(offsets[27]);
-  object.weeklySummaryDayOfWeek = reader.readLong(offsets[28]);
-  object.weeklySummaryEnabled = reader.readBool(offsets[29]);
-  object.weeklySummaryTime = reader.readString(offsets[30]);
+  object.missedCheckInAfterMinutes = reader.readLong(offsets[13]);
+  object.missedCheckInEnabled = reader.readBool(offsets[14]);
+  object.monthEndForecastEnabled = reader.readBool(offsets[15]);
+  object.monthlySummaryDayOfMonth = reader.readLong(offsets[16]);
+  object.monthlySummaryEnabled = reader.readBool(offsets[17]);
+  object.monthlySummaryTime = reader.readString(offsets[18]);
+  object.quietHoursEnabled = reader.readBool(offsets[19]);
+  object.quietHoursEnd = reader.readString(offsets[20]);
+  object.quietHoursStart = reader.readString(offsets[21]);
+  object.recurringExpenseEnabled = reader.readBool(offsets[22]);
+  object.requireBiometricForAttendance = reader.readBool(offsets[23]);
+  object.requiredHoursDoneEnabled = reader.readBool(offsets[24]);
+  object.shiftEndEnabled = reader.readBool(offsets[25]);
+  object.shiftEndLeadMinutes = reader.readLong(offsets[26]);
+  object.shiftStartEnabled = reader.readBool(offsets[27]);
+  object.shiftStartLeadMinutes = reader.readLong(offsets[28]);
+  object.unusualSpendingEnabled = reader.readBool(offsets[29]);
+  object.updatedAt = reader.readDateTime(offsets[30]);
+  object.weeklySummaryDayOfWeek = reader.readLong(offsets[31]);
+  object.weeklySummaryEnabled = reader.readBool(offsets[32]);
+  object.weeklySummaryTime = reader.readString(offsets[33]);
   return object;
 }
 
@@ -296,64 +317,70 @@ P _reminderSettingsModelDeserializeProp<P>(
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readLongList(offset) ?? []) as P;
+      return (reader.readString(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongList(offset) ?? []) as P;
     case 8:
-      return (reader.readDouble(offset)) as P;
-    case 9:
-      return (reader.readLong(offset)) as P;
-    case 10:
       return (reader.readBool(offset)) as P;
+    case 9:
+      return (reader.readBool(offset)) as P;
+    case 10:
+      return (reader.readDouble(offset)) as P;
     case 11:
       return (reader.readLong(offset)) as P;
     case 12:
       return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readBool(offset)) as P;
-    case 14:
       return (reader.readLong(offset)) as P;
+    case 14:
+      return (reader.readBool(offset)) as P;
     case 15:
       return (reader.readBool(offset)) as P;
     case 16:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 17:
       return (reader.readBool(offset)) as P;
     case 18:
       return (reader.readString(offset)) as P;
     case 19:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 20:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 21:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 22:
       return (reader.readBool(offset)) as P;
     case 23:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 24:
       return (reader.readBool(offset)) as P;
     case 25:
-      return (reader.readLong(offset)) as P;
-    case 26:
       return (reader.readBool(offset)) as P;
+    case 26:
+      return (reader.readLong(offset)) as P;
     case 27:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 28:
       return (reader.readLong(offset)) as P;
     case 29:
       return (reader.readBool(offset)) as P;
     case 30:
+      return (reader.readDateTime(offset)) as P;
+    case 31:
+      return (reader.readLong(offset)) as P;
+    case 32:
+      return (reader.readBool(offset)) as P;
+    case 33:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -470,6 +497,35 @@ extension ReminderSettingsModelQueryFilter
           ReminderSettingsModel,
           QFilterCondition
         > {
+  QueryBuilder<
+    ReminderSettingsModel,
+    ReminderSettingsModel,
+    QAfterFilterCondition
+  >
+  allowDeviceCredentialEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'allowDeviceCredential',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ReminderSettingsModel,
+    ReminderSettingsModel,
+    QAfterFilterCondition
+  >
+  appLockEnabledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'appLockEnabled', value: value),
+      );
+    });
+  }
+
   QueryBuilder<
     ReminderSettingsModel,
     ReminderSettingsModel,
@@ -1989,6 +2045,22 @@ extension ReminderSettingsModelQueryFilter
     ReminderSettingsModel,
     QAfterFilterCondition
   >
+  requireBiometricForAttendanceEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'requireBiometricForAttendance',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ReminderSettingsModel,
+    ReminderSettingsModel,
+    QAfterFilterCondition
+  >
   requiredHoursDoneEnabledEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2549,6 +2621,34 @@ extension ReminderSettingsModelQueryLinks
 extension ReminderSettingsModelQuerySortBy
     on QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QSortBy> {
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByAllowDeviceCredential() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'allowDeviceCredential', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByAllowDeviceCredentialDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'allowDeviceCredential', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByAppLockEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appLockEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByAppLockEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appLockEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
   sortByBudgetOverrunEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'budgetOverrunEnabled', Sort.asc);
@@ -2829,6 +2929,20 @@ extension ReminderSettingsModelQuerySortBy
   }
 
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByRequireBiometricForAttendance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'requireBiometricForAttendance', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  sortByRequireBiometricForAttendanceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'requireBiometricForAttendance', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
   sortByRequiredHoursDoneEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'requiredHoursDoneEnabled', Sort.asc);
@@ -2971,6 +3085,34 @@ extension ReminderSettingsModelQuerySortBy
 
 extension ReminderSettingsModelQuerySortThenBy
     on QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QSortThenBy> {
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByAllowDeviceCredential() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'allowDeviceCredential', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByAllowDeviceCredentialDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'allowDeviceCredential', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByAppLockEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appLockEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByAppLockEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appLockEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
   thenByBudgetOverrunEnabled() {
     return QueryBuilder.apply(this, (query) {
@@ -3266,6 +3408,20 @@ extension ReminderSettingsModelQuerySortThenBy
   }
 
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByRequireBiometricForAttendance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'requireBiometricForAttendance', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
+  thenByRequireBiometricForAttendanceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'requireBiometricForAttendance', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QAfterSortBy>
   thenByRequiredHoursDoneEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'requiredHoursDoneEnabled', Sort.asc);
@@ -3408,6 +3564,20 @@ extension ReminderSettingsModelQuerySortThenBy
 
 extension ReminderSettingsModelQueryWhereDistinct
     on QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct> {
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct>
+  distinctByAllowDeviceCredential() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'allowDeviceCredential');
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct>
+  distinctByAppLockEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'appLockEnabled');
+    });
+  }
+
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct>
   distinctByBudgetOverrunEnabled() {
     return QueryBuilder.apply(this, (query) {
@@ -3568,6 +3738,13 @@ extension ReminderSettingsModelQueryWhereDistinct
   }
 
   QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct>
+  distinctByRequireBiometricForAttendance() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'requireBiometricForAttendance');
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, ReminderSettingsModel, QDistinct>
   distinctByRequiredHoursDoneEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'requiredHoursDoneEnabled');
@@ -3651,6 +3828,20 @@ extension ReminderSettingsModelQueryProperty
   QueryBuilder<ReminderSettingsModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, bool, QQueryOperations>
+  allowDeviceCredentialProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'allowDeviceCredential');
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, bool, QQueryOperations>
+  appLockEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'appLockEnabled');
     });
   }
 
@@ -3798,6 +3989,13 @@ extension ReminderSettingsModelQueryProperty
   recurringExpenseEnabledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'recurringExpenseEnabled');
+    });
+  }
+
+  QueryBuilder<ReminderSettingsModel, bool, QQueryOperations>
+  requireBiometricForAttendanceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'requireBiometricForAttendance');
     });
   }
 

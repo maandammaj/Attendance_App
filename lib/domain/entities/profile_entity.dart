@@ -1,31 +1,37 @@
+/// الشخص. شروط العمل في [CompanyEntity].
 class ProfileEntity {
   final int id;
   final String fullName;
-  final String jobTitle;
-  final double baseMonthlySalary;
-  final double hourlyRate;
-  final double overtimeRate;
-  final List<WorkDayConfigEntity> workSchedule;
-  final List<SalaryAdjustmentEntity> adjustments;
+
+  /// الجهة المعروضة حالياً، أو null قبل إنشاء أي جهة.
+  final int? activeCompanyId;
+
+  /// العملة الافتراضية لجهة جديدة.
   final String? currency;
-  final String? companyName;
-  final DateTime? employmentStartDate;
+
   final DateTime updatedAt;
 
   ProfileEntity({
     required this.id,
     required this.fullName,
-    required this.jobTitle,
-    required this.baseMonthlySalary,
-    required this.hourlyRate,
-    required this.overtimeRate,
-    required this.workSchedule,
-    required this.adjustments,
+    this.activeCompanyId,
     this.currency,
-    this.companyName,
-    this.employmentStartDate,
-    required this.updatedAt,
-  });
+    DateTime? updatedAt,
+  }) : updatedAt = updatedAt ?? DateTime(2020);
+
+  ProfileEntity copyWith({
+    String? fullName,
+    int? activeCompanyId,
+    String? currency,
+  }) {
+    return ProfileEntity(
+      id: id,
+      fullName: fullName ?? this.fullName,
+      activeCompanyId: activeCompanyId ?? this.activeCompanyId,
+      currency: currency ?? this.currency,
+      updatedAt: DateTime.now(),
+    );
+  }
 }
 
 class SalaryAdjustmentEntity {
@@ -50,7 +56,7 @@ class WorkDayConfigEntity {
   final String? endTime;
   final bool isCrossDay;
 
-  WorkDayConfigEntity({
+  const WorkDayConfigEntity({
     required this.dayOfWeek,
     required this.isWorkingDay,
     required this.requiredHours,
@@ -60,4 +66,48 @@ class WorkDayConfigEntity {
     this.endTime,
     this.isCrossDay = false,
   });
+
+  int get requiredMinutesTotal => (requiredHours * 60) + requiredMinutes;
+
+  bool get hasShiftWindow => startTime != null && endTime != null;
+
+  /// طول نافذة الوردية بالدقائق، أو null بلا نافذة.
+  ///
+  /// الوردية العابرة لمنتصف الليل تُحسب بإضافة يوم كامل قبل الطرح.
+  int? get windowMinutes {
+    if (!hasShiftWindow) return null;
+    final start = _minutesOf(startTime!);
+    final end = _minutesOf(endTime!);
+    final span = end - start;
+    return span <= 0 ? span + (24 * 60) : span;
+  }
+
+  static int _minutesOf(String hhmm) {
+    final parts = hhmm.split(':');
+    return (int.parse(parts[0]) * 60) + int.parse(parts[1]);
+  }
+
+  /// `clearWindow` يلزم لأن `startTime`/`endTime` قابلان للإفراغ، ولا يمكن
+  /// التعبير عن "امسحه" بتمرير null في copyWith عادية.
+  WorkDayConfigEntity copyWith({
+    bool? isWorkingDay,
+    int? requiredHours,
+    int? requiredMinutes,
+    bool? isHoliday,
+    String? startTime,
+    String? endTime,
+    bool? isCrossDay,
+    bool clearWindow = false,
+  }) {
+    return WorkDayConfigEntity(
+      dayOfWeek: dayOfWeek,
+      isWorkingDay: isWorkingDay ?? this.isWorkingDay,
+      requiredHours: requiredHours ?? this.requiredHours,
+      requiredMinutes: requiredMinutes ?? this.requiredMinutes,
+      isHoliday: isHoliday ?? this.isHoliday,
+      startTime: clearWindow ? null : (startTime ?? this.startTime),
+      endTime: clearWindow ? null : (endTime ?? this.endTime),
+      isCrossDay: clearWindow ? false : (isCrossDay ?? this.isCrossDay),
+    );
+  }
 }

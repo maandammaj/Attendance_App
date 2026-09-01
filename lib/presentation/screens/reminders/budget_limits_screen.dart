@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/common/state_switcher.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -38,7 +40,10 @@ class BudgetLimitsScreen extends ConsumerWidget {
                   onEdit: () => _openEditor(context, ref, status: statuses[index]),
                 ),
               ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Column(children: [Skeleton(height: 120), Skeleton(height: 120)]),
+        ),
         error: (error, _) => Center(child: Text('تعذّر التحميل: $error')),
       ),
     );
@@ -120,10 +125,11 @@ class _BudgetLimitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final ratio = status.ratio.clamp(0.0, 1.0);
     final color = status.isOverrun
         ? theme.colorScheme.error
-        : (status.ratio >= 0.8 ? Colors.orange : theme.colorScheme.primary);
+        : (status.ratio >= 0.8 ? palette.warning : theme.colorScheme.primary);
 
     return Card(
       elevation: 0,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_helpers.dart';
@@ -13,6 +14,9 @@ import '../../widgets/analytics/hours_bar_chart.dart';
 import '../../widgets/analytics/metric_tile.dart';
 import '../../widgets/analytics/period_selector.dart';
 import '../../widgets/analytics/weekday_radar_chart.dart';
+import '../../../core/constants/app_constants.dart';
+import '../companies/widgets/company_title.dart';
+import 'widgets/company_comparison.dart';
 import 'widgets/export_sheet.dart';
 import 'widgets/monthly_comparison_chart.dart';
 import 'widgets/salary_waterfall.dart';
@@ -22,6 +26,7 @@ class AnalyticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.palette;
     final reportAsync = ref.watch(analyticsReportProvider);
     final period = ref.watch(selectedPeriodProvider);
     final exportState = ref.watch(exportControllerProvider);
@@ -34,7 +39,9 @@ class AnalyticsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التقارير والتحليلات'),
+        // العنوان يحمل اسم الجهة: التقرير يخصّها وحدها، وقراءته منسوباً
+        // لغيرها خطأ لا يظهر في الأرقام.
+        title: const CompanyTitle(fallback: 'التقارير'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -63,6 +70,21 @@ class AnalyticsScreen extends ConsumerWidget {
                       ref.read(selectedPeriodProvider.notifier).set(value),
                 ),
                 const SizedBox(height: 16),
+                // المقارنة قبل التفاصيل: بجهتين فأكثر هذا أول ما يُسأل عنه.
+                ref.watch(companyComparisonProvider).maybeWhen(
+                      data: (entries) => entries.length < 2
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding: const EdgeInsetsDirectional.only(
+                                  bottom: AppSpacing.lg),
+                              child: CompanyComparison(
+                                entries: entries,
+                                currency: reportAsync.valueOrNull?.currency ??
+                                    AppConstants.defaultCurrency,
+                              ),
+                            ),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
                 reportAsync.when(
                   data: (report) => report == null
                       ? const _NoProfile()
@@ -80,8 +102,8 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
           if (exportState is AsyncLoading)
-            const ColoredBox(
-              color: Colors.black45,
+            ColoredBox(
+              color: palette.scrim,
               child: Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -98,6 +120,7 @@ class _ReportBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final attendance = report.attendance;
     final finance = report.finance;
     final currency = report.currency;
@@ -122,7 +145,7 @@ class _ReportBody extends StatelessWidget {
                 hint: currency,
                 icon: Icons.account_balance_wallet_rounded,
                 color: report.salary.net >= 0
-                    ? Colors.green.shade600
+                    ? palette.positive
                     : theme.colorScheme.error,
               ),
               MetricTile(
@@ -137,7 +160,7 @@ class _ReportBody extends StatelessWidget {
                     (attendance.totalOvertimeMinutes / 60).toStringAsFixed(1),
                 hint: 'ساعة',
                 icon: Icons.trending_up_rounded,
-                color: Colors.green.shade600,
+                color: palette.positive,
               ),
               MetricTile(
                 label: 'العجز والغياب',
@@ -158,7 +181,7 @@ class _ReportBody extends StatelessWidget {
                     '${(attendance.punctualityRate * 100).toStringAsFixed(0)}%',
                 hint: 'أيام بلا عجز',
                 icon: Icons.verified_outlined,
-                color: Colors.teal.shade600,
+                color: palette.positive,
               ),
               MetricTile(
                 label: 'المصروفات',
@@ -172,14 +195,14 @@ class _ReportBody extends StatelessWidget {
                 value: finance.totalIncome.toStringAsFixed(0),
                 hint: currency,
                 icon: Icons.savings_outlined,
-                color: Colors.green.shade600,
+                color: palette.positive,
               ),
               MetricTile(
                 label: 'أطول التزام',
                 value: '${attendance.longestStreak}',
                 hint: 'يوم متتالٍ',
                 icon: Icons.local_fire_department_outlined,
-                color: Colors.orange.shade700,
+                color: palette.warning,
               ),
             ],
           ),
@@ -221,7 +244,7 @@ class _ReportBody extends StatelessWidget {
                   label: 'متوسط الانصراف',
                   value: _clock(attendance.averageCheckOutMinutes),
                   icon: Icons.logout_rounded,
-                  color: Colors.orange.shade700,
+                  color: palette.warning,
                 ),
               ),
               const SizedBox(width: 10),
@@ -286,6 +309,7 @@ class _DetailTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final rows = report.attendance.calendar
         .where((cell) => cell.status != DayStatus.future)
         .where((cell) =>
@@ -334,7 +358,7 @@ class _DetailTable extends StatelessWidget {
                     ? '—'
                     : DateHelpers.formatDurationCompact(cell.overtimeMinutes),
                 style: theme.textTheme.bodySmall
-                    ?.copyWith(color: Colors.green.shade700),
+                    ?.copyWith(color: palette.positive),
               )),
               DataCell(Text(
                 cell.deficitMinutes == 0
@@ -348,13 +372,13 @@ class _DetailTable extends StatelessWidget {
                     const EdgeInsetsDirectional.fromSTEB(8, 3, 8, 3),
                 decoration: BoxDecoration(
                   color:
-                      statusColor(cell.status, theme).withValues(alpha: 0.14),
+                      statusColor(cell.status, theme, palette).withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   statusLabel(cell.status),
                   style: theme.textTheme.labelSmall
-                      ?.copyWith(color: statusColor(cell.status, theme)),
+                      ?.copyWith(color: statusColor(cell.status, theme, palette)),
                 ),
               )),
             ]),

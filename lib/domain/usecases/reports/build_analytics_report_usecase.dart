@@ -3,6 +3,7 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/analytics_report_entity.dart';
 import '../../entities/attendance_entity.dart';
+import '../../entities/company_entity.dart';
 import '../../entities/profile_entity.dart';
 import '../../entities/transaction_entity.dart';
 import '../../repositories/attendance_repository.dart';
@@ -27,7 +28,8 @@ class BuildAnalyticsReportUseCase {
 
   Future<AnalyticsReport> call({
     required ReportPeriod period,
-    required ProfileEntity profile,
+    required CompanyEntity company,
+    required String employeeName,
   }) async {
     final records = await attendanceRepository.getRecordsBetween(
       period.from,
@@ -38,12 +40,12 @@ class BuildAnalyticsReportUseCase {
       period.to,
     );
 
-    final attendance = _buildAttendance(period, records, profile);
+    final attendance = _buildAttendance(period, records, company);
     final finance = _buildFinance(period, transactions);
 
     final debtSummary = await GetDebtsSummaryUseCase(debtRepository)();
     final salary = _buildSalary(
-      profile: profile,
+      company: company,
       attendance: attendance,
       records: records,
       expenses: finance.totalExpense,
@@ -55,11 +57,11 @@ class BuildAnalyticsReportUseCase {
       attendance: attendance,
       finance: finance,
       salary: salary,
-      monthlyComparison: await _buildComparison(period, profile),
-      currency: profile.currency ?? AppConstants.defaultCurrency,
-      employeeName: profile.fullName,
-      jobTitle: profile.jobTitle,
-      companyName: profile.companyName,
+      monthlyComparison: await _buildComparison(period, company),
+      currency: company.currency ?? AppConstants.defaultCurrency,
+      employeeName: employeeName,
+      jobTitle: company.jobTitle,
+      companyName: company.name,
     );
   }
 
@@ -68,7 +70,7 @@ class BuildAnalyticsReportUseCase {
   AttendanceAnalytics _buildAttendance(
     ReportPeriod period,
     List<AttendanceEntity> records,
-    ProfileEntity profile,
+    CompanyEntity company,
   ) {
     final byDate = <DateTime, AttendanceEntity>{
       for (final record in records) DateHelpers.startOfDay(record.date): record,
@@ -81,6 +83,8 @@ class BuildAnalyticsReportUseCase {
     final weekdayCounts = List<int>.filled(7, 0);
 
     int totalWorked = 0;
+    int totalRequired = 0;
+    int totalPresence = 0;
     int totalOvertime = 0;
     int totalDeficit = 0;
     int expectedDays = 0;
@@ -88,6 +92,7 @@ class BuildAnalyticsReportUseCase {
     int punctualDays = 0;
     int streak = 0;
     int longestStreak = 0;
+    int totalSessions = 0;
     final checkInMinutes = <int>[];
     final checkOutMinutes = <int>[];
 
@@ -95,7 +100,7 @@ class BuildAnalyticsReportUseCase {
         !day.isAfter(period.to);
         day = day.add(const Duration(days: 1))) {
       final dayOfWeek = DateHelpers.scheduleDayOf(day);
-      final config = _configFor(profile, dayOfWeek);
+      final config = _configFor(company, dayOfWeek);
       final record = byDate[day];
       final isWorkDay = config.isWorkingDay && !config.isHoliday;
       final requiredMinutes =
@@ -112,6 +117,8 @@ class BuildAnalyticsReportUseCase {
           : (record.deficitHours * 60) + record.deficitMinutes;
 
       totalWorked += workedMinutes;
+      totalPresence += record?.totalPresenceMinutes ?? 0;
+      if (isWorkDay && !day.isAfter(now)) totalRequired += requiredMinutes;
       totalOvertime += overtimeMinutes;
       totalDeficit += deficitMinutes;
 
@@ -127,6 +134,8 @@ class BuildAnalyticsReportUseCase {
           streak = 0;
         }
       }
+
+      totalSessions += record?.sessions.length ?? 0;
 
       if (record?.checkIn != null) {
         checkInMinutes
@@ -157,6 +166,9 @@ class BuildAnalyticsReportUseCase {
           overtimeMinutes: overtimeMinutes,
           deficitMinutes: deficitMinutes,
         ),
+        sessionCount: record?.sessions.length ?? 0,
+        firstCheckIn: record?.checkIn,
+        lastCheckOut: record?.checkOut,
       ));
 
       if (period.granularity == ReportGranularity.day) {
@@ -181,6 +193,8 @@ class BuildAnalyticsReportUseCase {
           weekdayCounts[i] == 0 ? 0 : weekdayTotals[i] / weekdayCounts[i] / 60,
       ],
       totalWorkedMinutes: totalWorked,
+      totalRequiredMinutes: totalRequired,
+      totalPresenceMinutes: totalPresence,
       totalOvertimeMinutes: totalOvertime,
       totalDeficitMinutes: totalDeficit,
       expectedWorkingDays: expectedDays,
@@ -190,6 +204,9 @@ class BuildAnalyticsReportUseCase {
       averageCheckOutMinutes: _average(checkOutMinutes),
       punctualityRate: attendedDays == 0 ? 0 : punctualDays / attendedDays,
       longestStreak: longestStreak,
+      totalSessions: totalSessions,
+      averageSessionsPerDay:
+          attendedDays == 0 ? 0 : totalSessions / attendedDays,
     );
   }
 
@@ -230,8 +247,8 @@ class BuildAnalyticsReportUseCase {
     return DayStatus.worked;
   }
 
-  static WorkDayConfigEntity _configFor(ProfileEntity profile, int dayOfWeek) {
-    return profile.workSchedule.firstWhere(
+  static WorkDayConfigEntity _configFor(CompanyEntity company, int dayOfWeek) {
+    return company.workSchedule.firstWhere(
       (day) => day.dayOfWeek == dayOfWeek,
       orElse: () => WorkDayConfigEntity(
         dayOfWeek: dayOfWeek,
@@ -327,13 +344,13 @@ class BuildAnalyticsReportUseCase {
   // ── الراتب ──────────────────────────────────────────────────────
 
   SalaryBreakdown _buildSalary({
-    required ProfileEntity profile,
+    required CompanyEntity company,
     required AttendanceAnalytics attendance,
     required List<AttendanceEntity> records,
     required double expenses,
     required double debtPayments,
   }) {
-    final calculator = SalaryCalculator(profile);
+    final calculator = SalaryCalculator(company);
     final overtimeValue =
         records.fold(0.0, (sum, record) => sum + record.overtimeValue);
     final deficitValue =
@@ -359,7 +376,7 @@ class BuildAnalyticsReportUseCase {
     );
 
     return SalaryBreakdown(
-      baseSalary: profile.baseMonthlySalary,
+      baseSalary: company.baseMonthlySalary,
       overtimeValue: overtimeValue,
       deficitValue: deficitValue + absenceValue,
       adjustments: monthly.adjustments,
@@ -377,9 +394,9 @@ class BuildAnalyticsReportUseCase {
   /// صافي الراتب مقابل المصروف لآخر ست فترات منتهية عند [period].
   Future<List<TimeSeriesPoint>> _buildComparison(
     ReportPeriod period,
-    ProfileEntity profile,
+    CompanyEntity company,
   ) async {
-    final calculator = SalaryCalculator(profile);
+    final calculator = SalaryCalculator(company);
     final points = <TimeSeriesPoint>[];
 
     for (int offset = 5; offset >= 0; offset--) {

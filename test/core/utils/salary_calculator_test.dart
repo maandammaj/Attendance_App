@@ -1,17 +1,18 @@
 import 'package:attendance_budget_app/core/utils/salary_calculator.dart';
+import 'package:attendance_budget_app/domain/entities/company_entity.dart';
 import 'package:attendance_budget_app/domain/entities/profile_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-ProfileEntity _profile({
+CompanyEntity _company({
   double baseSalary = 3200,
   double hourlyRate = 20,
   double overtimeRate = 1.5,
   String? startTime,
   String? endTime,
 }) {
-  return ProfileEntity(
-    id: 0,
-    fullName: 'موظف',
+  return CompanyEntity(
+    id: 1,
+    name: 'جهة',
     jobTitle: 'مطوّر',
     baseMonthlySalary: baseSalary,
     hourlyRate: hourlyRate,
@@ -29,6 +30,7 @@ ProfileEntity _profile({
         ),
     ],
     adjustments: const [],
+    createdAt: DateTime(2026),
     updatedAt: DateTime(2026, 1, 1),
   );
 }
@@ -36,7 +38,7 @@ ProfileEntity _profile({
 void main() {
   group('calculateShiftDetails بدون نافذة وردية', () {
     test('يحتسب الساعات الفعلية بدل إرجاع أصفار', () {
-      final calculator = SalaryCalculator(_profile());
+      final calculator = SalaryCalculator(_company());
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 8),
@@ -54,7 +56,7 @@ void main() {
     });
 
     test('الزائد عن المطلوب يُحتسب إضافياً', () {
-      final calculator = SalaryCalculator(_profile());
+      final calculator = SalaryCalculator(_company());
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 8),
@@ -72,7 +74,7 @@ void main() {
     });
 
     test('الناقص عن المطلوب يُحتسب عجزاً', () {
-      final calculator = SalaryCalculator(_profile());
+      final calculator = SalaryCalculator(_company());
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 9),
@@ -93,7 +95,7 @@ void main() {
   group('calculateShiftDetails مع نافذة وردية', () {
     test('التواجد داخل النافذة رسمي وخارجها إضافي', () {
       final calculator =
-          SalaryCalculator(_profile(startTime: '09:00', endTime: '17:00'));
+          SalaryCalculator(_company(startTime: '09:00', endTime: '17:00'));
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 8, 30),
@@ -112,7 +114,7 @@ void main() {
 
     test('التأخر داخل النافذة يُحتسب عجزاً', () {
       final calculator =
-          SalaryCalculator(_profile(startTime: '09:00', endTime: '17:00'));
+          SalaryCalculator(_company(startTime: '09:00', endTime: '17:00'));
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 10),
@@ -131,7 +133,7 @@ void main() {
 
     test('الوردية العابرة لمنتصف الليل تمتد لليوم التالي', () {
       final calculator =
-          SalaryCalculator(_profile(startTime: '22:00', endTime: '06:00'));
+          SalaryCalculator(_company(startTime: '22:00', endTime: '06:00'));
 
       final details = calculator.calculateShiftDetails(
         actualCheckIn: DateTime(2026, 3, 2, 22),
@@ -151,24 +153,24 @@ void main() {
 
   group('أجر الساعة', () {
     test('السعر اليدوي له الأولوية', () {
-      expect(SalaryCalculator(_profile(hourlyRate: 25)).hourlyWage, 25);
+      expect(SalaryCalculator(_company(hourlyRate: 25)).hourlyWage, 25);
     });
 
     test('بدون سعر يدوي يُشتق من الراتب والجدول الأسبوعي', () {
       // ستة أيام × ٨ ساعات × 4.33 أسبوع = 207.84 ساعة شهرياً
-      final calculator = SalaryCalculator(_profile(hourlyRate: 0));
+      final calculator = SalaryCalculator(_company(hourlyRate: 0));
       expect(calculator.hourlyWage, closeTo(3200 / 207.84, 0.01));
     });
 
     test('overtimeRate فوق ٢ يُعامل كسعر مطلق لا كمضاعف', () {
       final calculator =
-          SalaryCalculator(_profile(hourlyRate: 20, overtimeRate: 35));
+          SalaryCalculator(_company(hourlyRate: 20, overtimeRate: 35));
       expect(calculator.overtimeHourlyRate, 35);
     });
 
     test('overtimeRate حتى ٢ يُعامل كمضاعف', () {
       final calculator =
-          SalaryCalculator(_profile(hourlyRate: 20, overtimeRate: 1.5));
+          SalaryCalculator(_company(hourlyRate: 20, overtimeRate: 1.5));
       expect(calculator.overtimeHourlyRate, 30);
     });
   });

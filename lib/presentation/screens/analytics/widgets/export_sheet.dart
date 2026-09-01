@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import '../../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/export/report_export_service.dart';
@@ -13,6 +15,7 @@ class ExportSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.palette;
     final controller = ref.read(exportControllerProvider.notifier);
 
     void run(Future<void> Function() action) {
@@ -32,14 +35,15 @@ class ExportSheet extends ConsumerWidget {
           const Divider(height: 1),
           _Option(
             icon: Icons.picture_as_pdf_rounded,
-            color: Colors.red.shade600,
+            color: palette.negative,
             title: 'مشاركة كشف PDF',
             subtitle: 'كشف راتب وسجل حضور كامل بالعربية',
-            onTap: () => run(() => controller.sharePdf(report)),
+            onTap: () => run(
+                () => controller.sharePdf(report, origin: _originOf(context))),
           ),
           _Option(
             icon: Icons.print_rounded,
-            color: Colors.blueGrey.shade600,
+            color: palette.onSurfaceVariant,
             title: 'طباعة',
             subtitle: 'معاينة الطباعة الأصلية للنظام',
             onTap: () => run(() => controller.printPdf(report)),
@@ -47,19 +51,21 @@ class ExportSheet extends ConsumerWidget {
           const Divider(height: 1),
           _Option(
             icon: Icons.table_chart_rounded,
-            color: Colors.green.shade700,
+            color: palette.positive,
             title: 'سجل الحضور CSV',
             subtitle: 'يوماً بيوم — يفتح في Excel مباشرة',
             onTap: () => run(
-                () => controller.shareCsv(report, CsvDataset.attendance)),
+                () => controller.shareCsv(report, CsvDataset.attendance,
+                    origin: _originOf(context))),
           ),
           _Option(
             icon: Icons.receipt_long_rounded,
-            color: Colors.orange.shade700,
+            color: palette.warning,
             title: 'المصروفات والدخل CSV',
             subtitle: 'مجمّعة حسب الفئة',
             onTap: () =>
-                run(() => controller.shareCsv(report, CsvDataset.finance)),
+                run(() => controller.shareCsv(report, CsvDataset.finance,
+                    origin: _originOf(context))),
           ),
           _Option(
             icon: Icons.payments_rounded,
@@ -67,7 +73,8 @@ class ExportSheet extends ConsumerWidget {
             title: 'كشف الراتب CSV',
             subtitle: 'بنود المستحقات والخصومات',
             onTap: () =>
-                run(() => controller.shareCsv(report, CsvDataset.salary)),
+                run(() => controller.shareCsv(report, CsvDataset.salary,
+                    origin: _originOf(context))),
           ),
           const SizedBox(height: 12),
         ],
@@ -104,4 +111,11 @@ class _Option extends StatelessWidget {
       onTap: onTap,
     );
   }
+}
+
+/// موضع الورقة بإحداثيات الشاشة — نقطة ارتساء منبثق المشاركة على iPad.
+Rect? _originOf(BuildContext context) {
+  final box = context.findRenderObject() as RenderBox?;
+  if (box == null || !box.hasSize) return null;
+  return box.localToGlobal(Offset.zero) & box.size;
 }

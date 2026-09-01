@@ -5,6 +5,7 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/reminder_settings_entity.dart';
 import '../../providers/reminder_provider.dart';
+import 'widgets/biometric_status_tile.dart';
 import 'widgets/reminder_section.dart';
 import 'widgets/reminder_switch_tile.dart';
 import 'widgets/reminder_time_tile.dart';
@@ -283,6 +284,35 @@ class _SettingsBody extends ConsumerWidget {
                     save(settings.copyWith(monthlySummaryTime: value)),
               ),
             ],
+          ],
+        ),
+        ReminderSection(
+          title: 'الأمان والبصمة',
+          icon: Icons.fingerprint_rounded,
+          children: [
+            ReminderSwitchTile(
+              title: 'إلزام التحقق للحضور والانصراف',
+              subtitle:
+                  'عند إيقافه يُسجَّل الدوام دون بصمة على الأجهزة غير المدعومة',
+              value: settings.requireBiometricForAttendance,
+              onChanged: (value) => save(
+                  settings.copyWith(requireBiometricForAttendance: value)),
+            ),
+            ReminderSwitchTile(
+              title: 'قفل التطبيق عند الفتح',
+              subtitle: 'يطلب تحققاً قبل عرض بياناتك المالية',
+              value: settings.appLockEnabled,
+              onChanged: (value) =>
+                  save(settings.copyWith(appLockEnabled: value)),
+            ),
+            ReminderSwitchTile(
+              title: 'السماح بقفل الجهاز كبديل',
+              subtitle: 'رمز PIN أو النمط حين تتعذّر البصمة',
+              value: settings.allowDeviceCredential,
+              onChanged: (value) =>
+                  save(settings.copyWith(allowDeviceCredential: value)),
+            ),
+            const BiometricStatusTile(),
           ],
         ),
         ReminderSection(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:isar_community/isar.dart';
 import 'package:intl/intl.dart';
 import '../../../data/local/database/isar_database.dart';
@@ -9,6 +10,7 @@ class NotificationHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
       appBar: AppBar(title: const Text('التنبيهات'), centerTitle: true),
       body: FutureBuilder<Isar>(
@@ -32,7 +34,7 @@ class NotificationHistoryScreen extends StatelessWidget {
                       title: Text(notif.title),
                       subtitle: Text(notif.body),
                       trailing: Text(DateFormat('HH:mm').format(notif.timestamp), 
-                          style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          style: TextStyle(fontSize: 12, color: palette.onSurfaceVariant)),
                     ),
                   );
                 },

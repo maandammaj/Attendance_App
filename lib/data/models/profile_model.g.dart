@@ -17,64 +17,69 @@ const ProfileModelSchema = CollectionSchema(
   name: r'ProfileModel',
   id: 7663001939508120177,
   properties: {
-    r'adjustments': PropertySchema(
+    r'activeCompanyId': PropertySchema(
       id: 0,
-      name: r'adjustments',
+      name: r'activeCompanyId',
+      type: IsarType.long,
+    ),
+    r'currency': PropertySchema(
+      id: 1,
+      name: r'currency',
+      type: IsarType.string,
+    ),
+    r'fullName': PropertySchema(
+      id: 2,
+      name: r'fullName',
+      type: IsarType.string,
+    ),
+    r'legacyAdjustments': PropertySchema(
+      id: 3,
+      name: r'legacyAdjustments',
       type: IsarType.objectList,
 
       target: r'SalaryAdjustment',
     ),
-    r'baseMonthlySalary': PropertySchema(
-      id: 1,
-      name: r'baseMonthlySalary',
-      type: IsarType.double,
-    ),
-    r'companyName': PropertySchema(
-      id: 2,
-      name: r'companyName',
-      type: IsarType.string,
-    ),
-    r'currency': PropertySchema(
-      id: 3,
-      name: r'currency',
-      type: IsarType.string,
-    ),
-    r'employmentStartDate': PropertySchema(
+    r'legacyBaseMonthlySalary': PropertySchema(
       id: 4,
-      name: r'employmentStartDate',
-      type: IsarType.dateTime,
+      name: r'legacyBaseMonthlySalary',
+      type: IsarType.double,
     ),
-    r'fullName': PropertySchema(
+    r'legacyCompanyName': PropertySchema(
       id: 5,
-      name: r'fullName',
+      name: r'legacyCompanyName',
       type: IsarType.string,
     ),
-    r'hourlyRate': PropertySchema(
+    r'legacyEmploymentStartDate': PropertySchema(
       id: 6,
-      name: r'hourlyRate',
-      type: IsarType.double,
-    ),
-    r'jobTitle': PropertySchema(
-      id: 7,
-      name: r'jobTitle',
-      type: IsarType.string,
-    ),
-    r'overtimeRate': PropertySchema(
-      id: 8,
-      name: r'overtimeRate',
-      type: IsarType.double,
-    ),
-    r'updatedAt': PropertySchema(
-      id: 9,
-      name: r'updatedAt',
+      name: r'legacyEmploymentStartDate',
       type: IsarType.dateTime,
     ),
-    r'workSchedule': PropertySchema(
+    r'legacyHourlyRate': PropertySchema(
+      id: 7,
+      name: r'legacyHourlyRate',
+      type: IsarType.double,
+    ),
+    r'legacyJobTitle': PropertySchema(
+      id: 8,
+      name: r'legacyJobTitle',
+      type: IsarType.string,
+    ),
+    r'legacyOvertimeRate': PropertySchema(
+      id: 9,
+      name: r'legacyOvertimeRate',
+      type: IsarType.double,
+    ),
+    r'legacyWorkSchedule': PropertySchema(
       id: 10,
-      name: r'workSchedule',
+      name: r'legacyWorkSchedule',
       type: IsarType.objectList,
 
       target: r'WorkDayConfig',
+    ),
+    r'updatedAt': PropertySchema(
+      id: 11,
+      name: r'updatedAt',
+      type: IsarType.dateTime,
     ),
   },
 
@@ -102,24 +107,6 @@ int _profileModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.adjustments.length * 3;
-  {
-    final offsets = allOffsets[SalaryAdjustment]!;
-    for (var i = 0; i < object.adjustments.length; i++) {
-      final value = object.adjustments[i];
-      bytesCount += SalaryAdjustmentSchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
-    }
-  }
-  {
-    final value = object.companyName;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   {
     final value = object.currency;
     if (value != null) {
@@ -127,17 +114,50 @@ int _profileModelEstimateSize(
     }
   }
   bytesCount += 3 + object.fullName.length * 3;
-  bytesCount += 3 + object.jobTitle.length * 3;
-  bytesCount += 3 + object.workSchedule.length * 3;
   {
-    final offsets = allOffsets[WorkDayConfig]!;
-    for (var i = 0; i < object.workSchedule.length; i++) {
-      final value = object.workSchedule[i];
-      bytesCount += WorkDayConfigSchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
+    final list = object.legacyAdjustments;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[SalaryAdjustment]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += SalaryAdjustmentSchema.estimateSize(
+            value,
+            offsets,
+            allOffsets,
+          );
+        }
+      }
+    }
+  }
+  {
+    final value = object.legacyCompanyName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.legacyJobTitle;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final list = object.legacyWorkSchedule;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[WorkDayConfig]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += WorkDayConfigSchema.estimateSize(
+            value,
+            offsets,
+            allOffsets,
+          );
+        }
+      }
     }
   }
   return bytesCount;
@@ -149,27 +169,28 @@ void _profileModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
+  writer.writeLong(offsets[0], object.activeCompanyId);
+  writer.writeString(offsets[1], object.currency);
+  writer.writeString(offsets[2], object.fullName);
   writer.writeObjectList<SalaryAdjustment>(
-    offsets[0],
+    offsets[3],
     allOffsets,
     SalaryAdjustmentSchema.serialize,
-    object.adjustments,
+    object.legacyAdjustments,
   );
-  writer.writeDouble(offsets[1], object.baseMonthlySalary);
-  writer.writeString(offsets[2], object.companyName);
-  writer.writeString(offsets[3], object.currency);
-  writer.writeDateTime(offsets[4], object.employmentStartDate);
-  writer.writeString(offsets[5], object.fullName);
-  writer.writeDouble(offsets[6], object.hourlyRate);
-  writer.writeString(offsets[7], object.jobTitle);
-  writer.writeDouble(offsets[8], object.overtimeRate);
-  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeDouble(offsets[4], object.legacyBaseMonthlySalary);
+  writer.writeString(offsets[5], object.legacyCompanyName);
+  writer.writeDateTime(offsets[6], object.legacyEmploymentStartDate);
+  writer.writeDouble(offsets[7], object.legacyHourlyRate);
+  writer.writeString(offsets[8], object.legacyJobTitle);
+  writer.writeDouble(offsets[9], object.legacyOvertimeRate);
   writer.writeObjectList<WorkDayConfig>(
     offsets[10],
     allOffsets,
     WorkDayConfigSchema.serialize,
-    object.workSchedule,
+    object.legacyWorkSchedule,
   );
+  writer.writeDateTime(offsets[11], object.updatedAt);
 }
 
 ProfileModel _profileModelDeserialize(
@@ -179,32 +200,29 @@ ProfileModel _profileModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ProfileModel();
-  object.adjustments =
-      reader.readObjectList<SalaryAdjustment>(
-        offsets[0],
-        SalaryAdjustmentSchema.deserialize,
-        allOffsets,
-        SalaryAdjustment(),
-      ) ??
-      [];
-  object.baseMonthlySalary = reader.readDouble(offsets[1]);
-  object.companyName = reader.readStringOrNull(offsets[2]);
-  object.currency = reader.readStringOrNull(offsets[3]);
-  object.employmentStartDate = reader.readDateTimeOrNull(offsets[4]);
-  object.fullName = reader.readString(offsets[5]);
-  object.hourlyRate = reader.readDouble(offsets[6]);
+  object.activeCompanyId = reader.readLongOrNull(offsets[0]);
+  object.currency = reader.readStringOrNull(offsets[1]);
+  object.fullName = reader.readString(offsets[2]);
   object.id = id;
-  object.jobTitle = reader.readString(offsets[7]);
-  object.overtimeRate = reader.readDouble(offsets[8]);
-  object.updatedAt = reader.readDateTime(offsets[9]);
-  object.workSchedule =
-      reader.readObjectList<WorkDayConfig>(
-        offsets[10],
-        WorkDayConfigSchema.deserialize,
-        allOffsets,
-        WorkDayConfig(),
-      ) ??
-      [];
+  object.legacyAdjustments = reader.readObjectList<SalaryAdjustment>(
+    offsets[3],
+    SalaryAdjustmentSchema.deserialize,
+    allOffsets,
+    SalaryAdjustment(),
+  );
+  object.legacyBaseMonthlySalary = reader.readDoubleOrNull(offsets[4]);
+  object.legacyCompanyName = reader.readStringOrNull(offsets[5]);
+  object.legacyEmploymentStartDate = reader.readDateTimeOrNull(offsets[6]);
+  object.legacyHourlyRate = reader.readDoubleOrNull(offsets[7]);
+  object.legacyJobTitle = reader.readStringOrNull(offsets[8]);
+  object.legacyOvertimeRate = reader.readDoubleOrNull(offsets[9]);
+  object.legacyWorkSchedule = reader.readObjectList<WorkDayConfig>(
+    offsets[10],
+    WorkDayConfigSchema.deserialize,
+    allOffsets,
+    WorkDayConfig(),
+  );
+  object.updatedAt = reader.readDateTime(offsets[11]);
   return object;
 }
 
@@ -216,41 +234,41 @@ P _profileModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readObjectList<SalaryAdjustment>(
-                offset,
-                SalaryAdjustmentSchema.deserialize,
-                allOffsets,
-                SalaryAdjustment(),
-              ) ??
-              [])
-          as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readObjectList<SalaryAdjustment>(
+            offset,
+            SalaryAdjustmentSchema.deserialize,
+            allOffsets,
+            SalaryAdjustment(),
+          ))
+          as P;
     case 4:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 10:
       return (reader.readObjectList<WorkDayConfig>(
-                offset,
-                WorkDayConfigSchema.deserialize,
-                allOffsets,
-                WorkDayConfig(),
-              ) ??
-              [])
+            offset,
+            WorkDayConfigSchema.deserialize,
+            allOffsets,
+            WorkDayConfig(),
+          ))
           as P;
+    case 11:
+      return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -357,288 +375,74 @@ extension ProfileModelQueryWhere
 extension ProfileModelQueryFilter
     on QueryBuilder<ProfileModel, ProfileModel, QFilterCondition> {
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'adjustments', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'adjustments', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'adjustments', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsLengthLessThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'adjustments', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'adjustments', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'adjustments',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  baseMonthlySalaryEqualTo(double value, {double epsilon = Query.epsilon}) {
+  activeCompanyIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'baseMonthlySalary',
-          value: value,
-
-          epsilon: epsilon,
-        ),
+        const FilterCondition.isNull(property: r'activeCompanyId'),
       );
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  baseMonthlySalaryGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
+  activeCompanyIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'activeCompanyId'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  activeCompanyIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'activeCompanyId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  activeCompanyIdGreaterThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'baseMonthlySalary',
+          property: r'activeCompanyId',
           value: value,
-
-          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  baseMonthlySalaryLessThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
+  activeCompanyIdLessThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'baseMonthlySalary',
+          property: r'activeCompanyId',
           value: value,
-
-          epsilon: epsilon,
         ),
       );
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  baseMonthlySalaryBetween(
-    double lower,
-    double upper, {
+  activeCompanyIdBetween(
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'baseMonthlySalary',
+          property: r'activeCompanyId',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
-
-          epsilon: epsilon,
         ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'companyName'),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'companyName'),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameEqualTo(String? value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'companyName',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'companyName',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'companyName',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'companyName', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  companyNameIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'companyName', value: ''),
       );
     });
   }
@@ -803,79 +607,6 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'employmentStartDate'),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'employmentStartDate'),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateEqualTo(DateTime? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'employmentStartDate', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateGreaterThan(DateTime? value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'employmentStartDate',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateLessThan(DateTime? value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'employmentStartDate',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  employmentStartDateBetween(
-    DateTime? lower,
-    DateTime? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'employmentStartDate',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
   fullNameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1016,81 +747,6 @@ extension ProfileModelQueryFilter
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  hourlyRateEqualTo(double value, {double epsilon = Query.epsilon}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'hourlyRate',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  hourlyRateGreaterThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'hourlyRate',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  hourlyRateLessThan(
-    double value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'hourlyRate',
-          value: value,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  hourlyRateBetween(
-    double lower,
-    double upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'hourlyRate',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition> idEqualTo(
     Id value,
   ) {
@@ -1151,11 +807,202 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleEqualTo(String value, {bool caseSensitive = true}) {
+  legacyAdjustmentsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyAdjustments'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyAdjustments'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyAdjustments', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyAdjustments', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyAdjustments', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyAdjustments', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'legacyAdjustments',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyAdjustmentsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'legacyAdjustments',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyBaseMonthlySalary'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyBaseMonthlySalary'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'jobTitle',
+          property: r'legacyBaseMonthlySalary',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'legacyBaseMonthlySalary',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'legacyBaseMonthlySalary',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyBaseMonthlySalaryBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'legacyBaseMonthlySalary',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyCompanyNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyCompanyName'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyCompanyNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyCompanyName'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyCompanyNameEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1164,8 +1011,8 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleGreaterThan(
-    String value, {
+  legacyCompanyNameGreaterThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1173,7 +1020,7 @@ extension ProfileModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1182,8 +1029,8 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleLessThan(
-    String value, {
+  legacyCompanyNameLessThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1191,7 +1038,7 @@ extension ProfileModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1200,9 +1047,9 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleBetween(
-    String lower,
-    String upper, {
+  legacyCompanyNameBetween(
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1210,7 +1057,7 @@ extension ProfileModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -1222,11 +1069,11 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleStartsWith(String value, {bool caseSensitive = true}) {
+  legacyCompanyNameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1235,11 +1082,11 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleEndsWith(String value, {bool caseSensitive = true}) {
+  legacyCompanyNameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1248,11 +1095,11 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleContains(String value, {bool caseSensitive = true}) {
+  legacyCompanyNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1261,11 +1108,11 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleMatches(String pattern, {bool caseSensitive = true}) {
+  legacyCompanyNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
-          property: r'jobTitle',
+          property: r'legacyCompanyName',
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -1274,29 +1121,126 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleIsEmpty() {
+  legacyCompanyNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'jobTitle', value: ''),
+        FilterCondition.equalTo(property: r'legacyCompanyName', value: ''),
       );
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  jobTitleIsNotEmpty() {
+  legacyCompanyNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'jobTitle', value: ''),
+        FilterCondition.greaterThan(property: r'legacyCompanyName', value: ''),
       );
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  overtimeRateEqualTo(double value, {double epsilon = Query.epsilon}) {
+  legacyEmploymentStartDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyEmploymentStartDate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyEmploymentStartDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyEmploymentStartDate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyEmploymentStartDateEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'overtimeRate',
+          property: r'legacyEmploymentStartDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyEmploymentStartDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'legacyEmploymentStartDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyEmploymentStartDateLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'legacyEmploymentStartDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyEmploymentStartDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'legacyEmploymentStartDate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyHourlyRateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyHourlyRate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyHourlyRateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyHourlyRate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyHourlyRateEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'legacyHourlyRate',
           value: value,
 
           epsilon: epsilon,
@@ -1306,8 +1250,8 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  overtimeRateGreaterThan(
-    double value, {
+  legacyHourlyRateGreaterThan(
+    double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
@@ -1315,7 +1259,7 @@ extension ProfileModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'overtimeRate',
+          property: r'legacyHourlyRate',
           value: value,
 
           epsilon: epsilon,
@@ -1325,8 +1269,8 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  overtimeRateLessThan(
-    double value, {
+  legacyHourlyRateLessThan(
+    double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
@@ -1334,7 +1278,7 @@ extension ProfileModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'overtimeRate',
+          property: r'legacyHourlyRate',
           value: value,
 
           epsilon: epsilon,
@@ -1344,9 +1288,9 @@ extension ProfileModelQueryFilter
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  overtimeRateBetween(
-    double lower,
-    double upper, {
+  legacyHourlyRateBetween(
+    double? lower,
+    double? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     double epsilon = Query.epsilon,
@@ -1354,7 +1298,7 @@ extension ProfileModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'overtimeRate',
+          property: r'legacyHourlyRate',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -1362,6 +1306,341 @@ extension ProfileModelQueryFilter
 
           epsilon: epsilon,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyJobTitle'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyJobTitle'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'legacyJobTitle',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'legacyJobTitle',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'legacyJobTitle',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'legacyJobTitle', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyJobTitleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'legacyJobTitle', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyOvertimeRate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyOvertimeRate'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateEqualTo(double? value, {double epsilon = Query.epsilon}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'legacyOvertimeRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'legacyOvertimeRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'legacyOvertimeRate',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyOvertimeRateBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'legacyOvertimeRate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'legacyWorkSchedule'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'legacyWorkSchedule'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'legacyWorkSchedule',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyWorkSchedule', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyWorkSchedule', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'legacyWorkSchedule', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'legacyWorkSchedule',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  legacyWorkScheduleLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'legacyWorkSchedule',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
       );
     });
   }
@@ -1420,74 +1699,21 @@ extension ProfileModelQueryFilter
       );
     });
   }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'workSchedule', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'workSchedule', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'workSchedule', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleLengthLessThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'workSchedule', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'workSchedule', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'workSchedule',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
 }
 
 extension ProfileModelQueryObject
     on QueryBuilder<ProfileModel, ProfileModel, QFilterCondition> {
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  adjustmentsElement(FilterQuery<SalaryAdjustment> q) {
+  legacyAdjustmentsElement(FilterQuery<SalaryAdjustment> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'adjustments');
+      return query.object(q, r'legacyAdjustments');
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
-  workScheduleElement(FilterQuery<WorkDayConfig> q) {
+  legacyWorkScheduleElement(FilterQuery<WorkDayConfig> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'workSchedule');
+      return query.object(q, r'legacyWorkSchedule');
     });
   }
 }
@@ -1498,29 +1724,16 @@ extension ProfileModelQueryLinks
 extension ProfileModelQuerySortBy
     on QueryBuilder<ProfileModel, ProfileModel, QSortBy> {
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByBaseMonthlySalary() {
+  sortByActiveCompanyId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'baseMonthlySalary', Sort.asc);
+      return query.addSortBy(r'activeCompanyId', Sort.asc);
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByBaseMonthlySalaryDesc() {
+  sortByActiveCompanyIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'baseMonthlySalary', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByCompanyName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'companyName', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByCompanyNameDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'companyName', Sort.desc);
+      return query.addSortBy(r'activeCompanyId', Sort.desc);
     });
   }
 
@@ -1536,20 +1749,6 @@ extension ProfileModelQuerySortBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByEmploymentStartDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'employmentStartDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByEmploymentStartDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'employmentStartDate', Sort.desc);
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByFullName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fullName', Sort.asc);
@@ -1562,41 +1761,87 @@ extension ProfileModelQuerySortBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByHourlyRate() {
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyBaseMonthlySalary() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hourlyRate', Sort.asc);
+      return query.addSortBy(r'legacyBaseMonthlySalary', Sort.asc);
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByHourlyRateDesc() {
+  sortByLegacyBaseMonthlySalaryDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hourlyRate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByJobTitle() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'jobTitle', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByJobTitleDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'jobTitle', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByOvertimeRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'overtimeRate', Sort.asc);
+      return query.addSortBy(r'legacyBaseMonthlySalary', Sort.desc);
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  sortByOvertimeRateDesc() {
+  sortByLegacyCompanyName() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'overtimeRate', Sort.desc);
+      return query.addSortBy(r'legacyCompanyName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyCompanyNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyCompanyName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyEmploymentStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyEmploymentStartDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyEmploymentStartDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyEmploymentStartDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyHourlyRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyHourlyRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyHourlyRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyHourlyRate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyJobTitle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyJobTitle', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyJobTitleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyJobTitle', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyOvertimeRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyOvertimeRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLegacyOvertimeRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyOvertimeRate', Sort.desc);
     });
   }
 
@@ -1616,29 +1861,16 @@ extension ProfileModelQuerySortBy
 extension ProfileModelQuerySortThenBy
     on QueryBuilder<ProfileModel, ProfileModel, QSortThenBy> {
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByBaseMonthlySalary() {
+  thenByActiveCompanyId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'baseMonthlySalary', Sort.asc);
+      return query.addSortBy(r'activeCompanyId', Sort.asc);
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByBaseMonthlySalaryDesc() {
+  thenByActiveCompanyIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'baseMonthlySalary', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByCompanyName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'companyName', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByCompanyNameDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'companyName', Sort.desc);
+      return query.addSortBy(r'activeCompanyId', Sort.desc);
     });
   }
 
@@ -1654,20 +1886,6 @@ extension ProfileModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByEmploymentStartDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'employmentStartDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByEmploymentStartDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'employmentStartDate', Sort.desc);
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByFullName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fullName', Sort.asc);
@@ -1677,19 +1895,6 @@ extension ProfileModelQuerySortThenBy
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByFullNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fullName', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByHourlyRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hourlyRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByHourlyRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hourlyRate', Sort.desc);
     });
   }
 
@@ -1705,28 +1910,87 @@ extension ProfileModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByJobTitle() {
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyBaseMonthlySalary() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'jobTitle', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByJobTitleDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'jobTitle', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByOvertimeRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'overtimeRate', Sort.asc);
+      return query.addSortBy(r'legacyBaseMonthlySalary', Sort.asc);
     });
   }
 
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
-  thenByOvertimeRateDesc() {
+  thenByLegacyBaseMonthlySalaryDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'overtimeRate', Sort.desc);
+      return query.addSortBy(r'legacyBaseMonthlySalary', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyCompanyName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyCompanyName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyCompanyNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyCompanyName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyEmploymentStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyEmploymentStartDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyEmploymentStartDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyEmploymentStartDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyHourlyRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyHourlyRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyHourlyRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyHourlyRate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyJobTitle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyJobTitle', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyJobTitleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyJobTitle', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyOvertimeRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyOvertimeRate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLegacyOvertimeRateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'legacyOvertimeRate', Sort.desc);
     });
   }
 
@@ -1746,17 +2010,9 @@ extension ProfileModelQuerySortThenBy
 extension ProfileModelQueryWhereDistinct
     on QueryBuilder<ProfileModel, ProfileModel, QDistinct> {
   QueryBuilder<ProfileModel, ProfileModel, QDistinct>
-  distinctByBaseMonthlySalary() {
+  distinctByActiveCompanyId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'baseMonthlySalary');
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByCompanyName({
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'companyName', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'activeCompanyId');
     });
   }
 
@@ -1768,13 +2024,6 @@ extension ProfileModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
-  distinctByEmploymentStartDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'employmentStartDate');
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByFullName({
     bool caseSensitive = true,
   }) {
@@ -1783,23 +2032,52 @@ extension ProfileModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByHourlyRate() {
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
+  distinctByLegacyBaseMonthlySalary() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hourlyRate');
+      return query.addDistinctBy(r'legacyBaseMonthlySalary');
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByJobTitle({
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
+  distinctByLegacyCompanyName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'legacyCompanyName',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
+  distinctByLegacyEmploymentStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'legacyEmploymentStartDate');
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
+  distinctByLegacyHourlyRate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'legacyHourlyRate');
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByLegacyJobTitle({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'jobTitle', caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'legacyJobTitle',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByOvertimeRate() {
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct>
+  distinctByLegacyOvertimeRate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'overtimeRate');
+      return query.addDistinctBy(r'legacyOvertimeRate');
     });
   }
 
@@ -1818,23 +2096,9 @@ extension ProfileModelQueryProperty
     });
   }
 
-  QueryBuilder<ProfileModel, List<SalaryAdjustment>, QQueryOperations>
-  adjustmentsProperty() {
+  QueryBuilder<ProfileModel, int?, QQueryOperations> activeCompanyIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'adjustments');
-    });
-  }
-
-  QueryBuilder<ProfileModel, double, QQueryOperations>
-  baseMonthlySalaryProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'baseMonthlySalary');
-    });
-  }
-
-  QueryBuilder<ProfileModel, String?, QQueryOperations> companyNameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'companyName');
+      return query.addPropertyName(r'activeCompanyId');
     });
   }
 
@@ -1844,47 +2108,71 @@ extension ProfileModelQueryProperty
     });
   }
 
-  QueryBuilder<ProfileModel, DateTime?, QQueryOperations>
-  employmentStartDateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'employmentStartDate');
-    });
-  }
-
   QueryBuilder<ProfileModel, String, QQueryOperations> fullNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fullName');
     });
   }
 
-  QueryBuilder<ProfileModel, double, QQueryOperations> hourlyRateProperty() {
+  QueryBuilder<ProfileModel, List<SalaryAdjustment>?, QQueryOperations>
+  legacyAdjustmentsProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hourlyRate');
+      return query.addPropertyName(r'legacyAdjustments');
     });
   }
 
-  QueryBuilder<ProfileModel, String, QQueryOperations> jobTitleProperty() {
+  QueryBuilder<ProfileModel, double?, QQueryOperations>
+  legacyBaseMonthlySalaryProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'jobTitle');
+      return query.addPropertyName(r'legacyBaseMonthlySalary');
     });
   }
 
-  QueryBuilder<ProfileModel, double, QQueryOperations> overtimeRateProperty() {
+  QueryBuilder<ProfileModel, String?, QQueryOperations>
+  legacyCompanyNameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'overtimeRate');
+      return query.addPropertyName(r'legacyCompanyName');
+    });
+  }
+
+  QueryBuilder<ProfileModel, DateTime?, QQueryOperations>
+  legacyEmploymentStartDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'legacyEmploymentStartDate');
+    });
+  }
+
+  QueryBuilder<ProfileModel, double?, QQueryOperations>
+  legacyHourlyRateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'legacyHourlyRate');
+    });
+  }
+
+  QueryBuilder<ProfileModel, String?, QQueryOperations>
+  legacyJobTitleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'legacyJobTitle');
+    });
+  }
+
+  QueryBuilder<ProfileModel, double?, QQueryOperations>
+  legacyOvertimeRateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'legacyOvertimeRate');
+    });
+  }
+
+  QueryBuilder<ProfileModel, List<WorkDayConfig>?, QQueryOperations>
+  legacyWorkScheduleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'legacyWorkSchedule');
     });
   }
 
   QueryBuilder<ProfileModel, DateTime, QQueryOperations> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
-    });
-  }
-
-  QueryBuilder<ProfileModel, List<WorkDayConfig>, QQueryOperations>
-  workScheduleProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'workSchedule');
     });
   }
 }

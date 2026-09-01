@@ -1,30 +1,93 @@
 import 'package:isar_community/isar.dart';
+
 import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../../domain/entities/attendance_entity.dart';
+import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
 import '../../models/attendance_model.dart';
+import '../../models/company_model.dart';
 import '../../models/profile_model.dart';
 import '../database/isar_database.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
+  /// الجهة التي تُكتب سجلات الدوام باسمها وتُقرأ بها.
+  ///
+  /// بلا جهة فعّالة لا يُعرف أي جدول يُطبَّق ولا أي راتب يُحتسب، فالفشل صريح
+  /// بدل كتابة سجل لا معنى له.
+  /// الجهة المطلوبة صراحةً، وإلا الفعّالة.
+  Future<CompanyModel> _companyFor(Isar isar, int? companyId) async {
+    if (companyId == null) return _activeCompany(isar);
+    final company = await isar.companyModels.get(companyId);
+    if (company == null) throw Exception('جهة العمل غير موجودة');
+    return company;
+  }
+
+  Future<CompanyModel> _activeCompany(Isar isar) async {
+    final profile = await isar.profileModels.get(0);
+    final id = profile?.activeCompanyId;
+
+    final company = id == null
+        ? await isar.companyModels.filter().isArchivedEqualTo(false).findFirst()
+        : await isar.companyModels.get(id);
+
+    if (company == null) throw Exception('لم تُحدَّد جهة عمل');
+    return company;
+  }
+
+  Future<int> _activeCompanyId(Isar isar) async =>
+      (await _activeCompany(isar)).id;
+
   @override
   Future<AttendanceEntity?> getTodayRecord() async {
     final isar = await _db;
     final today = DateTime.now();
-    
+
+    // الجلسة المفتوحة لها الأولوية حتى لو بدأت أمس (وردية عابرة لمنتصف الليل).
+    final open = await isar.attendanceModels
+        .filter()
+        .isOpenEqualTo(true)
+        .sortByDateDesc()
+        .findFirst();
+    if (open != null) return _mapToEntity(open);
+
     final record = await isar.attendanceModels
         .filter()
-        .checkOutIsNull()
-        .or()
         .dateBetween(DateHelpers.startOfDay(today), DateHelpers.endOfDay(today))
         .sortByDateDesc()
         .findFirst();
-        
-    return record != null ? _mapToEntity(record) : null;
+
+    return record == null ? null : _mapToEntity(record);
+  }
+
+  @override
+  Future<List<AttendanceEntity>> getRecordsForCompany(
+    int companyId,
+    DateTime from,
+    DateTime to,
+  ) async {
+    final isar = await _db;
+    final records = await isar.attendanceModels
+        .filter()
+        .companyIdEqualTo(companyId)
+        .dateBetween(from, to)
+        .sortByDateDesc()
+        .findAll();
+    return records.map(_mapToEntity).toList();
+  }
+
+  @override
+  Future<AttendanceEntity?> getAnyOpenSession() async {
+    final isar = await _db;
+    final record = await isar.attendanceModels
+        .filter()
+        .isOpenEqualTo(true)
+        .sortByDateDesc()
+        .findFirst();
+    return record == null ? null : _mapToEntity(record);
   }
 
   @override
@@ -39,108 +102,87 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<List<AttendanceEntity>> getRecordsBetween(
       DateTime from, DateTime to) async {
     final isar = await _db;
+    final companyId = await _activeCompanyId(isar);
     final records = await isar.attendanceModels
         .filter()
+        .companyIdEqualTo(companyId)
         .dateBetween(from, to)
         .sortByDateDesc()
         .findAll();
     return records.map(_mapToEntity).toList();
   }
 
+  /// يفتح جلسة جديدة. اليوم الواحد يقبل عدة جلسات، لكن لا جلستين مفتوحتين معاً.
   @override
-  Future<void> checkIn(DateTime time) async {
+  Future<void> checkIn(
+    DateTime time, {
+    bool isBiometricVerified = false,
+    int? companyId,
+  }) async {
     final isar = await _db;
-    final profile = await isar.profileModels.get(0);
-    if (profile == null) throw Exception('Profile not set');
+    final company = await _companyFor(isar, companyId);
 
-    final lastOpen = await isar.attendanceModels
+    final alreadyOpen = await isar.attendanceModels
         .filter()
-        .checkOutIsNull()
-        .sortByDateDesc()
+        .isOpenEqualTo(true)
         .findFirst();
-        
-    if (lastOpen != null) return;
+    if (alreadyOpen != null) {
+      throw Exception('لديك جلسة دوام مفتوحة بالفعل، سجّل الانصراف أولاً');
+    }
 
-    final today = DateHelpers.startOfDay(time);
-    final dayConfig = profile.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(time),
-      orElse: () => WorkDayConfig()
-        ..dayOfWeek = DateHelpers.scheduleDayOf(time)
-        ..isWorkingDay = true
-        ..requiredHours = 8
-        ..requiredMinutes = 0
-        ..isHoliday = false,
-    );
+    final companyEntity = _mapCompanyToEntity(company);
+    final day = DateHelpers.startOfDay(time);
+    final dayConfig = _configFor(companyEntity, time);
 
-    final dayType = _resolveDayType(dayConfig);
+    final record = await isar.attendanceModels
+            .filter()
+            .dateBetween(day, DateHelpers.endOfDay(time))
+            .findFirst() ??
+        _newRecord(day, dayConfig);
 
-    final record = AttendanceModel()
-      ..date = today
-      ..checkIn = time
-      ..requiredHours = dayConfig.requiredHours
-      ..requiredMinutes = dayConfig.requiredMinutes
-      ..overtimeHours = 0
-      ..overtimeMinutes = 0
-      ..overtimeValue = 0
-      ..deficitHours = 0
-      ..deficitMinutes = 0
-      ..deficitValue = 0
-      ..workedHours = 0
-      ..workedMinutes = 0
-      ..isBiometricVerified = true
-      ..isAbsent = false
-      ..dayType = dayType;
+    record.sessions = [
+      ...record.sessions,
+      WorkSession()
+        ..checkIn = time
+        ..isBiometricVerified = isBiometricVerified,
+    ];
+    record.isAbsent = false;
+    _recalculate(record, companyEntity, dayConfig);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
     });
   }
 
+  /// يغلق الجلسة المفتوحة ويعيد حساب اليوم من كل جلساته.
   @override
   Future<void> checkOut(DateTime time) async {
     final isar = await _db;
-    final profile = await isar.profileModels.get(0);
-    if (profile == null) throw Exception('Profile not set');
+    final company = await _activeCompany(isar);
 
+    final companyId = await _activeCompanyId(isar);
     final record = await isar.attendanceModels
         .filter()
-        .checkOutIsNull()
+        .companyIdEqualTo(companyId)
+        .isOpenEqualTo(true)
         .sortByDateDesc()
         .findFirst();
 
-    if (record == null || record.checkIn == null) {
-      throw Exception('لا يوجد سجل دخول نشط');
+    if (record == null) throw Exception('لا توجد جلسة دوام مفتوحة');
+
+    final sessions = [...record.sessions];
+    final openIndex = sessions.lastIndexWhere((s) => s.checkOut == null);
+    if (openIndex < 0) throw Exception('لا توجد جلسة دوام مفتوحة');
+
+    final open = sessions[openIndex];
+    if (open.checkIn != null && time.isBefore(open.checkIn!)) {
+      throw Exception('وقت الانصراف قبل وقت الحضور');
     }
+    sessions[openIndex] = open..checkOut = time;
+    record.sessions = sessions;
 
-    record.checkOut = time;
-    final profileEntity = _mapProfileToEntity(profile);
-    final calculator = SalaryCalculator(profileEntity);
-    
-    final dayConfig = profileEntity.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(record.date),
-      orElse: () => WorkDayConfigEntity(dayOfWeek: DateHelpers.scheduleDayOf(record.date), isWorkingDay: true, requiredHours: 8, requiredMinutes: 0, isHoliday: false),
-    );
-
-    final details = calculator.calculateShiftDetails(
-      actualCheckIn: record.checkIn!,
-      actualCheckOut: time,
-      scheduledStart: dayConfig.startTime,
-      scheduledEnd: dayConfig.endTime,
-      isCrossDay: dayConfig.isCrossDay,
-      requiredHours: dayConfig.requiredHours,
-      requiredMinutes: dayConfig.requiredMinutes,
-    );
-
-    record.workedHours = details.officialMinutes ~/ 60;
-    record.workedMinutes = details.officialMinutes % 60;
-    
-    record.overtimeHours = details.overtimeMinutes ~/ 60;
-    record.overtimeMinutes = details.overtimeMinutes % 60;
-    record.overtimeValue = calculator.calculateOvertimeValue(record.overtimeHours, record.overtimeMinutes);
-
-    record.deficitHours = details.deficitMinutes ~/ 60;
-    record.deficitMinutes = details.deficitMinutes % 60;
-    record.deficitValue = calculator.calculateDeficitValue(record.deficitHours, record.deficitMinutes);
+    final companyEntity = _mapCompanyToEntity(company);
+    _recalculate(record, companyEntity, _configFor(companyEntity, record.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -155,54 +197,30 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     String? notes,
   }) async {
     final isar = await _db;
-    final profile = await isar.profileModels.get(0);
-    if (profile == null) throw Exception('Profile not set');
+    final company = await _activeCompany(isar);
 
-    final profileEntity = _mapProfileToEntity(profile);
-    final calculator = SalaryCalculator(profileEntity);
+    final companyEntity = _mapCompanyToEntity(company);
+    final day = DateHelpers.startOfDay(date);
+    final dayConfig = _configFor(companyEntity, date);
 
-    final dayConfig = profileEntity.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(date),
-      orElse: () => WorkDayConfigEntity(
-          dayOfWeek: DateHelpers.scheduleDayOf(date),
-          isWorkingDay: true,
-          requiredHours: 8,
-          requiredMinutes: 0,
-          isHoliday: false),
-    );
+    // جلسة يدوية تُضاف لسجل اليوم إن وُجد بدل إنشاء سجل ثانٍ لنفس التاريخ.
+    final record = await isar.attendanceModels
+            .filter()
+            .dateBetween(day, DateHelpers.endOfDay(date))
+            .findFirst() ??
+        _newRecord(day, dayConfig);
 
-    final details = calculator.calculateShiftDetails(
-      actualCheckIn: checkIn,
-      actualCheckOut: checkOut,
-      scheduledStart: dayConfig.startTime,
-      scheduledEnd: dayConfig.endTime,
-      isCrossDay: dayConfig.isCrossDay,
-      requiredHours: dayConfig.requiredHours,
-      requiredMinutes: dayConfig.requiredMinutes,
-    );
+    record.sessions = [
+      ...record.sessions,
+      WorkSession()
+        ..checkIn = checkIn
+        ..checkOut = checkOut
+        ..isBiometricVerified = false,
+    ]..sort((a, b) => (a.checkIn ?? day).compareTo(b.checkIn ?? day));
 
-    final record = AttendanceModel()
-      ..date = DateHelpers.startOfDay(date)
-      ..checkIn = checkIn
-      ..checkOut = checkOut
-      ..notes = notes
-      ..workedHours = details.officialMinutes ~/ 60
-      ..workedMinutes = details.officialMinutes % 60
-      ..requiredHours = dayConfig.requiredHours
-      ..requiredMinutes = dayConfig.requiredMinutes
-      ..overtimeHours = details.overtimeMinutes ~/ 60
-      ..overtimeMinutes = details.overtimeMinutes % 60
-      ..overtimeValue = calculator.calculateOvertimeValue(
-          details.overtimeMinutes ~/ 60, details.overtimeMinutes % 60)
-      ..deficitHours = details.deficitMinutes ~/ 60
-      ..deficitMinutes = details.deficitMinutes % 60
-      ..deficitValue = calculator.calculateDeficitValue(
-          details.deficitMinutes ~/ 60, details.deficitMinutes % 60)
-      ..isBiometricVerified = false
-      ..isAbsent = false
-      ..dayType = _resolveDayType(WorkDayConfig()
-        ..dayOfWeek = dayConfig.dayOfWeek
-        ..isHoliday = dayConfig.isHoliday);
+    record.notes = notes ?? record.notes;
+    record.isAbsent = false;
+    _recalculate(record, companyEntity, dayConfig);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -215,74 +233,26 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final model = await isar.attendanceModels.get(entity.id);
     if (model == null) throw Exception('Record not found');
 
-    final profile = await isar.profileModels.get(0);
-    if (profile == null) throw Exception('Profile not set');
+    final company = await _activeCompany(isar);
 
-    final profileEntity = _mapProfileToEntity(profile);
-    final calculator = SalaryCalculator(profileEntity);
+    final companyEntity = _mapCompanyToEntity(company);
 
     model
-      ..checkIn = entity.checkIn
-      ..checkOut = entity.checkOut
       ..notes = entity.notes
-      ..isAbsent = entity.isAbsent;
+      ..isAbsent = entity.isAbsent
+      ..sessions = entity.isAbsent
+          ? []
+          : [
+              for (final session in entity.sessions)
+                if (session.checkIn != null)
+                  WorkSession()
+                    ..checkIn = session.checkIn
+                    ..checkOut = session.checkOut
+                    ..isBiometricVerified = session.isBiometricVerified
+                    ..note = session.note,
+            ];
 
-    if (!entity.isAbsent && entity.checkIn != null && entity.checkOut != null) {
-      final dayConfig = profileEntity.workSchedule.firstWhere(
-        (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(model.date),
-        orElse: () => WorkDayConfigEntity(
-            dayOfWeek: DateHelpers.scheduleDayOf(model.date),
-            isWorkingDay: true,
-            requiredHours: 8,
-            requiredMinutes: 0,
-            isHoliday: false),
-      );
-
-      final details = calculator.calculateShiftDetails(
-        actualCheckIn: entity.checkIn!,
-        actualCheckOut: entity.checkOut!,
-        scheduledStart: dayConfig.startTime,
-        scheduledEnd: dayConfig.endTime,
-        isCrossDay: dayConfig.isCrossDay,
-        requiredHours: dayConfig.requiredHours,
-        requiredMinutes: dayConfig.requiredMinutes,
-      );
-
-      model
-        ..workedHours = details.officialMinutes ~/ 60
-        ..workedMinutes = details.officialMinutes % 60
-        ..overtimeHours = details.overtimeMinutes ~/ 60
-        ..overtimeMinutes = details.overtimeMinutes % 60
-        ..overtimeValue = calculator.calculateOvertimeValue(
-            details.overtimeMinutes ~/ 60, details.overtimeMinutes % 60)
-        ..deficitHours = details.deficitMinutes ~/ 60
-        ..deficitMinutes = details.deficitMinutes % 60
-        ..deficitValue = calculator.calculateDeficitValue(
-            details.deficitMinutes ~/ 60, details.deficitMinutes % 60);
-    } else if (entity.isAbsent) {
-      final dayConfig = profileEntity.workSchedule.firstWhere(
-        (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(model.date),
-        orElse: () => WorkDayConfigEntity(
-            dayOfWeek: DateHelpers.scheduleDayOf(model.date),
-            isWorkingDay: true,
-            requiredHours: 8,
-            requiredMinutes: 0,
-            isHoliday: false),
-      );
-      final missingMinutes =
-          (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
-
-      model
-        ..workedHours = 0
-        ..workedMinutes = 0
-        ..overtimeHours = 0
-        ..overtimeMinutes = 0
-        ..overtimeValue = 0
-        ..deficitHours = missingMinutes ~/ 60
-        ..deficitMinutes = missingMinutes % 60
-        ..deficitValue = calculator.calculateDeficitValue(
-            missingMinutes ~/ 60, missingMinutes % 60);
-    }
+    _recalculate(model, companyEntity, _configFor(companyEntity, model.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(model);
@@ -297,15 +267,115 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     });
   }
 
-  ProfileEntity _mapProfileToEntity(ProfileModel profile) {
-    return ProfileEntity(
-      id: profile.id,
-      fullName: profile.fullName,
-      jobTitle: profile.jobTitle,
-      baseMonthlySalary: profile.baseMonthlySalary,
-      hourlyRate: profile.hourlyRate,
-      overtimeRate: profile.overtimeRate,
-      workSchedule: profile.workSchedule
+  // ── الحساب ──────────────────────────────────────────────────────
+
+  /// يعيد اشتقاق كل القيم المخزَّنة من [AttendanceModel.sessions].
+  ///
+  /// هذه هي النقطة الوحيدة التي تُكتب فيها الحقول المشتقّة، فأي مسار
+  /// (بصمة، يدوي، تعديل) يمرّ منها ويبقى السجل متسقاً.
+  void _recalculate(
+    AttendanceModel record,
+    CompanyEntity company,
+    WorkDayConfigEntity dayConfig,
+  ) {
+    final closed = record.sessions
+        .where((s) => s.checkIn != null && s.checkOut != null)
+        .toList();
+
+    record.isOpen = record.sessions.any((s) => s.checkIn != null && s.checkOut == null);
+    record.sessionCount = closed.length;
+    record.checkIn = record.sessions.isEmpty ? null : record.sessions.first.checkIn;
+    record.checkOut = record.isOpen || record.sessions.isEmpty
+        ? null
+        : record.sessions.last.checkOut;
+    record.isBiometricVerified = record.sessions.isNotEmpty &&
+        record.sessions.every((s) => s.isBiometricVerified);
+    record.requiredHours = dayConfig.requiredHours;
+    record.requiredMinutes = dayConfig.requiredMinutes;
+
+    record.totalPresenceMinutes = closed.fold(
+      0,
+      (sum, s) {
+        final minutes = s.checkOut!.difference(s.checkIn!).inMinutes;
+        return sum + (minutes < 0 ? 0 : minutes);
+      },
+    );
+
+    // الجلسة المفتوحة لا تدخل الحساب المالي حتى تُغلق: قيمتها غير نهائية.
+    final calculator = SalaryCalculator(company);
+    final details = calculator.calculateDayDetails(
+      sessions: [
+        for (final session in closed)
+          SalaryCalculator.presence(session.checkIn!, session.checkOut!),
+      ],
+      scheduledStart: dayConfig.startTime,
+      scheduledEnd: dayConfig.endTime,
+      isCrossDay: dayConfig.isCrossDay,
+      requiredHours: dayConfig.requiredHours,
+      requiredMinutes: dayConfig.requiredMinutes,
+    );
+
+    record.workedHours = details.officialMinutes ~/ 60;
+    record.workedMinutes = details.officialMinutes % 60;
+    record.overtimeHours = details.overtimeMinutes ~/ 60;
+    record.overtimeMinutes = details.overtimeMinutes % 60;
+    record.overtimeValue = calculator.calculateOvertimeValue(
+        details.overtimeMinutes ~/ 60, details.overtimeMinutes % 60);
+    record.deficitHours = details.deficitMinutes ~/ 60;
+    record.deficitMinutes = details.deficitMinutes % 60;
+    record.deficitValue = calculator.calculateDeficitValue(
+        details.deficitMinutes ~/ 60, details.deficitMinutes % 60);
+
+    // يوم بلا جلسات مغلقة ولا جلسة مفتوحة لا يُحتسب عليه عجز إلا إن أُعلن غياباً.
+    if (closed.isEmpty && !record.isOpen && !record.isAbsent) {
+      record.deficitHours = 0;
+      record.deficitMinutes = 0;
+      record.deficitValue = 0;
+    }
+  }
+
+  AttendanceModel _newRecord(DateTime day, WorkDayConfigEntity dayConfig) {
+    return AttendanceModel()
+      ..date = day
+      ..sessions = []
+      ..requiredHours = dayConfig.requiredHours
+      ..requiredMinutes = dayConfig.requiredMinutes
+      ..workedHours = 0
+      ..workedMinutes = 0
+      ..overtimeHours = 0
+      ..overtimeMinutes = 0
+      ..overtimeValue = 0
+      ..deficitHours = 0
+      ..deficitMinutes = 0
+      ..deficitValue = 0
+      ..isBiometricVerified = false
+      ..isAbsent = false
+      ..dayType = _resolveDayType(dayConfig);
+  }
+
+  static WorkDayConfigEntity _configFor(CompanyEntity company, DateTime date) {
+    final scheduleDay = DateHelpers.scheduleDayOf(date);
+    return company.workSchedule.firstWhere(
+      (day) => day.dayOfWeek == scheduleDay,
+      orElse: () => WorkDayConfigEntity(
+        dayOfWeek: scheduleDay,
+        isWorkingDay: true,
+        requiredHours: 8,
+        requiredMinutes: 0,
+        isHoliday: false,
+      ),
+    );
+  }
+
+  CompanyEntity _mapCompanyToEntity(CompanyModel company) {
+    return CompanyEntity(
+      id: company.id,
+      name: company.name,
+      jobTitle: company.jobTitle,
+      baseMonthlySalary: company.baseMonthlySalary,
+      hourlyRate: company.hourlyRate,
+      overtimeRate: company.overtimeRate,
+      workSchedule: company.workSchedule
           .map((w) => WorkDayConfigEntity(
                 dayOfWeek: w.dayOfWeek,
                 isWorkingDay: w.isWorkingDay,
@@ -317,33 +387,48 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
                 isCrossDay: w.isCrossDay,
               ))
           .toList(),
-      adjustments: profile.adjustments
+      adjustments: company.adjustments
           .map((a) => SalaryAdjustmentEntity(
                 title: a.title,
                 amount: a.amount,
                 isAddition: a.isAddition,
               ))
           .toList(),
-      currency: profile.currency,
-      companyName: profile.companyName,
-      employmentStartDate: profile.employmentStartDate,
-      updatedAt: profile.updatedAt,
+      currency: company.currency,
+      employmentStartDate: company.employmentStartDate,
+      colorIndex: company.colorIndex,
+      isArchived: company.isArchived,
+      createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
     );
   }
 
-  DayType _resolveDayType(WorkDayConfig config) {
+  static DayType _resolveDayType(WorkDayConfigEntity config) {
     if (config.isHoliday) return DayType.holiday;
-    if (config.dayOfWeek == 5) return DayType.friday;
-    if (config.dayOfWeek == 4) return DayType.thursday;
+    if (config.dayOfWeek == DateTime.friday) return DayType.friday;
+    if (config.dayOfWeek == DateTime.thursday) return DayType.thursday;
     return DayType.regular;
   }
 
   AttendanceEntity _mapToEntity(AttendanceModel m) {
     return AttendanceEntity(
       id: m.id,
+      companyId: m.companyId,
       date: m.date,
+      sessions: [
+        for (final session in m.sessions)
+          WorkSessionEntity(
+            checkIn: session.checkIn,
+            checkOut: session.checkOut,
+            isBiometricVerified: session.isBiometricVerified,
+            note: session.note,
+          ),
+      ],
       checkIn: m.checkIn,
       checkOut: m.checkOut,
+      isOpen: m.isOpen,
+      totalPresenceMinutes: m.totalPresenceMinutes,
+      sessionCount: m.sessionCount,
       workedHours: m.workedHours,
       workedMinutes: m.workedMinutes,
       requiredHours: m.requiredHours,

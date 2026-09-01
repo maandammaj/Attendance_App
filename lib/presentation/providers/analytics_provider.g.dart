@@ -6,7 +6,7 @@ part of 'analytics_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$analyticsReportHash() => r'f17fca39ece73cd9309b8af10686c5920b7ec0ec';
+String _$analyticsReportHash() => r'ef9b1fcebf4cd3ba87573ae4ade9290efee4561c';
 
 /// See also [analyticsReport].
 @ProviderFor(analyticsReport)
@@ -25,6 +25,30 @@ final analyticsReportProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AnalyticsReportRef = AutoDisposeFutureProviderRef<AnalyticsReport?>;
+String _$companyComparisonHash() => r'f638eaf1fc77a010ca66368c3f33704d99282ba2';
+
+/// أداء كل جهة خلال الفترة المختارة، مرتّباً بالعائد للساعة.
+///
+/// يُبنى فقط عند وجود أكثر من جهة: مقارنة جهة بنفسها لا تفيد.
+///
+/// Copied from [companyComparison].
+@ProviderFor(companyComparison)
+final companyComparisonProvider =
+    AutoDisposeFutureProvider<List<CompanyPerformance>>.internal(
+      companyComparison,
+      name: r'companyComparisonProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$companyComparisonHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CompanyComparisonRef =
+    AutoDisposeFutureProviderRef<List<CompanyPerformance>>;
 String _$selectedPeriodHash() => r'e035601789cc0eb179a9bc0fe979bcc85c058a72';
 
 /// المدى المعروض في شاشة التحليلات. تغييره يعيد بناء التقرير وحده.

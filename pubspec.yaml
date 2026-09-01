@@ -34,7 +34,6 @@ dependencies:
   fl_chart: ^0.66.0
 
   # 🎨 التصميم
-  google_fonts: ^6.1.0
   flutter_animate: ^4.3.0
   shimmer: ^3.0.0
 
@@ -59,10 +58,15 @@ flutter:
   assets:
     - assets/fonts/
 
-  # خط عربي مدمج: حزمة pdf تحتاج بايتات الخط ولا تقرأ من google_fonts.
+  # خط عربي مدمج يخدم غرضين: واجهة التطبيق وملفات PDF.
+  # مدمج لا مُحمَّل من الشبكة — التطبيق يعمل بلا اتصال، و google_fonts
+  # كان يجلب الخط وقت التشغيل فيسقط صامتاً على جهاز بلا إنترنت.
   fonts:
     - family: Tajawal
       fonts:
         - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
         - asset: assets/fonts/Tajawal-Bold.ttf
           weight: 700

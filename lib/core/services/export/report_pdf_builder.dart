@@ -54,6 +54,8 @@ class ReportPdfBuilder {
           pw.SizedBox(height: 18),
           _attendanceSummary(report),
           pw.SizedBox(height: 18),
+          _hoursLedger(report),
+          pw.SizedBox(height: 18),
           _attendanceTable(report),
           pw.SizedBox(height: 18),
           if (report.finance.expenseByCategory.isNotEmpty) ...[
@@ -181,6 +183,8 @@ class ReportPdfBuilder {
       ]),
       pw.SizedBox(height: 8),
       pw.Row(children: [
+        _statBox('الساعات المطلوبة',
+            DateHelpers.formatDurationCompact(attendance.totalRequiredMinutes)),
         _statBox('الساعات المنجزة',
             DateHelpers.formatDurationCompact(attendance.totalWorkedMinutes)),
         _statBox('الإضافي',
@@ -196,7 +200,81 @@ class ReportPdfBuilder {
             '${(attendance.punctualityRate * 100).toStringAsFixed(0)}%'),
         _statBox('متوسط الحضور', _clock(attendance.averageCheckInMinutes)),
         _statBox('متوسط الانصراف', _clock(attendance.averageCheckOutMinutes)),
+        _statBox('متوسط الجلسات/يوم',
+            attendance.averageSessionsPerDay.toStringAsFixed(1)),
       ]),
+    ]);
+  }
+
+  /// كشف الساعات: المطلوب، المنجز، والفرق — ثم كيف تحوّل الفرق إلى مال.
+  ///
+  /// موجود لأن الملخص أعلاه يعرض الأرقام متجاورة دون أن يُظهر العلاقة
+  /// بينها؛ هنا يرى الموظف من أين جاء بدل الإضافي سطراً بسطر.
+  pw.Widget _hoursLedger(AnalyticsReport report) {
+    final attendance = report.attendance;
+    final salary = report.salary;
+    final currency = report.currency;
+
+    final balance =
+        attendance.totalOvertimeMinutes - attendance.totalDeficitMinutes;
+
+    return _section('كشف الساعات', [
+      pw.TableHelper.fromTextArray(
+        headers: const ['البند', 'الساعات', 'أجر الساعة', 'القيمة'],
+        data: [
+          [
+            'الساعات المطلوبة',
+            DateHelpers.formatDurationCompact(attendance.totalRequiredMinutes),
+            '—',
+            '—',
+          ],
+          [
+            'الساعات المنجزة رسمياً',
+            DateHelpers.formatDurationCompact(attendance.totalWorkedMinutes),
+            salary.hourlyWage.toStringAsFixed(2),
+            '—',
+          ],
+          [
+            'إجمالي التواجد الفعلي',
+            DateHelpers.formatDurationCompact(attendance.totalPresenceMinutes),
+            '—',
+            '—',
+          ],
+          [
+            'ساعات إضافية',
+            DateHelpers.formatDurationCompact(attendance.totalOvertimeMinutes),
+            salary.overtimeHourlyRate.toStringAsFixed(2),
+            '+${salary.overtimeValue.toStringAsFixed(2)} $currency',
+          ],
+          [
+            'ساعات عجز وغياب',
+            DateHelpers.formatDurationCompact(attendance.totalDeficitMinutes),
+            salary.hourlyWage.toStringAsFixed(2),
+            '-${salary.deficitValue.toStringAsFixed(2)} $currency',
+          ],
+        ],
+        border: null,
+        headerStyle: pw.TextStyle(
+            fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+        headerDecoration: const pw.BoxDecoration(color: _accent),
+        cellStyle: const pw.TextStyle(fontSize: 9),
+        cellHeight: 20,
+        cellAlignment: pw.Alignment.center,
+        oddRowDecoration: const pw.BoxDecoration(color: _rowAlt),
+      ),
+      pw.SizedBox(height: 8),
+      _totalRow(
+        balance >= 0 ? 'رصيد ساعات لصالحك' : 'رصيد ساعات عليك',
+        salary.overtimeValue - salary.deficitValue,
+        currency,
+        balance >= 0 ? _positive : _negative,
+      ),
+      pw.SizedBox(height: 6),
+      pw.Text(
+        'الفارق ${DateHelpers.formatDurationCompact(balance.abs())} '
+        '(${attendance.completionRate * 100 ~/ 1}% إنجاز من المطلوب)',
+        style: const pw.TextStyle(fontSize: 9, color: _muted),
+      ),
     ]);
   }
 
@@ -212,6 +290,7 @@ class ReportPdfBuilder {
         headers: const [
           'اليوم',
           'التاريخ',
+          'جلسات',
           'المطلوب',
           'المنجز',
           'إضافي',
@@ -223,6 +302,7 @@ class ReportPdfBuilder {
             [
               DateHelpers.getArabicDayName(cell.date),
               '${cell.date.day}/${cell.date.month}',
+              cell.sessionCount == 0 ? '—' : '${cell.sessionCount}',
               DateHelpers.formatDurationCompact(cell.requiredMinutes),
               DateHelpers.formatDurationCompact(cell.workedMinutes),
               cell.overtimeMinutes == 0

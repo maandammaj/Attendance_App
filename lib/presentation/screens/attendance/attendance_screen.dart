@@ -1,396 +1,225 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+
+import '../../widgets/common/state_switcher.dart';
+import '../../../config/routes.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/design_tokens.dart';
+import '../../../core/constants/theme.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/ui_helpers.dart';
+import '../../../domain/usecases/attendance/get_monthly_stats_usecase.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../widgets/stat_card.dart';
-import '../../widgets/live_salary_counter.dart';
+import '../../widgets/attendance/live_session_card.dart';
+import '../../widgets/attendance/session_timeline.dart';
+import '../../widgets/common/section_header.dart';
+import '../companies/widgets/company_title.dart';
 import 'manual_attendance_dialog.dart';
+import 'widgets/quick_action_row.dart';
+import 'widgets/today_sessions_card.dart';
 
 class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final todayAttendance = ref.watch(todayAttendanceProvider);
-    final controllerState = ref.watch(attendanceControllerProvider);
     final now = DateTime.now();
-    final stats = ref.watch(attendanceStatsProvider(year: now.year, month: now.month));
-    final profile = ref.watch(profileProvider).valueOrNull;
-
-    // استماع للأخطاء في الـ Controller
-    ref.listen(attendanceControllerProvider, (prev, next) {
-      if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ: ${next.error}'), backgroundColor: Colors.red),
-        );
-      }
-    });
+    final today = ref.watch(todayAttendanceProvider);
+    final stats =
+        ref.watch(attendanceStatsProvider(year: now.year, month: now.month));
+    final currency = ref.watch(profileProvider).valueOrNull?.currency ??
+        AppConstants.defaultCurrency;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سجل الدوام'),
-        centerTitle: true,
+        title: const CompanyTitle(fallback: 'الدوام'),
         actions: [
           IconButton(
             icon: const Icon(Icons.insights_rounded),
-            onPressed: () => Navigator.pushNamed(context, '/analytics'),
             tooltip: 'التقارير والتحليلات',
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.analytics),
           ),
           IconButton(
-            icon: const Icon(Icons.description),
-            onPressed: () => Navigator.pushNamed(context, '/monthly-report'),
+            icon: const Icon(Icons.table_chart_outlined),
             tooltip: 'التقرير الشهري',
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => Navigator.pushNamed(context, '/attendance-history'),
-            tooltip: 'السجل العام',
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.monthlyReport),
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: todayAttendance.when(
-                  data: (data) => _buildTodayCard(context, ref, data),
-                  loading: () => const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (e, _) => Center(child: Text('خطأ في تحميل بيانات اليوم: $e')),
-                ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(todayAttendanceProvider);
+          ref.invalidate(attendanceStatsProvider);
+        },
+        child: ListView(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 140),
+          children: [
+            const LiveSessionCard(),
+            const SizedBox(height: 20),
+            QuickActionRow(
+              onManualEntry: () => UIHelpers.showModernBottomSheet(
+                context: context,
+                title: 'إضافة جلسة يدوياً',
+                child: const ManualAttendanceDialog(),
               ),
-              SliverToBoxAdapter(
-                child: stats.when(
-                  data: (s) => _buildStatsGrid(s, profile?.currency ?? 'ر.س'),
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: LinearProgressIndicator(),
-                  ),
-                  error: (e, __) => Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('خطأ في الإحصائيات: $e', style: const TextStyle(color: Colors.red, fontSize: 12)),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Text(
-                    'إدارة السجلات',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                    ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue.withValues(alpha: 0.1),
-                        child: const Icon(Icons.add_circle_outline, color: Colors.blue),
-                      ),
-                      title: const Text('إضافة سجل حضور يدوياً'),
-                      subtitle: const Text('للأيام السابقة أو عند تعطل البصمة'),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                      onTap: () => UIHelpers.showModernBottomSheet(
-                        context: context,
-                        title: 'إضافة حضور يدوي',
-                        child: const ManualAttendanceDialog(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
-          if (controllerState is AsyncLoading)
-            Container(
-              color: Colors.black45,
-              child: const Center(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('جاري معالجة الطلب...'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              onHistory: () =>
+                  Navigator.pushNamed(context, AppRoutes.attendanceHistory),
+              onReminders: () =>
+                  Navigator.pushNamed(context, AppRoutes.reminders),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTodayCard(BuildContext context, WidgetRef ref, dynamic today) {
-    final isCheckedIn = today?.checkIn != null;
-    final isCheckedOut = today?.checkOut != null;
-
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          StreamBuilder(
-            stream: Stream.periodic(const Duration(seconds: 1)),
-            builder: (_, __) => Text(
-              DateFormat('hh:mm:ss a', 'ar').format(DateTime.now()),
-              style: const TextStyle(
-                fontSize: 44,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-          Text(
-            DateFormat('EEEE, d MMMM yyyy', 'ar').format(DateTime.now()),
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
-          ),
-          const SizedBox(height: 24),
-          const LiveSalaryCounter(),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionButton(
-                  context,
-                  icon: Icons.fingerprint,
-                  label: isCheckedIn ? 'تم الحضور' : 'بصمة دخول',
-                  isActive: !isCheckedIn,
-                  onPressed: () => _handleAction(context, ref, isCheckIn: true),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildActionButton(
-                  context,
-                  icon: Icons.logout,
-                  label: isCheckedOut ? 'تم الانصراف' : 'بصمة خروج',
-                  isActive: isCheckedIn && !isCheckedOut,
-                  onPressed: () => _handleAction(context, ref, isCheckIn: false),
-                ),
-              ),
-            ],
-          ),
-          if (today != null) ...[
             const SizedBox(height: 24),
-            const Divider(color: Colors.white24),
-            const SizedBox(height: 12),
-            _buildTodaySummary(today),
+            SectionHeader(
+              title: 'جلسات اليوم',
+              subtitle: DateHelpers.formatShortDate(now),
+            ),
+            today.when(
+              data: (record) => TodaySessionsCard(
+                child: SessionTimeline(sessions: record?.sessions ?? const []),
+              ),
+              loading: () => const Skeleton(height: 120),
+              error: (error, _) => _ErrorCard(message: '$error'),
+            ),
+            const SizedBox(height: 24),
+            SectionHeader(
+              title: 'ملخص الشهر',
+              subtitle: DateHelpers.arabicMonths[now.month - 1],
+              actionLabel: 'التفاصيل',
+              onAction: () => Navigator.pushNamed(context, AppRoutes.analytics),
+            ),
+            stats.when(
+              data: (data) => _MonthSummary(stats: data, currency: currency),
+              loading: () => const Skeleton(height: 160),
+              error: (error, _) => _ErrorCard(message: '$error'),
+            ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleAction(BuildContext context, WidgetRef ref, {required bool isCheckIn}) async {
-    if (isCheckIn) {
-      await ref.read(attendanceControllerProvider.notifier).checkIn();
-    } else {
-      await ref.read(attendanceControllerProvider.notifier).checkOut();
-    }
-  }
-
-  Widget _buildActionButton(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required bool isActive,
-        required VoidCallback onPressed,
-      }) {
-    return Material(
-      color: isActive ? Colors.white : Colors.white10,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        onTap: isActive ? onPressed : null,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: 38,
-                color: isActive
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white30,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isActive
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.white30,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildTodaySummary(dynamic record) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        if (record.checkIn != null)
-          _buildTimeInfo('وقت الدخول', DateHelpers.formatTime(record.checkIn!)),
-        if (record.checkOut != null)
-          _buildTimeInfo('وقت الخروج', DateHelpers.formatTime(record.checkOut!)),
-        if (record.workedHours > 0 || record.workedMinutes > 0)
-          _buildTimeInfo(
-            'ساعات العمل',
-            DateHelpers.formatDuration(
-              (record.workedHours * 60) + record.workedMinutes,
-            ),
-          ),
-      ],
-    );
-  }
+class _MonthSummary extends StatelessWidget {
+  const _MonthSummary({required this.stats, required this.currency});
 
-  Widget _buildTimeInfo(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 11,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
+  final MonthlyStats stats;
+  final String currency;
 
-  Widget _buildStatsGrid(dynamic stats, String currency) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(
-                  title: 'الانضباط',
-                  value: '${stats.actualWorkingDays} / ${stats.expectedWorkingDays} يوم',
-                  icon: Icons.check_circle_outline,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  title: 'أيام الغياب',
-                  value: '${stats.absentDays} أيام',
-                  icon: Icons.person_off_outlined,
-                  color: Colors.red,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(
-                  title: 'ساعات الإضافي',
-                  value: '${stats.totalOvertimeHours.toStringAsFixed(1)} س',
-                  icon: Icons.add_chart,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  title: 'ساعات العجز',
-                  value: '${(stats.totalLatenessHours + stats.totalAbsenceHours).toStringAsFixed(1)} س',
-                  icon: Icons.history_toggle_off,
-                  color: Colors.orange,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: stats.netExtraValue >= 0 
-                  ? Colors.green.withValues(alpha: 0.1) 
-                  : Colors.red.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: stats.netExtraValue >= 0 ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final net = stats.netExtraValue;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
               children: [
-                const Text('صافي التأثير المالي (هذا الشهر):', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(
-                  '${stats.netExtraValue.toStringAsFixed(2)} $currency',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: stats.netExtraValue >= 0 ? Colors.green : Colors.red,
-                  ),
+                _Cell(
+                  label: 'أيام الحضور',
+                  value: '${stats.actualWorkingDays}',
+                  hint: 'من ${stats.expectedWorkingDays}',
+                  color: theme.colorScheme.primary,
+                ),
+                _Cell(
+                  label: 'الإضافي',
+                  value: stats.totalOvertimeHours.toStringAsFixed(1),
+                  hint: 'ساعة',
+                  color: palette.positive,
+                ),
+                _Cell(
+                  label: 'العجز',
+                  value: (stats.totalLatenessHours + stats.totalAbsenceHours)
+                      .toStringAsFixed(1),
+                  hint: 'ساعة',
+                  color: palette.negative,
                 ),
               ],
             ),
+            const Divider(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: Text('صافي الإضافي بعد الخصم',
+                      style: theme.textTheme.bodyMedium),
+                ),
+                Text(
+                  '${net >= 0 ? '+' : ''}${net.toStringAsFixed(0)} $currency',
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(
+                        color: net >= 0 ? palette.accent : palette.negative,
+                      )
+                      .merge(tabularFigures),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Cell extends StatelessWidget {
+  const _Cell({
+    required this.label,
+    required this.value,
+    required this.hint,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final String hint;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Column(
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value,
+                style: theme.textTheme.headlineSmall?.copyWith(color: color)),
           ),
+          Text(hint, style: theme.textTheme.labelSmall),
+          const SizedBox(height: 2),
+          Text(label, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
         ],
+      ),
+    );
+  }
+}
+
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, color: theme.colorScheme.error),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(message,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.error)),
+            ),
+          ],
+        ),
       ),
     );
   }

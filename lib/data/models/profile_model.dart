@@ -2,21 +2,35 @@ import 'package:isar_community/isar.dart';
 
 part 'profile_model.g.dart';
 
+/// الشخص نفسه — صف مفرد (`id = 0`).
+///
+/// شروط العمل (الراتب، الجدول، البدلات) انتقلت إلى [CompanyModel]؛ ما يبقى
+/// هنا ما لا يتغيّر بتغيّر جهة العمل.
 @collection
 class ProfileModel {
   Id id = 0;
 
   late String fullName;
-  late String jobTitle;
-  late double baseMonthlySalary;
-  late double hourlyRate;
-  late double overtimeRate;
-  late List<WorkDayConfig> workSchedule;
-  late List<SalaryAdjustment> adjustments;
+
+  /// الجهة المعروضة حالياً. كل شاشات الدوام والراتب والتقارير تُقرأ عبرها.
+  int? activeCompanyId;
+
+  /// العملة الافتراضية لجهة جديدة؛ لكل جهة أن تخالفها.
   String? currency;
-  String? companyName;
-  DateTime? employmentStartDate;
+
   late DateTime updatedAt;
+
+  // ── حقول ما قبل تعدّد الجهات ───────────────────────────────────
+  // تُقرأ مرة واحدة في `CompanyMigration` لبناء الجهة الأولى ثم تُهمل.
+  // إبقاؤها يحفظ بيانات من رقّى التطبيق دون أن يفقد راتبه وجدوله.
+  String? legacyJobTitle;
+  double? legacyBaseMonthlySalary;
+  double? legacyHourlyRate;
+  double? legacyOvertimeRate;
+  List<WorkDayConfig>? legacyWorkSchedule;
+  List<SalaryAdjustment>? legacyAdjustments;
+  String? legacyCompanyName;
+  DateTime? legacyEmploymentStartDate;
 }
 
 @embedded

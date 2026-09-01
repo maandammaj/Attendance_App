@@ -34,6 +34,10 @@ class ReminderSettingsEntity {
   final String quietHoursStart;
   final String quietHoursEnd;
 
+  final bool requireBiometricForAttendance;
+  final bool appLockEnabled;
+  final bool allowDeviceCredential;
+
   const ReminderSettingsEntity({
     this.shiftStartEnabled = true,
     this.shiftStartLeadMinutes = 30,
@@ -65,6 +69,9 @@ class ReminderSettingsEntity {
     this.quietHoursEnabled = false,
     this.quietHoursStart = '23:00',
     this.quietHoursEnd = '07:00',
+    this.requireBiometricForAttendance = true,
+    this.appLockEnabled = false,
+    this.allowDeviceCredential = true,
   });
 
   /// هل الوقت [now] داخل نافذة الهدوء؟ تدعم النوافذ العابرة لمنتصف الليل.
@@ -114,6 +121,9 @@ class ReminderSettingsEntity {
     bool? quietHoursEnabled,
     String? quietHoursStart,
     String? quietHoursEnd,
+    bool? requireBiometricForAttendance,
+    bool? appLockEnabled,
+    bool? allowDeviceCredential,
   }) {
     return ReminderSettingsEntity(
       shiftStartEnabled: shiftStartEnabled ?? this.shiftStartEnabled,
@@ -156,6 +166,11 @@ class ReminderSettingsEntity {
       quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
       quietHoursStart: quietHoursStart ?? this.quietHoursStart,
       quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
+      requireBiometricForAttendance:
+          requireBiometricForAttendance ?? this.requireBiometricForAttendance,
+      appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+      allowDeviceCredential:
+          allowDeviceCredential ?? this.allowDeviceCredential,
     );
   }
 }

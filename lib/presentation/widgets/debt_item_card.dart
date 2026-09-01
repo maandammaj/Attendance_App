@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/design_tokens.dart';
 import 'package:intl/intl.dart';
 
 class DebtItemCard extends StatelessWidget {
@@ -19,14 +20,15 @@ class DebtItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isDebt ? Colors.red.shade100 : Colors.green.shade100,
+          backgroundColor: isDebt ? palette.negative.withValues(alpha: 0.12) : palette.positive.withValues(alpha: 0.12),
           child: Icon(
             isDebt ? Icons.arrow_upward : Icons.arrow_downward,
-            color: isDebt ? Colors.red : Colors.green,
+            color: isDebt ? palette.negative : palette.positive,
           ),
         ),
         title: Text(title),
@@ -34,7 +36,7 @@ class DebtItemCard extends StatelessWidget {
         trailing: Text(
           '${amount.toStringAsFixed(2)} $currency',
           style: TextStyle(
-            color: isDebt ? Colors.red : Colors.green,
+            color: isDebt ? palette.negative : palette.positive,
             fontWeight: FontWeight.bold,
           ),
         ),

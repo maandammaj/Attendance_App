@@ -22,12 +22,12 @@ final profileProvider = AutoDisposeFutureProvider<ProfileEntity?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ProfileRef = AutoDisposeFutureProviderRef<ProfileEntity?>;
-String _$profileControllerHash() => r'cf92041cbf1a55214d10eda5251042dd621fb013';
+String _$profileControllerHash() => r'd847dba3af4779331ea1107969809d1f8e685c20';
 
 /// See also [ProfileController].
 @ProviderFor(ProfileController)
 final profileControllerProvider =
-    AutoDisposeAsyncNotifierProvider<ProfileController, void>.internal(
+    AsyncNotifierProvider<ProfileController, void>.internal(
       ProfileController.new,
       name: r'profileControllerProvider',
       debugGetCreateSourceHash:
@@ -38,6 +38,6 @@ final profileControllerProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$ProfileController = AutoDisposeAsyncNotifier<void>;
+typedef _$ProfileController = AsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
