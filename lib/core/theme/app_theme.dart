@@ -12,11 +12,9 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       textTheme: GoogleFonts.cairoTextTheme(),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 3,
@@ -27,9 +25,7 @@ class AppTheme {
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -59,11 +55,9 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

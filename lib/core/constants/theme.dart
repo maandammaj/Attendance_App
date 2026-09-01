@@ -13,14 +13,16 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       textTheme: GoogleFonts.cairoTextTheme(),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 3,
         height: 70,
-        indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         elevation: 4,
@@ -54,7 +56,7 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
