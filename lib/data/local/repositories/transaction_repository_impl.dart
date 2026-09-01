@@ -1,4 +1,5 @@
 import 'package:isar_community/isar.dart';
+import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/repositories/transaction_repository.dart';
 import '../../models/transaction_model.dart';
@@ -9,17 +10,23 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
   @override
-  Future<List<TransactionEntity>> getMonthlyTransactions(int year, int month) async {
+  Future<List<TransactionEntity>> getMonthlyTransactions(int year, int month) {
+    return getTransactionsBetween(
+      DateTime(year, month, 1),
+      DateHelpers.endOfMonth(DateTime(year, month, 1)),
+    );
+  }
+
+  @override
+  Future<List<TransactionEntity>> getTransactionsBetween(
+      DateTime from, DateTime to) async {
     final isar = await _db;
-    final start = DateTime(year, month, 1);
-    final end = DateTime(year, month + 1, 0);
-    
     final models = await isar.transactionModels
         .filter()
-        .dateBetween(start, end)
+        .dateBetween(from, to)
         .sortByDateDesc()
         .findAll();
-        
+
     return models.map(_mapToEntity).toList();
   }
 

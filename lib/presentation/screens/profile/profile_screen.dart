@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../widgets/app_button.dart';
 import '../../../domain/entities/profile_entity.dart';
@@ -155,6 +156,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   }
                 },
               ),
+              const SizedBox(height: 32),
+              _buildSectionHeader('النظام'),
+              const SizedBox(height: 8),
+              const _SystemLinks(),
               const SizedBox(height: 40),
             ],
           ),
@@ -180,8 +185,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildDayTile(WorkDayConfigEntity day) {
-    final dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
-    final name = dayNames[day.dayOfWeek - 1];
+    final name = DateHelpers.arabicDayNameOfScheduleDay(day.dayOfWeek);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -295,5 +299,79 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     }
     return null;
+  }
+}
+
+/// روابط الشاشات التي لا تملك تبويباً في الشريط السفلي.
+class _SystemLinks extends StatelessWidget {
+  const _SystemLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _LinkTile(
+          icon: Icons.insights_rounded,
+          title: 'التقارير والتحليلات',
+          subtitle: 'رسوم بيانية وتصدير PDF و CSV',
+          route: '/analytics',
+        ),
+        _LinkTile(
+          icon: Icons.notifications_active_outlined,
+          title: 'التذكيرات الذكية',
+          subtitle: 'تذكيرات الدوام والديون والتنبيهات المالية',
+          route: '/reminders',
+        ),
+        _LinkTile(
+          icon: Icons.savings_outlined,
+          title: 'حدود الميزانية',
+          subtitle: 'حد شهري لكل فئة إنفاق',
+          route: '/budget-limits',
+        ),
+        _LinkTile(
+          icon: Icons.history_rounded,
+          title: 'سجل التنبيهات',
+          subtitle: 'كل ما أرسله التطبيق سابقاً',
+          route: '/notification-history',
+        ),
+      ],
+    );
+  }
+}
+
+class _LinkTile extends StatelessWidget {
+  const _LinkTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.route,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsetsDirectional.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(icon, color: theme.colorScheme.primary),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+        onTap: () => Navigator.pushNamed(context, route),
+      ),
+    );
   }
 }

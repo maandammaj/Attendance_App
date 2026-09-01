@@ -35,6 +35,11 @@ class AttendanceScreen extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.insights_rounded),
+            onPressed: () => Navigator.pushNamed(context, '/analytics'),
+            tooltip: 'التقارير والتحليلات',
+          ),
+          IconButton(
             icon: const Icon(Icons.description),
             onPressed: () => Navigator.pushNamed(context, '/monthly-report'),
             tooltip: 'التقرير الشهري',

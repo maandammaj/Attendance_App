@@ -7,7 +7,9 @@ plugins {
 
 android {
     namespace = "com.example.attendance_budget_app"
-    compileSdk = 35
+    // إضافات local_auth_android و path_provider_android و flutter_plugin_android_lifecycle
+    // تُترجم على SDK 36؛ الترجمة على أقل منه تحذير يتحول لخطأ في إصدارات لاحقة.
+    compileSdk = 36
     // Use an installed NDK version (r27d) to satisfy plugin requirements
     ndkVersion = "27.3.13750724"
 
@@ -28,7 +30,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // isar_community_flutter_libs and some plugins require minSdk 23
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

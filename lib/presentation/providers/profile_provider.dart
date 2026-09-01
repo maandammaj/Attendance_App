@@ -4,6 +4,7 @@ import '../../data/local/repositories/profile_repository_impl.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../../domain/usecases/profile/get_profile_usecase.dart';
 import '../../domain/usecases/profile/update_profile_usecase.dart';
+import 'reminder_provider.dart';
 
 part 'profile_provider.g.dart';
 
@@ -34,6 +35,12 @@ class ProfileController extends _$ProfileController {
       final useCase = ref.read(updateProfileUseCaseProvider);
       await useCase(profile);
       ref.invalidate(profileProvider);
+
+      // تذكيرات الوردية مشتقة من workSchedule، فتغييره يبطل الجدولة القائمة.
+      await ref.read(reminderSchedulerProvider).rescheduleAll(
+            profile: profile,
+            settings: await ref.read(reminderSettingsProvider.future),
+          );
       state = const AsyncData(null);
     } catch (e, stack) {
       state = AsyncError(e, stack);

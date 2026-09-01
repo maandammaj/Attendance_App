@@ -7,6 +7,8 @@ import '../../models/transaction_model.dart';
 import '../../models/category_model.dart';
 import '../../models/account_model.dart';
 import '../../models/notification_model.dart';
+import '../../models/reminder_settings_model.dart';
+import '../../models/budget_limit_model.dart';
 
 class IsarDatabase {
   static Isar? _instance;
@@ -27,6 +29,8 @@ class IsarDatabase {
         CategoryModelSchema,
         AccountModelSchema,
         NotificationModelSchema,
+        ReminderSettingsModelSchema,
+        BudgetLimitModelSchema,
       ],
       directory: dir.path,
       inspector: true,

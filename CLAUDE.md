@@ -62,7 +62,7 @@ Attendance records store the *derived* money values (`overtimeValue`, `deficitVa
 
 `HomeScreen` is the real shell: an `IndexedStack` of five tabs (budget, attendance, debts, accounts, profile) with `CustomBottomNav` and a large biometric FAB that drives check-in/check-out. The named routes in `lib/config/routes.dart` also map `/` to `HomeScreen`, so pushing `AppRoutes.home` re-enters the shell rather than popping to it. `onGenerateRoute` always returns null.
 
-`AutomationService.runDailyAutomation(ref)` fires once from `HomeScreen.initState` via a post-frame callback — currently only warns about a check-in left open >16h; the recurring-expense and debt-reminder branches are stubs.
+`ReminderController.runStartupCycle()` fires once from `HomeScreen.initState` via a post-frame callback. It requests notification permissions, has `ReminderScheduler` rebuild every scheduled reminder from the profile's `workSchedule` and the debt list, then runs `SmartInsightsService` for the rules that can only be evaluated live (forgotten check-out, budget overrun, spending pace, month-end forecast). Scheduling is declarative: each cycle cancels the ID ranges in `NotificationIds.scheduledRanges` and rebuilds them, so a settings or schedule change needs no diffing. `ProfileController.saveProfile` triggers the same reschedule.
 
 ### Auth & notifications
 
@@ -73,9 +73,11 @@ Attendance records store the *derived* money values (`overtimeValue`, `deficitVa
 
 - UI text, comments, and many identifiers are Arabic. Keep new user-facing strings Arabic; reuse `AppConstants` (currency `ر.ي`, `arabicDays`, biometric prompts) rather than hardcoding.
 - `main()` calls `initializeDateFormatting('ar')` and sets `Intl.defaultLocale = 'ar'`. `MaterialApp` declares **no** `localizationsDelegates`/`supportedLocales` and no explicit RTL — screens handle direction themselves. Adding `flutter_localizations` is the correct fix if you need Material widgets localized.
-- `DateHelpers` and `WorkDayConfig.dayOfWeek` use a **Saturday-first week** via `date.weekday % 7` (Sunday→0, Saturday→6) matching `AppConstants.arabicDays`. Do not mix this with Dart's `DateTime.weekday` (Monday=1) directly.
+- **Weekday convention.** `WorkDayConfig.dayOfWeek` stores Dart's `DateTime.weekday` (Monday=1 … Sunday=7) — that is what `ProfileScreen` writes and what `_resolveDayType` assumes (Friday=5, Thursday=4). Look a day's config up with `DateHelpers.scheduleDayOf(date)`, never `date.weekday % 7`: that expression maps Sunday to 0, which matches no stored config, so Sunday silently fell through to the 8-hour `orElse` default and corrupted its overtime/deficit.
+  `AppConstants.arabicDays` is a separate, **display-only** ordering that starts with Saturday. Convert with `DateHelpers.arabicDayIndex(date)` / `arabicDayNameOfScheduleDay(dayOfWeek)` (`(weekday + 1) % 7`). The two numberings are not interchangeable; `test/core/utils/date_helpers_test.dart` pins both.
 - Two dead duplicates exist — prefer the live ones: `lib/core/constants/theme.dart` is the theme actually imported by `app.dart` (`lib/core/theme/app_theme.dart` is an unused copy), and `lib/presentation/viewmodels/*.dart` are unreferenced `StateNotifier` predecessors of the current `@riverpod` controllers in `lib/presentation/providers/`.
-- `freezed` and `json_serializable` are in `dev_dependencies` but nothing uses them yet; entities are hand-written.
+- `freezed` / `json_serializable` were removed — nothing used them, and `freezed`'s `build ^2.x` constraint blocked upgrading the Isar generator. Entities are hand-written.
+- **`share_plus` is pinned to `^10.1.4` on purpose.** Version 13 pulls `win32 6.4.0`, whose Dart 3.11 syntax the `analyzer 7.6.0` that `isar_community_generator` forces cannot parse — `build_runner` then dies with `Missing implementation of visitDotShorthandInvocation`. Do not bump it until the generator chain allows a newer analyzer.
 - iOS/macOS `Podfile`s and the Flutter xcconfigs are locally modified/untracked — check `git status` before assuming platform config is clean.
 
 ## Agent configuration (`.claude/`, `.agents/`)

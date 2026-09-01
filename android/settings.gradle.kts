@@ -19,7 +19,9 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.7.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.8.22" apply false
+    // Kotlin 1.8 يدعم Gradle حتى 8.1 فقط، والـwrapper هنا 8.10.2 — التعارض
+    // كان يُسقط التقييم بـ NullPointerException قبل بدء أي مهمة بناء.
+    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
 }
 
 include(":app")

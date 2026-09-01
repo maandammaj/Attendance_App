@@ -1,5 +1,5 @@
 import '../../../core/utils/date_helpers.dart';
-import '../../entities/attendance_entity.dart';
+import '../../../core/utils/salary_calculator.dart';
 import '../../entities/profile_entity.dart';
 import '../../repositories/attendance_repository.dart';
 
@@ -34,6 +34,7 @@ class GetMonthlyStatsUseCase {
   Future<MonthlyStats> call(int year, int month, ProfileEntity profile) async {
     final records = await repository.getMonthlyRecords(year, month);
     final now = DateTime.now();
+    final calculator = SalaryCalculator(profile);
 
     int totalOvertimeMinutes = 0;
     int totalLatenessMinutes = 0;
@@ -60,7 +61,7 @@ class GetMonthlyStatsUseCase {
 
     for (int day = 1; day <= endDay; day++) {
       final date = DateTime(year, month, day);
-      final dayOfWeek = date.weekday % 7;
+      final dayOfWeek = DateHelpers.scheduleDayOf(date);
       
       final dayConfig = profile.workSchedule.firstWhere(
         (d) => d.dayOfWeek == dayOfWeek,
@@ -81,11 +82,8 @@ class GetMonthlyStatsUseCase {
           final missingMinutes = (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
           totalAbsenceMinutes += missingMinutes;
           
-          final hourlyRate = profile.hourlyRate > 0 
-              ? profile.hourlyRate 
-              : (profile.baseMonthlySalary / 160); // افتراض 160 ساعة عمل شهرية
-              
-          totalDeficitValue += (missingMinutes / 60) * hourlyRate;
+          totalDeficitValue += calculator.calculateDeficitValue(
+              missingMinutes ~/ 60, missingMinutes % 60);
         }
       }
     }

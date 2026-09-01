@@ -96,8 +96,8 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
 
       if (record == null && profile != null && date.isBefore(now)) {
         final dayConfig = profile.workSchedule.firstWhere(
-          (d) => d.dayOfWeek == date.weekday % 7,
-          orElse: () => WorkDayConfigEntity(dayOfWeek: date.weekday % 7, isWorkingDay: false, requiredHours: 0, requiredMinutes: 0, isHoliday: true),
+          (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(date),
+          orElse: () => WorkDayConfigEntity(dayOfWeek: DateHelpers.scheduleDayOf(date), isWorkingDay: false, requiredHours: 0, requiredMinutes: 0, isHoliday: true),
         );
         if (dayConfig.isWorkingDay && !dayConfig.isHoliday) {
           isMissingWorkDay = true;

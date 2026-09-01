@@ -1,7 +1,6 @@
 // presentation/providers/auth_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
-import '../providers/profile_provider.dart';
 
 final localAuthProvider = Provider<LocalAuthentication>((ref) {
   return LocalAuthentication();

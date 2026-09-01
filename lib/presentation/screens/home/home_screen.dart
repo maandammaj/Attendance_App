@@ -8,7 +8,7 @@ import '../debt/debts_screen.dart';
 import '../profile/profile_screen.dart';
 import '../account/accounts_screen.dart';
 import '../../widgets/custom_bottom_nav.dart';
-import '../../../domain/services/automation_service.dart';
+import '../../providers/reminder_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +24,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AutomationService.runDailyAutomation(ref);
+      ref.read(reminderControllerProvider.notifier).runStartupCycle();
     });
   }
 

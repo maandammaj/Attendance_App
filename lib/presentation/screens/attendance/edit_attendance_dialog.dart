@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../providers/attendance_provider.dart';
 

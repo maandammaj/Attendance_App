@@ -54,16 +54,24 @@ class SalaryCalculator {
     }
   }
 
+  /// يحسب الرسمي/الإضافي/العجز لوردية واحدة.
+  ///
+  /// عند غياب نافذة الوردية (`scheduledStart`/`scheduledEnd`) لا يمكن التقاطع،
+  /// فنقارن مدة التواجد الكلية بالساعات المطلوبة لليوم بدل إرجاع أصفار.
   ({int officialMinutes, int overtimeMinutes, int deficitMinutes}) calculateShiftDetails({
     required DateTime actualCheckIn,
     required DateTime actualCheckOut,
     required String? scheduledStart, // "HH:mm"
     required String? scheduledEnd,   // "HH:mm"
     required bool isCrossDay,
+    int requiredHours = 0,
+    int requiredMinutes = 0,
   }) {
     if (scheduledStart == null || scheduledEnd == null) {
-      // إذا لم يكن هناك جدول، نعتمد إجمالي الساعات (نظام قديم)
-      return (officialMinutes: 0, overtimeMinutes: 0, deficitMinutes: 0);
+      return _detailsFromDuration(
+        presenceMinutes: actualCheckOut.difference(actualCheckIn).inMinutes,
+        requiredMinutes: (requiredHours * 60) + requiredMinutes,
+      );
     }
 
     final startParts = scheduledStart.split(':');
@@ -115,6 +123,19 @@ class SalaryCalculator {
       officialMinutes: officialMins,
       overtimeMinutes: overtimeMins,
       deficitMinutes: deficitMins,
+    );
+  }
+
+  ({int officialMinutes, int overtimeMinutes, int deficitMinutes}) _detailsFromDuration({
+    required int presenceMinutes,
+    required int requiredMinutes,
+  }) {
+    final presence = presenceMinutes < 0 ? 0 : presenceMinutes;
+    final official = presence < requiredMinutes ? presence : requiredMinutes;
+    return (
+      officialMinutes: official,
+      overtimeMinutes: presence - official,
+      deficitMinutes: requiredMinutes - official,
     );
   }
 

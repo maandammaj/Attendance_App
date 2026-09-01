@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/biometric_auth.dart';
-import '../../providers/profile_provider.dart';
 
 class BiometricLockScreen extends ConsumerStatefulWidget {
   const BiometricLockScreen({super.key});

@@ -28,13 +28,20 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<List<AttendanceEntity>> getMonthlyRecords(int year, int month) async {
+  Future<List<AttendanceEntity>> getMonthlyRecords(int year, int month) {
+    return getRecordsBetween(
+      DateTime(year, month, 1),
+      DateHelpers.endOfMonth(DateTime(year, month, 1)),
+    );
+  }
+
+  @override
+  Future<List<AttendanceEntity>> getRecordsBetween(
+      DateTime from, DateTime to) async {
     final isar = await _db;
-    final start = DateTime(year, month, 1);
-    final end = DateTime(year, month + 1, 0, 23, 59, 59);
     final records = await isar.attendanceModels
         .filter()
-        .dateBetween(start, end)
+        .dateBetween(from, to)
         .sortByDateDesc()
         .findAll();
     return records.map(_mapToEntity).toList();
@@ -56,9 +63,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final today = DateHelpers.startOfDay(time);
     final dayConfig = profile.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == time.weekday % 7,
+      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(time),
       orElse: () => WorkDayConfig()
-        ..dayOfWeek = time.weekday % 7
+        ..dayOfWeek = DateHelpers.scheduleDayOf(time)
         ..isWorkingDay = true
         ..requiredHours = 8
         ..requiredMinutes = 0
@@ -110,8 +117,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final calculator = SalaryCalculator(profileEntity);
     
     final dayConfig = profileEntity.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == record.date.weekday % 7,
-      orElse: () => WorkDayConfigEntity(dayOfWeek: record.date.weekday % 7, isWorkingDay: true, requiredHours: 8, requiredMinutes: 0, isHoliday: false),
+      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(record.date),
+      orElse: () => WorkDayConfigEntity(dayOfWeek: DateHelpers.scheduleDayOf(record.date), isWorkingDay: true, requiredHours: 8, requiredMinutes: 0, isHoliday: false),
     );
 
     final details = calculator.calculateShiftDetails(
@@ -120,6 +127,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       scheduledStart: dayConfig.startTime,
       scheduledEnd: dayConfig.endTime,
       isCrossDay: dayConfig.isCrossDay,
+      requiredHours: dayConfig.requiredHours,
+      requiredMinutes: dayConfig.requiredMinutes,
     );
 
     record.workedHours = details.officialMinutes ~/ 60;
@@ -153,9 +162,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final calculator = SalaryCalculator(profileEntity);
 
     final dayConfig = profileEntity.workSchedule.firstWhere(
-      (d) => d.dayOfWeek == date.weekday % 7,
+      (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(date),
       orElse: () => WorkDayConfigEntity(
-          dayOfWeek: date.weekday % 7,
+          dayOfWeek: DateHelpers.scheduleDayOf(date),
           isWorkingDay: true,
           requiredHours: 8,
           requiredMinutes: 0,
@@ -168,6 +177,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       scheduledStart: dayConfig.startTime,
       scheduledEnd: dayConfig.endTime,
       isCrossDay: dayConfig.isCrossDay,
+      requiredHours: dayConfig.requiredHours,
+      requiredMinutes: dayConfig.requiredMinutes,
     );
 
     final record = AttendanceModel()
@@ -218,9 +229,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     if (!entity.isAbsent && entity.checkIn != null && entity.checkOut != null) {
       final dayConfig = profileEntity.workSchedule.firstWhere(
-        (d) => d.dayOfWeek == model.date.weekday % 7,
+        (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(model.date),
         orElse: () => WorkDayConfigEntity(
-            dayOfWeek: model.date.weekday % 7,
+            dayOfWeek: DateHelpers.scheduleDayOf(model.date),
             isWorkingDay: true,
             requiredHours: 8,
             requiredMinutes: 0,
@@ -233,6 +244,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         scheduledStart: dayConfig.startTime,
         scheduledEnd: dayConfig.endTime,
         isCrossDay: dayConfig.isCrossDay,
+        requiredHours: dayConfig.requiredHours,
+        requiredMinutes: dayConfig.requiredMinutes,
       );
 
       model
@@ -248,9 +261,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
             details.deficitMinutes ~/ 60, details.deficitMinutes % 60);
     } else if (entity.isAbsent) {
       final dayConfig = profileEntity.workSchedule.firstWhere(
-        (d) => d.dayOfWeek == model.date.weekday % 7,
+        (d) => d.dayOfWeek == DateHelpers.scheduleDayOf(model.date),
         orElse: () => WorkDayConfigEntity(
-            dayOfWeek: model.date.weekday % 7,
+            dayOfWeek: DateHelpers.scheduleDayOf(model.date),
             isWorkingDay: true,
             requiredHours: 8,
             requiredMinutes: 0,
