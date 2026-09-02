@@ -4,6 +4,10 @@ part 'transaction_model.g.dart';
 
 @collection
 class TransactionModel {
+
+  /// الجهة التي تخصّها هذه البيانات. مفهرس لأن كل استعلام يُرشّح به.
+  @Index()
+  int companyId = 0;
   Id id = Isar.autoIncrement;
 
   late double amount;

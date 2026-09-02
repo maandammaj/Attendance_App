@@ -81,14 +81,17 @@ class AppTheme {
             : SystemUiOverlayStyle.dark,
       ),
 
-      // البطاقة تعلن ارتفاعها بالحد وحده؛ الظل محجوز للأسطح الطافية.
+      // سطح أبيض على خلفية #F2F2F2 بظل خفيف — العمق بالتلميح لا بالحد.
+      // في الوضع الداكن يعود الحد لأن الظل لا يفصل هناك.
       cardTheme: CardThemeData(
         elevation: 0,
         color: palette.surface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: BorderSide(color: palette.outline),
+          side: isDark
+              ? BorderSide(color: palette.outline)
+              : BorderSide.none,
         ),
       ),
 
@@ -209,6 +212,7 @@ class AppTheme {
         fillColor: palette.surfaceAlt,
         contentPadding: const EdgeInsetsDirectional.symmetric(
             horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+        isDense: false,
         labelStyle: textTheme.bodyMedium,
         // النص النائب يخضع لحدّ 4.5:1 كأي نص، فلا يُخفَّت أكثر من الثانوي.
         hintStyle:
@@ -297,33 +301,36 @@ class AppTheme {
   }
 
   static TextTheme _textTheme(bool isDark, AppPalette palette) {
-    // Tajawal مدمج في assets بثلاثة أوزان. نفس الخط يُستخدم في تقارير PDF،
-    // فيتطابق ما يراه المستخدم على الشاشة مع ما يطبعه.
-    TextStyle font(double size, FontWeight weight, double height,
+    // Cairo متغيّر: الوزن يُختار بـ fontVariations لا بملف لكل وزن. تمرير
+    // fontWeight وحده يُبقي الخط على وزنه الافتراضي.
+    TextStyle font(double size, int weight, double height,
             {double spacing = 0}) =>
         TextStyle(
-          fontFamily: 'Tajawal',
+          fontFamily: 'Cairo',
           fontSize: size,
-          fontWeight: weight,
           height: height,
           letterSpacing: spacing,
+          fontWeight: FontWeight.values[(weight ~/ 100) - 1],
+          fontVariations: [FontVariation('wght', weight.toDouble())],
         );
 
+    // السلّم الطباعي لمهارة arabic-app-design، وارتفاعات سطر 1.45–1.6
+    // مريحة للعربية.
     return TextTheme(
-      // -0.03em عند هذا الحجم؛ قاع الحرفة يحدّ التقارب عند -0.04em.
-      displayLarge: font(52, FontWeight.w700, 1.05, spacing: -1.6),
-      displaySmall: font(34, FontWeight.w700, 1.18, spacing: -0.6),
-      headlineMedium: font(26, FontWeight.w700, 1.25, spacing: -0.4),
-      headlineSmall: font(22, FontWeight.w700, 1.3, spacing: -0.3),
-      titleLarge: font(19, FontWeight.w700, 1.35),
-      titleMedium: font(16, FontWeight.w600, 1.4),
-      titleSmall: font(14, FontWeight.w600, 1.4),
-      bodyLarge: font(15, FontWeight.w400, 1.55),
-      bodyMedium: font(14, FontWeight.w400, 1.55),
-      bodySmall: font(12.5, FontWeight.w400, 1.5),
-      labelLarge: font(14, FontWeight.w600, 1.3),
-      labelMedium: font(12.5, FontWeight.w500, 1.3),
-      labelSmall: font(11.5, FontWeight.w500, 1.35),
+      displayLarge: font(40, 800, 1.15, spacing: -0.8),
+      displayMedium: font(32, 800, 1.2, spacing: -0.5),
+      displaySmall: font(26, 800, 1.25),
+      headlineMedium: font(22, 700, 1.35),
+      headlineSmall: font(20, 700, 1.4),
+      titleLarge: font(20, 700, 1.4),
+      titleMedium: font(16.5, 700, 1.45),
+      titleSmall: font(15, 600, 1.5),
+      bodyLarge: font(15, 600, 1.5),
+      bodyMedium: font(14, 500, 1.55),
+      bodySmall: font(13, 500, 1.55),
+      labelLarge: font(12.5, 600, 1.5),
+      labelMedium: font(12.5, 600, 1.5),
+      labelSmall: font(11.5, 500, 1.6),
     ).apply(
       bodyColor: palette.onSurface,
       displayColor: palette.onSurface,

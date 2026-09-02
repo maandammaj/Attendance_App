@@ -6,6 +6,29 @@ part of 'reminder_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$notificationDiagnosticsHash() =>
+    r'6085d93c0c86e1b4879aa4fd9d7b6c95a4d42fbf';
+
+/// حالة تسليم التنبيهات كما يراها النظام.
+///
+/// Copied from [notificationDiagnostics].
+@ProviderFor(notificationDiagnostics)
+final notificationDiagnosticsProvider =
+    AutoDisposeFutureProvider<NotificationDiagnostics>.internal(
+      notificationDiagnostics,
+      name: r'notificationDiagnosticsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$notificationDiagnosticsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef NotificationDiagnosticsRef =
+    AutoDisposeFutureProviderRef<NotificationDiagnostics>;
 String _$reminderSettingsHash() => r'cab030f6cc6c4f7d4a29c034a0716b27e75abf86';
 
 /// See also [reminderSettings].
@@ -203,7 +226,7 @@ class _BudgetStatusProviderElement
 }
 
 String _$reminderControllerHash() =>
-    r'f72eca235da916c21bb97ddaad1f70d7e6086c4f';
+    r'648db70ebe91ecfc461e2277cdd68483a2729950';
 
 /// See also [ReminderController].
 @ProviderFor(ReminderController)

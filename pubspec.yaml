@@ -62,6 +62,13 @@ flutter:
   # مدمج لا مُحمَّل من الشبكة — التطبيق يعمل بلا اتصال، و google_fonts
   # كان يجلب الخط وقت التشغيل فيسقط صامتاً على جهاز بلا إنترنت.
   fonts:
+    # Cairo خط الهوية للواجهة. متغيّر (variable) — الأوزان تُختار بـ
+    # fontVariations لا بملف لكل وزن.
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo.ttf
+
+    # Tajawal يبقى لتقارير PDF: حزمة pdf لا تدعم الخطوط المتغيّرة.
     - family: Tajawal
       fonts:
         - asset: assets/fonts/Tajawal-Regular.ttf

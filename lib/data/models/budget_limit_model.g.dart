@@ -22,19 +22,24 @@ const BudgetLimitModelSchema = CollectionSchema(
       name: r'categoryName',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'companyId': PropertySchema(
       id: 1,
+      name: r'companyId',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'isActive': PropertySchema(id: 2, name: r'isActive', type: IsarType.bool),
+    r'isActive': PropertySchema(id: 3, name: r'isActive', type: IsarType.bool),
     r'monthlyLimit': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'monthlyLimit',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -46,6 +51,19 @@ const BudgetLimitModelSchema = CollectionSchema(
   deserializeProp: _budgetLimitModelDeserializeProp,
   idName: r'id',
   indexes: {
+    r'companyId': IndexSchema(
+      id: 482756417767355356,
+      name: r'companyId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'companyId',
+          type: IndexType.value,
+          caseSensitive: false,
+        ),
+      ],
+    ),
     r'categoryName': IndexSchema(
       id: -7528967714848594133,
       name: r'categoryName',
@@ -86,10 +104,11 @@ void _budgetLimitModelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.categoryName);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeBool(offsets[2], object.isActive);
-  writer.writeDouble(offsets[3], object.monthlyLimit);
-  writer.writeDateTime(offsets[4], object.updatedAt);
+  writer.writeLong(offsets[1], object.companyId);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeBool(offsets[3], object.isActive);
+  writer.writeDouble(offsets[4], object.monthlyLimit);
+  writer.writeDateTime(offsets[5], object.updatedAt);
 }
 
 BudgetLimitModel _budgetLimitModelDeserialize(
@@ -100,11 +119,12 @@ BudgetLimitModel _budgetLimitModelDeserialize(
 ) {
   final object = BudgetLimitModel();
   object.categoryName = reader.readString(offsets[0]);
-  object.createdAt = reader.readDateTime(offsets[1]);
+  object.companyId = reader.readLong(offsets[1]);
+  object.createdAt = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.isActive = reader.readBool(offsets[2]);
-  object.monthlyLimit = reader.readDouble(offsets[3]);
-  object.updatedAt = reader.readDateTime(offsets[4]);
+  object.isActive = reader.readBool(offsets[3]);
+  object.monthlyLimit = reader.readDouble(offsets[4]);
+  object.updatedAt = reader.readDateTime(offsets[5]);
   return object;
 }
 
@@ -118,12 +138,14 @@ P _budgetLimitModelDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -151,6 +173,14 @@ extension BudgetLimitModelQueryWhereSort
   QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhere> anyCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'companyId'),
+      );
     });
   }
 }
@@ -218,6 +248,106 @@ extension BudgetLimitModelQueryWhere
           lower: lowerId,
           includeLower: includeLower,
           upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhereClause>
+  companyIdEqualTo(int companyId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'companyId', value: [companyId]),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhereClause>
+  companyIdNotEqualTo(int companyId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhereClause>
+  companyIdGreaterThan(int companyId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [companyId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhereClause>
+  companyIdLessThan(int companyId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [],
+          upper: [companyId],
+          includeUpper: include,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterWhereClause>
+  companyIdBetween(
+    int lowerCompanyId,
+    int upperCompanyId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [lowerCompanyId],
+          includeLower: includeLower,
+          upper: [upperCompanyId],
           includeUpper: includeUpper,
         ),
       );
@@ -419,6 +549,61 @@ extension BudgetLimitModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'categoryName', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterFilterCondition>
+  companyIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'companyId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterFilterCondition>
+  companyIdGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterFilterCondition>
+  companyIdLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterFilterCondition>
+  companyIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'companyId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
@@ -696,6 +881,20 @@ extension BudgetLimitModelQuerySortBy
   }
 
   QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterSortBy>
+  sortByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterSortBy>
+  sortByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterSortBy>
   sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -765,6 +964,20 @@ extension BudgetLimitModelQuerySortThenBy
   thenByCategoryNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterSortBy>
+  thenByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QAfterSortBy>
+  thenByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
     });
   }
 
@@ -848,6 +1061,13 @@ extension BudgetLimitModelQueryWhereDistinct
   }
 
   QueryBuilder<BudgetLimitModel, BudgetLimitModel, QDistinct>
+  distinctByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'companyId');
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, BudgetLimitModel, QDistinct>
   distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -888,6 +1108,12 @@ extension BudgetLimitModelQueryProperty
   categoryNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'categoryName');
+    });
+  }
+
+  QueryBuilder<BudgetLimitModel, int, QQueryOperations> companyIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'companyId');
     });
   }
 

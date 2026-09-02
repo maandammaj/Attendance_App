@@ -6,6 +6,7 @@ import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/reminder_settings_entity.dart';
 import '../../providers/reminder_provider.dart';
 import 'widgets/biometric_status_tile.dart';
+import 'widgets/delivery_health_card.dart';
 import 'widgets/reminder_section.dart';
 import 'widgets/reminder_switch_tile.dart';
 import 'widgets/reminder_time_tile.dart';
@@ -55,6 +56,7 @@ class _SettingsBody extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 40),
       children: [
+        const DeliveryHealthCard(),
         ReminderSection(
           title: 'تذكيرات الدوام',
           icon: Icons.access_time_rounded,

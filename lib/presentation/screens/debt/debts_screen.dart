@@ -230,7 +230,7 @@ class _DebtList extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsetsDirectional.fromSTEB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 96),
+            AppSpacing.screen, AppSpacing.sm, AppSpacing.screen, 96),
       itemCount: debts.length,
       itemBuilder: (context, index) => _DebtRow(
         debt: debts[index],

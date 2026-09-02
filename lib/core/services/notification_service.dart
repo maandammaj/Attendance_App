@@ -32,29 +32,38 @@ class NotificationService {
       'تذكيرات الدوام',
       description: 'بداية ونهاية الوردية، واكتمال الساعات، ونسيان تسجيل الخروج',
       importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
     ),
     AndroidNotificationChannel(
       NotificationChannels.debt,
       'تذكيرات الديون',
       description: 'الاستحقاقات القادمة والمتأخرات',
       importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
     ),
     AndroidNotificationChannel(
       NotificationChannels.finance,
       'تنبيهات مالية',
       description: 'تجاوز الميزانية ونسبة الدين ومعدل الصرف',
       importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
     ),
     AndroidNotificationChannel(
       NotificationChannels.summary,
       'الملخصات الدورية',
       description: 'الملخص اليومي والأسبوعي والتقرير الشهري',
       importance: Importance.defaultImportance,
+      playSound: true,
     ),
     AndroidNotificationChannel(
       NotificationChannels.general,
       'تنبيهات عامة',
       importance: Importance.defaultImportance,
+      playSound: true,
     ),
   ];
 
@@ -80,6 +89,10 @@ class NotificationService {
     final android = _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (android != null) {
+      // القنوات القديمة تُحذف أولاً: إعداداتها متجمّدة ولا تُصلَح بالتعديل.
+      for (final id in NotificationChannels.retired) {
+        await android.deleteNotificationChannel(id);
+      }
       for (final channel in _channels) {
         await android.createNotificationChannel(channel);
       }
@@ -139,6 +152,12 @@ class NotificationService {
         importance:
             _channels.firstWhere((c) => c.id == channel).importance,
         priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        // التصنيف يجعل النظام يعامل التذكير كمنبّه لا كرسالة دعائية،
+        // فينجو من كتم الإشعارات التلقائي في وضع توفير البطارية.
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
         styleInformation:
             bigText == null ? null : BigTextStyleInformation(bigText),
       ),
@@ -325,4 +344,69 @@ class NotificationService {
 
   Future<List<PendingNotificationRequest>> pending() =>
       _notifications.pendingNotificationRequests();
+
+  /// حالة التسليم كما يراها النظام — أساس شرح "لماذا لا تصل التنبيهات".
+  ///
+  /// ثلاثة أسباب تمنع الوصول ولا يظهر أيٌّ منها كخطأ في الكود: الإذن مرفوض،
+  /// الجدولة الدقيقة ممنوعة (أندرويد 12+)، أو النظام يقتل التطبيق في الخلفية.
+  Future<NotificationDiagnostics> diagnose() async {
+    final android = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    if (android == null) {
+      final ios = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      final granted =
+          await ios?.checkPermissions().then((p) => p?.isEnabled ?? false) ??
+              true;
+      return NotificationDiagnostics(
+        permissionGranted: granted,
+        exactAlarmsAllowed: true,
+        pendingCount: (await pending()).length,
+      );
+    }
+
+    return NotificationDiagnostics(
+      permissionGranted: await android.areNotificationsEnabled() ?? false,
+      exactAlarmsAllowed: await android.canScheduleExactNotifications() ?? false,
+      pendingCount: (await pending()).length,
+    );
+  }
+
+  /// يطلق تنبيهاً فورياً للتحقق من الصوت والوصول بلا انتظار جدولة.
+  Future<void> sendTestNotification() async {
+    await showNotification(
+      id: NotificationIds.attendanceLive.idFor(9),
+      title: 'تجربة التنبيهات',
+      body: 'إن وصلك هذا مع صوت فالإعدادات سليمة.',
+      category: NotificationCategory.attendance,
+    );
+  }
+
+  /// يفتح إعدادات الجدولة الدقيقة لينحها المستخدم.
+  Future<void> requestExactAlarms() async {
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestExactAlarmsPermission();
+    _exactAlarmsAllowed = true;
+  }
+}
+
+/// ما يمنع التنبيهات من الوصول، بصيغة قابلة للعرض للمستخدم.
+class NotificationDiagnostics {
+  const NotificationDiagnostics({
+    required this.permissionGranted,
+    required this.exactAlarmsAllowed,
+    required this.pendingCount,
+  });
+
+  final bool permissionGranted;
+  final bool exactAlarmsAllowed;
+
+  /// عدد التنبيهات المجدولة فعلياً في النظام. صفر مع تفعيل التذكيرات يعني
+  /// أن الجدولة فشلت لا أن لا شيء مستحق.
+  final int pendingCount;
+
+  bool get isHealthy => permissionGranted && exactAlarmsAllowed;
 }

@@ -27,82 +27,87 @@ const DebtModelSchema = CollectionSchema(
       name: r'category',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'companyId': PropertySchema(
       id: 2,
+      name: r'companyId',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 3,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'debtType': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'debtType',
       type: IsarType.byte,
       enumMap: _DebtModeldebtTypeEnumValueMap,
     ),
     r'description': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'hasReminder': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'hasReminder',
       type: IsarType.bool,
     ),
     r'lastPaymentDate': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'lastPaymentDate',
       type: IsarType.dateTime,
     ),
     r'paidAmount': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'paidAmount',
       type: IsarType.double,
     ),
     r'paymentHistory': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'paymentHistory',
       type: IsarType.objectList,
 
       target: r'PaymentRecord',
     ),
     r'personAvatar': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'personAvatar',
       type: IsarType.string,
     ),
     r'personName': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'personName',
       type: IsarType.string,
     ),
     r'personPhone': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'personPhone',
       type: IsarType.string,
     ),
     r'remainingAmount': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'remainingAmount',
       type: IsarType.double,
     ),
     r'reminderDate': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'reminderDate',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'status',
       type: IsarType.byte,
       enumMap: _DebtModelstatusEnumValueMap,
     ),
     r'totalAmount': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'totalAmount',
       type: IsarType.double,
     ),
@@ -113,7 +118,21 @@ const DebtModelSchema = CollectionSchema(
   deserialize: _debtModelDeserialize,
   deserializeProp: _debtModelDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'companyId': IndexSchema(
+      id: 482756417767355356,
+      name: r'companyId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'companyId',
+          type: IndexType.value,
+          caseSensitive: false,
+        ),
+      ],
+    ),
+  },
   links: {},
   embeddedSchemas: {r'PaymentRecord': PaymentRecordSchema},
 
@@ -182,26 +201,27 @@ void _debtModelSerialize(
 ) {
   writer.writeLong(offsets[0], object.accountId);
   writer.writeString(offsets[1], object.category);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeByte(offsets[3], object.debtType.index);
-  writer.writeString(offsets[4], object.description);
-  writer.writeDateTime(offsets[5], object.dueDate);
-  writer.writeBool(offsets[6], object.hasReminder);
-  writer.writeDateTime(offsets[7], object.lastPaymentDate);
-  writer.writeDouble(offsets[8], object.paidAmount);
+  writer.writeLong(offsets[2], object.companyId);
+  writer.writeDateTime(offsets[3], object.createdAt);
+  writer.writeByte(offsets[4], object.debtType.index);
+  writer.writeString(offsets[5], object.description);
+  writer.writeDateTime(offsets[6], object.dueDate);
+  writer.writeBool(offsets[7], object.hasReminder);
+  writer.writeDateTime(offsets[8], object.lastPaymentDate);
+  writer.writeDouble(offsets[9], object.paidAmount);
   writer.writeObjectList<PaymentRecord>(
-    offsets[9],
+    offsets[10],
     allOffsets,
     PaymentRecordSchema.serialize,
     object.paymentHistory,
   );
-  writer.writeString(offsets[10], object.personAvatar);
-  writer.writeString(offsets[11], object.personName);
-  writer.writeString(offsets[12], object.personPhone);
-  writer.writeDouble(offsets[13], object.remainingAmount);
-  writer.writeDateTime(offsets[14], object.reminderDate);
-  writer.writeByte(offsets[15], object.status.index);
-  writer.writeDouble(offsets[16], object.totalAmount);
+  writer.writeString(offsets[11], object.personAvatar);
+  writer.writeString(offsets[12], object.personName);
+  writer.writeString(offsets[13], object.personPhone);
+  writer.writeDouble(offsets[14], object.remainingAmount);
+  writer.writeDateTime(offsets[15], object.reminderDate);
+  writer.writeByte(offsets[16], object.status.index);
+  writer.writeDouble(offsets[17], object.totalAmount);
 }
 
 DebtModel _debtModelDeserialize(
@@ -213,31 +233,32 @@ DebtModel _debtModelDeserialize(
   final object = DebtModel();
   object.accountId = reader.readLongOrNull(offsets[0]);
   object.category = reader.readStringOrNull(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
+  object.companyId = reader.readLong(offsets[2]);
+  object.createdAt = reader.readDateTime(offsets[3]);
   object.debtType =
-      _DebtModeldebtTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+      _DebtModeldebtTypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
       DebtType.owe;
-  object.description = reader.readStringOrNull(offsets[4]);
-  object.dueDate = reader.readDateTimeOrNull(offsets[5]);
-  object.hasReminder = reader.readBoolOrNull(offsets[6]);
+  object.description = reader.readStringOrNull(offsets[5]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[6]);
+  object.hasReminder = reader.readBoolOrNull(offsets[7]);
   object.id = id;
-  object.lastPaymentDate = reader.readDateTimeOrNull(offsets[7]);
-  object.paidAmount = reader.readDouble(offsets[8]);
+  object.lastPaymentDate = reader.readDateTimeOrNull(offsets[8]);
+  object.paidAmount = reader.readDouble(offsets[9]);
   object.paymentHistory = reader.readObjectList<PaymentRecord>(
-    offsets[9],
+    offsets[10],
     PaymentRecordSchema.deserialize,
     allOffsets,
     PaymentRecord(),
   );
-  object.personAvatar = reader.readStringOrNull(offsets[10]);
-  object.personName = reader.readString(offsets[11]);
-  object.personPhone = reader.readStringOrNull(offsets[12]);
-  object.remainingAmount = reader.readDouble(offsets[13]);
-  object.reminderDate = reader.readDateTimeOrNull(offsets[14]);
+  object.personAvatar = reader.readStringOrNull(offsets[11]);
+  object.personName = reader.readString(offsets[12]);
+  object.personPhone = reader.readStringOrNull(offsets[13]);
+  object.remainingAmount = reader.readDouble(offsets[14]);
+  object.reminderDate = reader.readDateTimeOrNull(offsets[15]);
   object.status =
-      _DebtModelstatusValueEnumMap[reader.readByteOrNull(offsets[15])] ??
+      _DebtModelstatusValueEnumMap[reader.readByteOrNull(offsets[16])] ??
       DebtStatus.active;
-  object.totalAmount = reader.readDouble(offsets[16]);
+  object.totalAmount = reader.readDouble(offsets[17]);
   return object;
 }
 
@@ -253,22 +274,24 @@ P _debtModelDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readDateTime(offset)) as P;
+    case 4:
       return (_DebtModeldebtTypeValueEnumMap[reader.readByteOrNull(offset)] ??
               DebtType.owe)
           as P;
-    case 4:
-      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 7:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset)) as P;
     case 8:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
+      return (reader.readDouble(offset)) as P;
+    case 10:
       return (reader.readObjectList<PaymentRecord>(
             offset,
             PaymentRecordSchema.deserialize,
@@ -276,21 +299,21 @@ P _debtModelDeserializeProp<P>(
             PaymentRecord(),
           ))
           as P;
-    case 10:
-      return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
-    case 12:
       return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 15:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 16:
       return (_DebtModelstatusValueEnumMap[reader.readByteOrNull(offset)] ??
               DebtStatus.active)
           as P;
-    case 16:
+    case 17:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -329,6 +352,14 @@ extension DebtModelQueryWhereSort
   QueryBuilder<DebtModel, DebtModel, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhere> anyCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'companyId'),
+      );
     });
   }
 }
@@ -397,6 +428,111 @@ extension DebtModelQueryWhere
           lower: lowerId,
           includeLower: includeLower,
           upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhereClause> companyIdEqualTo(
+    int companyId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'companyId', value: [companyId]),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhereClause> companyIdNotEqualTo(
+    int companyId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhereClause> companyIdGreaterThan(
+    int companyId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [companyId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhereClause> companyIdLessThan(
+    int companyId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [],
+          upper: [companyId],
+          includeUpper: include,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterWhereClause> companyIdBetween(
+    int lowerCompanyId,
+    int upperCompanyId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [lowerCompanyId],
+          includeLower: includeLower,
+          upper: [upperCompanyId],
           includeUpper: includeUpper,
         ),
       );
@@ -640,6 +776,63 @@ extension DebtModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'category', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterFilterCondition> companyIdEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'companyId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterFilterCondition>
+  companyIdGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterFilterCondition> companyIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterFilterCondition> companyIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'companyId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
@@ -2101,6 +2294,18 @@ extension DebtModelQuerySortBy on QueryBuilder<DebtModel, DebtModel, QSortBy> {
     });
   }
 
+  QueryBuilder<DebtModel, DebtModel, QAfterSortBy> sortByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterSortBy> sortByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
   QueryBuilder<DebtModel, DebtModel, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -2293,6 +2498,18 @@ extension DebtModelQuerySortThenBy
   QueryBuilder<DebtModel, DebtModel, QAfterSortBy> thenByCategoryDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'category', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterSortBy> thenByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DebtModel, DebtModel, QAfterSortBy> thenByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
     });
   }
 
@@ -2493,6 +2710,12 @@ extension DebtModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<DebtModel, DebtModel, QDistinct> distinctByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'companyId');
+    });
+  }
+
   QueryBuilder<DebtModel, DebtModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2603,6 +2826,12 @@ extension DebtModelQueryProperty
   QueryBuilder<DebtModel, String?, QQueryOperations> categoryProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'category');
+    });
+  }
+
+  QueryBuilder<DebtModel, int, QQueryOperations> companyIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'companyId');
     });
   }
 

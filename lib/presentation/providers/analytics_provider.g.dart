@@ -68,7 +68,7 @@ final selectedPeriodProvider =
     );
 
 typedef _$SelectedPeriod = AutoDisposeNotifier<ReportPeriod>;
-String _$exportControllerHash() => r'9530867b263bef1804468790b9ae17a738362ad6';
+String _$exportControllerHash() => r'2d9ea2aece43048b74939d29574efdfa2e680c7a';
 
 /// See also [ExportController].
 @ProviderFor(ExportController)

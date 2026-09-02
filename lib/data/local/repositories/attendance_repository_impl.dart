@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:isar_community/isar.dart';
 
 import '../../../core/utils/date_helpers.dart';
@@ -45,10 +47,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<AttendanceEntity?> getTodayRecord() async {
     final isar = await _db;
     final today = DateTime.now();
+    final companyId = await _activeCompanyId(isar);
 
     // الجلسة المفتوحة لها الأولوية حتى لو بدأت أمس (وردية عابرة لمنتصف الليل).
+    // الترشيح بالجهة إلزامي: بدونه تُعرض جلسة جهة أخرى ثم يفشل الانصراف
+    // لأنه يبحث عنها في الجهة المعروضة.
     final open = await isar.attendanceModels
         .filter()
+        .companyIdEqualTo(companyId)
         .isOpenEqualTo(true)
         .sortByDateDesc()
         .findFirst();
@@ -56,6 +62,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final record = await isar.attendanceModels
         .filter()
+        .companyIdEqualTo(companyId)
         .dateBetween(DateHelpers.startOfDay(today), DateHelpers.endOfDay(today))
         .sortByDateDesc()
         .findFirst();
@@ -127,7 +134,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         .isOpenEqualTo(true)
         .findFirst();
     if (alreadyOpen != null) {
-      throw Exception('لديك جلسة دوام مفتوحة بالفعل، سجّل الانصراف أولاً');
+      final owner = await isar.companyModels.get(alreadyOpen.companyId);
+      throw Exception(owner == null
+          ? 'لديك جلسة دوام مفتوحة بالفعل، سجّل الانصراف أولاً'
+          : 'لديك جلسة مفتوحة في «${owner.name}» — سجّل انصرافك منها أولاً');
     }
 
     final companyEntity = _mapCompanyToEntity(company);
@@ -136,9 +146,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final record = await isar.attendanceModels
             .filter()
+            .companyIdEqualTo(company.id)
             .dateBetween(day, DateHelpers.endOfDay(time))
             .findFirst() ??
-        _newRecord(day, dayConfig);
+        _newRecord(day, dayConfig, company.id);
 
     record.sessions = [
       ...record.sessions,
@@ -156,19 +167,34 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   /// يغلق الجلسة المفتوحة ويعيد حساب اليوم من كل جلساته.
   @override
-  Future<void> checkOut(DateTime time) async {
+  Future<void> checkOut(DateTime time, {int? companyId}) async {
     final isar = await _db;
-    final company = await _activeCompany(isar);
 
-    final companyId = await _activeCompanyId(isar);
-    final record = await isar.attendanceModels
-        .filter()
-        .companyIdEqualTo(companyId)
-        .isOpenEqualTo(true)
-        .sortByDateDesc()
-        .findFirst();
+    // الجلسة المفتوحة تُبحث عبر الجهات كلها ثم تُحسب بشروط **جهتها هي**.
+    // ربطها بالجهة المعروضة كان يفشل حين يبدّل المستخدم بعد الحضور، ولو
+    // نجح لحسب الساعات بأجر جهة أخرى.
+    final query = isar.attendanceModels.filter().isOpenEqualTo(true);
+    final record = companyId == null
+        ? await query.sortByDateDesc().findFirst()
+        : await query.companyIdEqualTo(companyId).sortByDateDesc().findFirst();
 
-    if (record == null) throw Exception('لا توجد جلسة دوام مفتوحة');
+    if (record == null) {
+      // تشخيص: الرسالة وحدها لا تقول هل العَلَم المخزَّن مطفأ أم أن السجل
+      // يخص جهة أخرى — وهذان سببان مختلفان تماماً.
+      final all = await isar.attendanceModels.where().findAll();
+      developer.log(
+        'فشل الانصراف: ${all.length} سجل، '
+        'المفتوحة=${all.where((r) => r.isOpen).length}، '
+        'بجلسة غير مغلقة=${all.where((r) => r.sessions.any((s) => s.checkOut == null)).length}، '
+        'الجهات=${all.map((r) => r.companyId).toSet()}',
+        name: 'attendance.checkout',
+        level: 900,
+      );
+      throw Exception('لا توجد جلسة دوام مفتوحة');
+    }
+
+    final company = await isar.companyModels.get(record.companyId);
+    if (company == null) throw Exception('جهة هذه الجلسة غير موجودة');
 
     final sessions = [...record.sessions];
     final openIndex = sessions.lastIndexWhere((s) => s.checkOut == null);
@@ -203,12 +229,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final day = DateHelpers.startOfDay(date);
     final dayConfig = _configFor(companyEntity, date);
 
-    // جلسة يدوية تُضاف لسجل اليوم إن وُجد بدل إنشاء سجل ثانٍ لنفس التاريخ.
+    // جلسة يدوية تُضاف لسجل اليوم **في هذه الجهة** إن وُجد، بدل إنشاء سجل
+    // ثانٍ لنفس التاريخ أو إلحاقها بسجل جهة أخرى.
     final record = await isar.attendanceModels
             .filter()
+            .companyIdEqualTo(company.id)
             .dateBetween(day, DateHelpers.endOfDay(date))
             .findFirst() ??
-        _newRecord(day, dayConfig);
+        _newRecord(day, dayConfig, company.id);
 
     record.sessions = [
       ...record.sessions,
@@ -334,8 +362,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     }
   }
 
-  AttendanceModel _newRecord(DateTime day, WorkDayConfigEntity dayConfig) {
+  AttendanceModel _newRecord(
+    DateTime day,
+    WorkDayConfigEntity dayConfig,
+    int companyId,
+  ) {
     return AttendanceModel()
+      ..companyId = companyId
       ..date = day
       ..sessions = []
       ..requiredHours = dayConfig.requiredHours

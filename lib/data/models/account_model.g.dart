@@ -17,31 +17,36 @@ const AccountModelSchema = CollectionSchema(
   name: r'AccountModel',
   id: -4417758972305866022,
   properties: {
-    r'createdAt': PropertySchema(
+    r'companyId': PropertySchema(
       id: 0,
+      name: r'companyId',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(id: 1, name: r'name', type: IsarType.string),
-    r'note': PropertySchema(id: 2, name: r'note', type: IsarType.string),
+    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
+    r'note': PropertySchema(id: 3, name: r'note', type: IsarType.string),
     r'phoneNumber': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'phoneNumber',
       type: IsarType.string,
     ),
     r'totalBalance': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'totalBalance',
       type: IsarType.double,
     ),
     r'type': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AccountModeltypeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -52,7 +57,21 @@ const AccountModelSchema = CollectionSchema(
   deserialize: _accountModelDeserialize,
   deserializeProp: _accountModelDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'companyId': IndexSchema(
+      id: 482756417767355356,
+      name: r'companyId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'companyId',
+          type: IndexType.value,
+          caseSensitive: false,
+        ),
+      ],
+    ),
+  },
   links: {},
   embeddedSchemas: {},
 
@@ -90,13 +109,14 @@ void _accountModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.name);
-  writer.writeString(offsets[2], object.note);
-  writer.writeString(offsets[3], object.phoneNumber);
-  writer.writeDouble(offsets[4], object.totalBalance);
-  writer.writeByte(offsets[5], object.type.index);
-  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeLong(offsets[0], object.companyId);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.name);
+  writer.writeString(offsets[3], object.note);
+  writer.writeString(offsets[4], object.phoneNumber);
+  writer.writeDouble(offsets[5], object.totalBalance);
+  writer.writeByte(offsets[6], object.type.index);
+  writer.writeDateTime(offsets[7], object.updatedAt);
 }
 
 AccountModel _accountModelDeserialize(
@@ -106,16 +126,17 @@ AccountModel _accountModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AccountModel();
-  object.createdAt = reader.readDateTime(offsets[0]);
+  object.companyId = reader.readLong(offsets[0]);
+  object.createdAt = reader.readDateTime(offsets[1]);
   object.id = id;
-  object.name = reader.readString(offsets[1]);
-  object.note = reader.readStringOrNull(offsets[2]);
-  object.phoneNumber = reader.readStringOrNull(offsets[3]);
-  object.totalBalance = reader.readDouble(offsets[4]);
+  object.name = reader.readString(offsets[2]);
+  object.note = reader.readStringOrNull(offsets[3]);
+  object.phoneNumber = reader.readStringOrNull(offsets[4]);
+  object.totalBalance = reader.readDouble(offsets[5]);
   object.type =
-      _AccountModeltypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+      _AccountModeltypeValueEnumMap[reader.readByteOrNull(offsets[6])] ??
       AccountType.supplier;
-  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.updatedAt = reader.readDateTime(offsets[7]);
   return object;
 }
 
@@ -127,20 +148,22 @@ P _accountModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
+      return (reader.readDouble(offset)) as P;
+    case 6:
       return (_AccountModeltypeValueEnumMap[reader.readByteOrNull(offset)] ??
               AccountType.supplier)
           as P;
-    case 6:
+    case 7:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -181,6 +204,14 @@ extension AccountModelQueryWhereSort
   QueryBuilder<AccountModel, AccountModel, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhere> anyCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'companyId'),
+      );
     });
   }
 }
@@ -256,10 +287,167 @@ extension AccountModelQueryWhere
       );
     });
   }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhereClause> companyIdEqualTo(
+    int companyId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'companyId', value: [companyId]),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhereClause>
+  companyIdNotEqualTo(int companyId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhereClause>
+  companyIdGreaterThan(int companyId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [companyId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhereClause> companyIdLessThan(
+    int companyId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [],
+          upper: [companyId],
+          includeUpper: include,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterWhereClause> companyIdBetween(
+    int lowerCompanyId,
+    int upperCompanyId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [lowerCompanyId],
+          includeLower: includeLower,
+          upper: [upperCompanyId],
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
 }
 
 extension AccountModelQueryFilter
     on QueryBuilder<AccountModel, AccountModel, QFilterCondition> {
+  QueryBuilder<AccountModel, AccountModel, QAfterFilterCondition>
+  companyIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'companyId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterFilterCondition>
+  companyIdGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterFilterCondition>
+  companyIdLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterFilterCondition>
+  companyIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'companyId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<AccountModel, AccountModel, QAfterFilterCondition>
   createdAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1040,6 +1228,18 @@ extension AccountModelQueryLinks
 
 extension AccountModelQuerySortBy
     on QueryBuilder<AccountModel, AccountModel, QSortBy> {
+  QueryBuilder<AccountModel, AccountModel, QAfterSortBy> sortByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterSortBy> sortByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
   QueryBuilder<AccountModel, AccountModel, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1129,6 +1329,18 @@ extension AccountModelQuerySortBy
 
 extension AccountModelQuerySortThenBy
     on QueryBuilder<AccountModel, AccountModel, QSortThenBy> {
+  QueryBuilder<AccountModel, AccountModel, QAfterSortBy> thenByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AccountModel, AccountModel, QAfterSortBy> thenByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
   QueryBuilder<AccountModel, AccountModel, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1230,6 +1442,12 @@ extension AccountModelQuerySortThenBy
 
 extension AccountModelQueryWhereDistinct
     on QueryBuilder<AccountModel, AccountModel, QDistinct> {
+  QueryBuilder<AccountModel, AccountModel, QDistinct> distinctByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'companyId');
+    });
+  }
+
   QueryBuilder<AccountModel, AccountModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -1284,6 +1502,12 @@ extension AccountModelQueryProperty
   QueryBuilder<AccountModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AccountModel, int, QQueryOperations> companyIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'companyId');
     });
   }
 

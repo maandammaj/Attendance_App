@@ -392,7 +392,7 @@ class _LedgerTile extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
-          AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+            AppSpacing.screen, 0, AppSpacing.screen, AppSpacing.sm),
       child: Card(
         child: ListTile(
           contentPadding: const EdgeInsetsDirectional.fromSTEB(

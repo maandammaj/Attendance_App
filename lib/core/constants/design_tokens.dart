@@ -83,21 +83,22 @@ class AppPalette {
   /// هناك مهمة الحد وتدرّج السطح لا الظل.
   final Color shadow;
 
-  /// أزرق الثقة على خلفية شبه بيضاء.
+  /// محايدات مهارة arabic-app-design حرفياً — هي ما يجعل الهوية متعرَّفاً
+  /// عليها بين المشاريع. لون العلامة وحده هو المتغيّر.
   static const light = AppPalette(
-    background: Color(0xFFF4F6FB),
+    background: Color(0xFFF2F2F2),
     surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFEBEFF7),
+    surfaceAlt: Color(0xFFF7F7F9),
     primary: Color(0xFF16255C),
     onPrimary: Color(0xFFFFFFFF),
     accent: Color(0xFF8A5A0B),
     onAccent: Color(0xFFFFFFFF),
     accentOnBrand: Color(0xFFF2C766),
-    onSurface: Color(0xFF0B1120),
-    onSurfaceVariant: Color(0xFF4F5B75),
-    outline: Color(0xFFD3DBEA),
-    positive: Color(0xFF047857),
-    negative: Color(0xFFC81E1E),
+    onSurface: Color(0xFF1E212B),
+    onSurfaceVariant: Color(0xFF5F6470),
+    outline: Color(0xFFE8E9ED),
+    positive: Color(0xFF15803D),
+    negative: Color(0xFFDC2626),
     warning: Color(0xFFB45309),
     info: Color(0xFF1D4ED8),
     scrim: Color(0x8C0F172A),
@@ -205,20 +206,21 @@ extension AppPaletteContext on BuildContext {
       prefersReducedMotion ? Duration.zero : duration;
 }
 
+/// حواف مهارة arabic-app-design: شارة 10 · حقل 14 · بطاقة 18 · ورقة 24.
 class AppRadius {
   AppRadius._();
 
-  /// قاع الحرفة يثبّت نصف قطر البطاقات بين 12 و16.
-  static const double card = 16;
-  static const double field = 12;
+  static const double badge = 10;
+  static const double field = 14;
   static const double button = 14;
+  static const double card = 18;
   static const double sheet = 24;
 
   /// الحبّة للعناصر الصغيرة فقط — شرائح، شارات، مؤشرات.
   static const double pill = 100;
 }
 
-/// إيقاع 4/8 — كل مسافة في التطبيق من هذا السلّم.
+/// سلّم المهارة: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48.
 class AppSpacing {
   AppSpacing._();
 
@@ -226,8 +228,14 @@ class AppSpacing {
   static const double sm = 8;
   static const double md = 12;
   static const double lg = 16;
+
+  /// الهامش الأفقي الموحد لكل الشاشات — قيمة المهارة.
+  static const double screen = 20;
+
   static const double xl = 24;
   static const double xxl = 32;
+  static const double xxxl = 40;
+  static const double huge = 48;
 }
 
 /// أحجام الأيقونات كـ tokens بدل قيم عشوائية.
@@ -261,37 +269,27 @@ class AppCurves {
 class AppElevation {
   AppElevation._();
 
-  /// طبقتان: ظلّ قريب ضيّق يرسم الحافة، وظلّ بعيد واسع يوحي بالمسافة.
+  /// ظلّ البطاقة: `#111827` بشفافية 4%، ضبابية 14، إزاحة (0,4) — قيمة المهارة.
   ///
-  /// طبقة واحدة عريضة تُقرأ كضبابة ملوّنة؛ الطبقتان تُقرآن كارتفاع. الشفافية
-  /// منخفضة عمداً — الظل يُحسّ ولا يُرى.
-  static List<BoxShadow> _layered(
-    Color shadow, {
-    required double opacity,
-    required double spread,
-    required double drop,
-  }) {
-    return [
-      BoxShadow(
-        color: shadow.withValues(alpha: opacity * 0.55),
-        blurRadius: spread * 0.35,
-        offset: Offset(0, drop * 0.35),
-      ),
-      BoxShadow(
-        color: shadow.withValues(alpha: opacity),
-        blurRadius: spread,
-        offset: Offset(0, drop),
-      ),
-    ];
-  }
-
-  /// سطح مرفوع قليلاً داخل التمرير — البطاقة الرئيسية مثلاً.
+  /// معدوم في الوضع الداكن: أسود على أسود لا يفصل، والفصل هناك بتدرّج السطح.
   static List<BoxShadow> raised(AppPalette palette) => palette.isDark
       ? const []
-      : _layered(palette.shadow, opacity: 0.10, spread: 16, drop: 6);
+      : const [
+          BoxShadow(
+            color: Color(0x0A111827),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ];
 
-  /// سطح طافٍ فوق المحتوى — شريط التنقل والزر العائم.
+  /// ظلّ عائم مصبوغ بلون العلامة بشفافية 12%، ضبابية 18، إزاحة (0,6).
   static List<BoxShadow> floating(AppPalette palette) => palette.isDark
       ? const []
-      : _layered(palette.shadow, opacity: 0.14, spread: 24, drop: 10);
+      : [
+          BoxShadow(
+            color: palette.primary.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ];
 }

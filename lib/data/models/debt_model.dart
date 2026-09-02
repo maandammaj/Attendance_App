@@ -4,6 +4,10 @@ part 'debt_model.g.dart';
 
 @collection
 class DebtModel {
+
+  /// الجهة التي تخصّها هذه البيانات. مفهرس لأن كل استعلام يُرشّح به.
+  @Index()
+  int companyId = 0;
   Id id = Isar.autoIncrement;
 
   @enumerated

@@ -27,8 +27,11 @@ abstract class AttendanceRepository {
     bool isBiometricVerified,
     int? companyId,
   });
-  /// يغلق الجلسة المفتوحة ويعيد حساب اليوم من كل جلساته.
-  Future<void> checkOut(DateTime time);
+  /// يغلق الجلسة المفتوحة ويعيد حساب اليوم بشروط **جهة تلك الجلسة**.
+  ///
+  /// يبحث عبر الجهات كلها افتراضياً: المستخدم قد يبدّل الجهة المعروضة بعد
+  /// الحضور، وربط الانصراف بالمعروضة يفشل أو يحسب بأجر جهة أخرى.
+  Future<void> checkOut(DateTime time, {int? companyId});
   Future<void> addManualRecord({
     required DateTime date,
     required DateTime checkIn,

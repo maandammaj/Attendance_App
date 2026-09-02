@@ -4,10 +4,28 @@ import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/repositories/transaction_repository.dart';
 import '../../models/transaction_model.dart';
 import '../../models/account_model.dart';
+import '../../models/profile_model.dart';
+import '../../models/company_model.dart';
 import '../database/isar_database.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
+
+  /// معرّف الجهة الفعّالة — كل استعلام وكل كتابة تمرّ به، فبيانات جهة لا
+  /// تظهر أبداً في أخرى.
+  Future<int> _companyId(Isar isar) async {
+    final profile = await isar.profileModels.get(0);
+    final id = profile?.activeCompanyId;
+    if (id != null) return id;
+
+    final fallback = await isar.companyModels
+        .filter()
+        .isArchivedEqualTo(false)
+        .findFirst();
+    if (fallback == null) throw Exception('لم تُحدَّد جهة عمل');
+    return fallback.id;
+  }
+
 
   @override
   Future<List<TransactionEntity>> getMonthlyTransactions(int year, int month) {
@@ -21,8 +39,10 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<List<TransactionEntity>> getTransactionsBetween(
       DateTime from, DateTime to) async {
     final isar = await _db;
+    final companyId = await _companyId(isar);
     final models = await isar.transactionModels
         .filter()
+        .companyIdEqualTo(companyId)
         .dateBetween(from, to)
         .sortByDateDesc()
         .findAll();
@@ -33,7 +53,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<void> addTransaction(TransactionEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await _companyId(isar);
     await isar.writeTxn(() async {
       await isar.transactionModels.put(model);
       

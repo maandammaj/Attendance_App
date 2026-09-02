@@ -55,11 +55,27 @@ class NotificationIds {
 class NotificationChannels {
   NotificationChannels._();
 
-  static const String attendance = 'attendance_channel';
-  static const String debt = 'debt_channel';
-  static const String finance = 'finance_channel';
-  static const String summary = 'summary_channel';
-  static const String general = 'general_channel';
+  /// **الإصدار جزء من المعرّف عمداً.** أندرويد يتجاهل أي تعديل على قناة
+  /// بعد إنشائها — الصوت والأهمية والاهتزاز تتجمّد على أول قيمة. تغيير أي
+  /// منها يوجب رفع الإصدار هنا وإضافة المعرّف القديم إلى [retired].
+  static const String _version = 'v2';
+
+  static const String attendance = 'attendance_channel_$_version';
+  static const String debt = 'debt_channel_$_version';
+  static const String finance = 'finance_channel_$_version';
+  static const String summary = 'summary_channel_$_version';
+  static const String general = 'general_channel_$_version';
+
+  /// قنوات إصدارات سابقة تُحذف عند الإقلاع حتى لا تتراكم في إعدادات النظام.
+  static const List<String> retired = [
+    'attendance_channel',
+    'debt_channel',
+    'finance_channel',
+    'summary_channel',
+    'general_channel',
+    'default_channel',
+    'reminders_channel',
+  ];
 
   static String forCategory(NotificationCategory category) {
     return switch (category) {

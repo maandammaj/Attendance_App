@@ -39,6 +39,12 @@ final smartInsightsServiceProvider = Provider(
   ),
 );
 
+/// حالة تسليم التنبيهات كما يراها النظام.
+@riverpod
+Future<NotificationDiagnostics> notificationDiagnostics(Ref ref) async {
+  return await NotificationService().diagnose();
+}
+
 @riverpod
 Future<ReminderSettingsEntity> reminderSettings(Ref ref) async {
   return await ref.read(reminderSettingsRepositoryProvider).get();
@@ -106,6 +112,17 @@ class ReminderController extends _$ReminderController {
     } catch (error, stack) {
       state = AsyncError(error, stack);
     }
+  }
+
+  Future<void> sendTest() async {
+    await NotificationService().sendTestNotification();
+  }
+
+  Future<void> grantExactAlarms() async {
+    await NotificationService().requestExactAlarms();
+    ref.invalidate(notificationDiagnosticsProvider);
+    final settings = await ref.read(reminderSettingsProvider.future);
+    await _reschedule(settings);
   }
 
   /// يُستدعى عند إقلاع الواجهة: يطلب الأذونات، يعيد الجدولة، ثم يقيّم الرؤى.

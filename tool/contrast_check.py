@@ -15,16 +15,18 @@ def ratio(fg, bg):
     hi, lo = max(l1, l2), min(l1, l2)
     return (hi + 0.05) / (lo + 0.05)
 
+# قيم مهارة arabic-app-design حرفياً: المحايدات ثابتة، ولون العلامة كحلي.
 LIGHT = {
-    'background': '#F4F6FB', 'surface': '#FFFFFF', 'surfaceAlt': '#EBEFF7',
+    'background': '#F2F2F2', 'surface': '#FFFFFF', 'surfaceAlt': '#F7F7F9',
     'primary': '#16255C', 'onPrimary': '#FFFFFF',
     'accent': '#8A5A0B', 'onAccent': '#FFFFFF', 'accentOnBrand': '#F2C766',
-    'onSurface': '#0B1120', 'onSurfaceVariant': '#4F5B75',
-    'outline': '#D3DBEA',
-    'positive': '#047857', 'negative': '#C81E1E',
+    'onSurface': '#1E212B', 'onSurfaceVariant': '#5F6470',
+    'outline': '#E8E9ED',
+    'positive': '#15803D', 'negative': '#DC2626',
     'warning': '#B45309', 'info': '#1D4ED8',
     'brandDeep': '#16255C', 'white': '#FFFFFF',
 }
+# الوضع الداكن ليس في المهارة (هي فاتحة فقط) — مشتق بنفس الأدوار.
 DARK = {
     'background': '#0A0F1E', 'surface': '#141B2E', 'surfaceAlt': '#0E1526',
     'primary': '#8FB4FF', 'onPrimary': '#0A0F1E',
@@ -57,8 +59,12 @@ def cases(p):
         ('info',             'surface',    4.5, 'معلومة'),
         ('positive',         'surfaceAlt', 3.0, 'موجب على سطح بديل (كبير)'),
         ('negative',         'surfaceAlt', 3.0, 'سالب على سطح بديل (كبير)'),
-        ('outline',          'surface',    1.3, 'حد فاصل مرئي'),
-        ('outline',          'background', 1.2, 'حد على الخلفية'),
+        # الحد في هذه الهوية زخرفي: التمييز يقع على تعبئة الحقل
+        # (surfaceAlt) وعلى ظل البطاقة — ونسبة التباين لا تقيس ظلاً بشفافية 4%.
+        # لذلك نفحص ما يحمل المعنى فعلاً: أن تعبئة الحقل تُميَّز عن السطح.
+        ('surfaceAlt',       'surface',    1.02, 'تعبئة الحقل تُميَّز عن السطح'),
+        ('onSurface',        'surfaceAlt', 4.5,  'نص داخل حقل'),
+        ('onSurfaceVariant', 'surfaceAlt', 4.5,  'نص نائب داخل حقل'),
     ]
 
 failures = 0

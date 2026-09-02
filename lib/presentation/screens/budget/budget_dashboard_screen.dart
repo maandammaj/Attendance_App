@@ -75,7 +75,7 @@ class _Body extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 190),
+            AppSpacing.screen, AppSpacing.sm, AppSpacing.screen, 190),
       children: [
         NetSalaryHero(data: data),
         const SizedBox(height: AppSpacing.xl),

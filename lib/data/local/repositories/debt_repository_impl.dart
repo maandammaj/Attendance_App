@@ -3,15 +3,38 @@ import '../../../domain/entities/debt_entity.dart';
 import '../../../domain/repositories/debt_repository.dart';
 import '../../models/debt_model.dart';
 import '../../models/account_model.dart';
+import '../../models/profile_model.dart';
+import '../../models/company_model.dart';
 import '../database/isar_database.dart';
 
 class DebtRepositoryImpl implements DebtRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
+  /// معرّف الجهة الفعّالة — كل استعلام وكل كتابة تمرّ به، فبيانات جهة لا
+  /// تظهر أبداً في أخرى.
+  Future<int> _companyId(Isar isar) async {
+    final profile = await isar.profileModels.get(0);
+    final id = profile?.activeCompanyId;
+    if (id != null) return id;
+
+    final fallback = await isar.companyModels
+        .filter()
+        .isArchivedEqualTo(false)
+        .findFirst();
+    if (fallback == null) throw Exception('لم تُحدَّد جهة عمل');
+    return fallback.id;
+  }
+
+
   @override
   Future<List<DebtEntity>> getAllDebts() async {
     final isar = await _db;
-    final debts = await isar.debtModels.where().sortByCreatedAtDesc().findAll();
+    final companyId = await _companyId(isar);
+    final debts = await isar.debtModels
+        .filter()
+        .companyIdEqualTo(companyId)
+        .sortByCreatedAtDesc()
+        .findAll();
     return debts.map(_mapToEntity).toList();
   }
 
@@ -30,7 +53,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> addDebt(DebtEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await _companyId(isar);
     await isar.writeTxn(() async {
       await isar.debtModels.put(model);
     });
@@ -39,7 +62,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> updateDebt(DebtEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await _companyId(isar);
     await isar.writeTxn(() async {
       await isar.debtModels.put(model);
     });

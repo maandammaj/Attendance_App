@@ -29,7 +29,7 @@ class _FakeRepository implements AttendanceRepository {
   Future<void> checkIn(DateTime time,
       {bool isBiometricVerified = false, int? companyId}) async {}
   @override
-  Future<void> checkOut(DateTime time) async {}
+  Future<void> checkOut(DateTime time, {int? companyId}) async {}
   @override
   Future<void> addManualRecord({
     required DateTime date,

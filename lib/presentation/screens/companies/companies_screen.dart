@@ -37,7 +37,7 @@ class CompaniesScreen extends ConsumerWidget {
               )
             : ListView.builder(
                 padding: const EdgeInsetsDirectional.fromSTEB(
-                    AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
+            AppSpacing.screen, AppSpacing.screen, AppSpacing.lg, 96),
                 itemCount: list.length,
                 itemBuilder: (context, index) => _CompanyCard(
                   company: list[index],

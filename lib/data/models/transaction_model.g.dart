@@ -33,20 +33,25 @@ const TransactionModelSchema = CollectionSchema(
       name: r'categoryName',
       type: IsarType.string,
     ),
-    r'date': PropertySchema(id: 4, name: r'date', type: IsarType.dateTime),
+    r'companyId': PropertySchema(
+      id: 4,
+      name: r'companyId',
+      type: IsarType.long,
+    ),
+    r'date': PropertySchema(id: 5, name: r'date', type: IsarType.dateTime),
     r'isRecurring': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isRecurring',
       type: IsarType.bool,
     ),
-    r'note': PropertySchema(id: 6, name: r'note', type: IsarType.string),
+    r'note': PropertySchema(id: 7, name: r'note', type: IsarType.string),
     r'recurringDay': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'recurringDay',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionModeltypeEnumValueMap,
@@ -58,7 +63,21 @@ const TransactionModelSchema = CollectionSchema(
   deserialize: _transactionModelDeserialize,
   deserializeProp: _transactionModelDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'companyId': IndexSchema(
+      id: 482756417767355356,
+      name: r'companyId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'companyId',
+          type: IndexType.value,
+          caseSensitive: false,
+        ),
+      ],
+    ),
+  },
   links: {},
   embeddedSchemas: {},
 
@@ -94,11 +113,12 @@ void _transactionModelSerialize(
   writer.writeDouble(offsets[1], object.amount);
   writer.writeLong(offsets[2], object.categoryId);
   writer.writeString(offsets[3], object.categoryName);
-  writer.writeDateTime(offsets[4], object.date);
-  writer.writeBool(offsets[5], object.isRecurring);
-  writer.writeString(offsets[6], object.note);
-  writer.writeLong(offsets[7], object.recurringDay);
-  writer.writeByte(offsets[8], object.type.index);
+  writer.writeLong(offsets[4], object.companyId);
+  writer.writeDateTime(offsets[5], object.date);
+  writer.writeBool(offsets[6], object.isRecurring);
+  writer.writeString(offsets[7], object.note);
+  writer.writeLong(offsets[8], object.recurringDay);
+  writer.writeByte(offsets[9], object.type.index);
 }
 
 TransactionModel _transactionModelDeserialize(
@@ -112,13 +132,14 @@ TransactionModel _transactionModelDeserialize(
   object.amount = reader.readDouble(offsets[1]);
   object.categoryId = reader.readLong(offsets[2]);
   object.categoryName = reader.readString(offsets[3]);
-  object.date = reader.readDateTime(offsets[4]);
+  object.companyId = reader.readLong(offsets[4]);
+  object.date = reader.readDateTime(offsets[5]);
   object.id = id;
-  object.isRecurring = reader.readBool(offsets[5]);
-  object.note = reader.readStringOrNull(offsets[6]);
-  object.recurringDay = reader.readLongOrNull(offsets[7]);
+  object.isRecurring = reader.readBool(offsets[6]);
+  object.note = reader.readStringOrNull(offsets[7]);
+  object.recurringDay = reader.readLongOrNull(offsets[8]);
   object.type =
-      _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _TransactionModeltypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
       TransactionType.income;
   return object;
 }
@@ -139,14 +160,16 @@ P _transactionModelDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readLongOrNull(offset)) as P;
+    case 9:
       return (_TransactionModeltypeValueEnumMap[reader.readByteOrNull(
                 offset,
               )] ??
@@ -184,6 +207,14 @@ extension TransactionModelQueryWhereSort
   QueryBuilder<TransactionModel, TransactionModel, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhere> anyCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'companyId'),
+      );
     });
   }
 }
@@ -251,6 +282,106 @@ extension TransactionModelQueryWhere
           lower: lowerId,
           includeLower: includeLower,
           upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhereClause>
+  companyIdEqualTo(int companyId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'companyId', value: [companyId]),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhereClause>
+  companyIdNotEqualTo(int companyId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [companyId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'companyId',
+                lower: [],
+                upper: [companyId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhereClause>
+  companyIdGreaterThan(int companyId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [companyId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhereClause>
+  companyIdLessThan(int companyId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [],
+          upper: [companyId],
+          includeUpper: include,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterWhereClause>
+  companyIdBetween(
+    int lowerCompanyId,
+    int upperCompanyId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'companyId',
+          lower: [lowerCompanyId],
+          includeLower: includeLower,
+          upper: [upperCompanyId],
           includeUpper: includeUpper,
         ),
       );
@@ -600,6 +731,61 @@ extension TransactionModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'categoryName', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  companyIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'companyId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  companyIdGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  companyIdLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'companyId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterFilterCondition>
+  companyIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'companyId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
@@ -1075,6 +1261,20 @@ extension TransactionModelQuerySortBy
     });
   }
 
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  sortByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy> sortByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -1201,6 +1401,20 @@ extension TransactionModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy>
+  thenByCompanyIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'companyId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionModel, TransactionModel, QAfterSortBy> thenByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -1312,6 +1526,13 @@ extension TransactionModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TransactionModel, TransactionModel, QDistinct>
+  distinctByCompanyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'companyId');
+    });
+  }
+
   QueryBuilder<TransactionModel, TransactionModel, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
@@ -1377,6 +1598,12 @@ extension TransactionModelQueryProperty
   categoryNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'categoryName');
+    });
+  }
+
+  QueryBuilder<TransactionModel, int, QQueryOperations> companyIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'companyId');
     });
   }
 

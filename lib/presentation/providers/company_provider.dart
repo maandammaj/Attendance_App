@@ -6,6 +6,10 @@ import '../../domain/entities/company_entity.dart';
 import '../../domain/repositories/company_repository.dart';
 import 'attendance_provider.dart';
 import 'dashboard_provider.dart';
+import 'transaction_provider.dart';
+import 'debt_provider.dart';
+import 'analytics_provider.dart';
+import 'account_provider.dart';
 import 'reminder_provider.dart';
 import 'profile_provider.dart';
 
@@ -108,5 +112,15 @@ class CompanyController extends _$CompanyController {
     ref.invalidate(monthlyAttendanceProvider);
     ref.invalidate(attendanceStatsProvider);
     ref.invalidate(dashboardDataProvider);
+    // كل هذه صارت تابعة للجهة بعد الفصل الكامل.
+    ref.invalidate(anyOpenSessionProvider);
+    ref.invalidate(monthlyTransactionsProvider);
+    ref.invalidate(allDebtsProvider);
+    ref.invalidate(debtSummaryProvider);
+    ref.invalidate(allAccountsProvider);
+    ref.invalidate(budgetLimitsProvider);
+    ref.invalidate(budgetStatusProvider);
+    ref.invalidate(analyticsReportProvider);
+    ref.invalidate(companyComparisonProvider);
   }
 }

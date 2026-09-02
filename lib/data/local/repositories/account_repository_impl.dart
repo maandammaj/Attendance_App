@@ -2,15 +2,38 @@ import 'package:isar_community/isar.dart';
 import '../../../domain/entities/account_entity.dart';
 import '../../../domain/repositories/account_repository.dart';
 import '../../models/account_model.dart';
+import '../../models/profile_model.dart';
+import '../../models/company_model.dart';
 import '../database/isar_database.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
+  /// معرّف الجهة الفعّالة — كل استعلام وكل كتابة تمرّ به، فبيانات جهة لا
+  /// تظهر أبداً في أخرى.
+  Future<int> _companyId(Isar isar) async {
+    final profile = await isar.profileModels.get(0);
+    final id = profile?.activeCompanyId;
+    if (id != null) return id;
+
+    final fallback = await isar.companyModels
+        .filter()
+        .isArchivedEqualTo(false)
+        .findFirst();
+    if (fallback == null) throw Exception('لم تُحدَّد جهة عمل');
+    return fallback.id;
+  }
+
+
   @override
   Future<List<AccountEntity>> getAllAccounts() async {
     final isar = await _db;
-    final models = await isar.accountModels.where().sortByUpdatedAtDesc().findAll();
+    final companyId = await _companyId(isar);
+    final models = await isar.accountModels
+        .filter()
+        .companyIdEqualTo(companyId)
+        .sortByUpdatedAtDesc()
+        .findAll();
     return models.map(_mapToEntity).toList();
   }
 
@@ -24,7 +47,7 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<void> saveAccount(AccountEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await _companyId(isar);
     await isar.writeTxn(() async {
       await isar.accountModels.put(model);
     });

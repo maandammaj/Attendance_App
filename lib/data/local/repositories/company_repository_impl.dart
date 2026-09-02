@@ -4,6 +4,10 @@ import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/company_repository.dart';
 import '../../models/attendance_model.dart';
+import '../../models/transaction_model.dart';
+import '../../models/debt_model.dart';
+import '../../models/budget_limit_model.dart';
+import '../../models/account_model.dart';
 import '../../models/company_model.dart';
 import '../../models/profile_model.dart';
 import '../database/isar_database.dart';
@@ -100,12 +104,37 @@ class CompanyRepositoryImpl implements CompanyRepository {
   Future<void> delete(int companyId) async {
     final isar = await _db;
     await isar.writeTxn(() async {
-      // سجلات الدوام تُحذف معها: بلا جهة لا معنى لها ولا يمكن حساب قيمتها.
-      final records = await isar.attendanceModels
+      // كل بيانات الجهة تُحذف معها: بلا جهة لا معنى لسجل دوام ولا لحركة
+      // مالية ولا لدين، ولا يمكن حساب قيمتها أصلاً.
+      final attendance = await isar.attendanceModels
           .filter()
           .companyIdEqualTo(companyId)
           .findAll();
-      await isar.attendanceModels.deleteAll(records.map((r) => r.id).toList());
+      await isar.attendanceModels
+          .deleteAll(attendance.map((r) => r.id).toList());
+
+      final transactions = await isar.transactionModels
+          .filter()
+          .companyIdEqualTo(companyId)
+          .findAll();
+      await isar.transactionModels
+          .deleteAll(transactions.map((r) => r.id).toList());
+
+      final debts =
+          await isar.debtModels.filter().companyIdEqualTo(companyId).findAll();
+      await isar.debtModels.deleteAll(debts.map((r) => r.id).toList());
+
+      final accounts = await isar.accountModels
+          .filter()
+          .companyIdEqualTo(companyId)
+          .findAll();
+      await isar.accountModels.deleteAll(accounts.map((r) => r.id).toList());
+
+      final limits = await isar.budgetLimitModels
+          .filter()
+          .companyIdEqualTo(companyId)
+          .findAll();
+      await isar.budgetLimitModels.deleteAll(limits.map((r) => r.id).toList());
       await isar.companyModels.delete(companyId);
 
       final profile = await isar.profileModels.get(0);

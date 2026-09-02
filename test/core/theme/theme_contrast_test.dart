@@ -123,9 +123,15 @@ void main() {
             greaterThanOrEqualTo(4.5));
       });
 
-      test('الحد الفاصل مرئي في الوضعين', () {
-        expect(contrast(palette.outline, palette.surface),
-            greaterThanOrEqualTo(1.25));
+      test('تعبئة الحقل تُميَّز عن سطح البطاقة', () {
+        // في هوية arabic-app-design الحدُّ زخرفي؛ ما يعرّف الحقل تعبئته
+        // (surfaceAlt) وما يفصل البطاقة ظلُّها. نسبة التباين لا تقيس ظلاً
+        // بشفافية 4%، فنفحص ما تقدر عليه: أن التعبئة والسطح ليسا نفس اللون.
+        expect(palette.surfaceAlt, isNot(palette.surface));
+        expect(contrast(palette.onSurface, palette.surfaceAlt),
+            greaterThanOrEqualTo(4.5));
+        expect(contrast(palette.onSurfaceVariant, palette.surfaceAlt),
+            greaterThanOrEqualTo(4.5));
       });
 
       test('ألوان الفئات ثمانية وتحقق 3:1 على السطح', () {
@@ -170,9 +176,57 @@ void main() {
     });
   });
 
-  group('نصف القطر ضمن قاع الحرفة', () {
-    test('البطاقات بين 12 و16', () {
-      expect(AppRadius.card, inInclusiveRange(12, 16));
+  group('حواف الهوية', () {
+    test('القيم مطابقة لمهارة arabic-app-design', () {
+      expect(AppRadius.badge, 10);
+      expect(AppRadius.field, 14);
+      expect(AppRadius.card, 18);
+      expect(AppRadius.sheet, 24);
+    });
+  });
+
+  group('سلّم المسافات', () {
+    test('الهامش الأفقي الموحد 20', () {
+      expect(AppSpacing.screen, 20);
+    });
+
+    test('السلّم من مضاعفات 4', () {
+      for (final step in [
+        AppSpacing.xs,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.screen,
+        AppSpacing.xl,
+        AppSpacing.xxl,
+        AppSpacing.xxxl,
+        AppSpacing.huge,
+      ]) {
+        expect(step % 4, 0, reason: 'المسافة $step خارج السلّم');
+      }
+    });
+  });
+
+  group('الخط', () {
+    test('كل الأنماط من Cairo بأوزان متغيّرة صريحة', () {
+      final theme = AppTheme.lightTheme.textTheme;
+      for (final style in [
+        theme.displaySmall,
+        theme.titleMedium,
+        theme.bodyMedium,
+        theme.labelSmall,
+      ]) {
+        expect(style!.fontFamily, 'Cairo');
+        // بلا fontVariations يبقى الخط المتغيّر على وزنه الافتراضي.
+        expect(style.fontVariations, isNotEmpty);
+      }
+    });
+
+    test('ارتفاع السطر مريح للعربية (1.15–1.6)', () {
+      final theme = AppTheme.lightTheme.textTheme;
+      for (final style in [theme.bodyMedium, theme.bodySmall, theme.titleMedium]) {
+        expect(style!.height, inInclusiveRange(1.15, 1.6));
+      }
     });
   });
 
