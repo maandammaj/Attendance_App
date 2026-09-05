@@ -261,7 +261,11 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final model = await isar.attendanceModels.get(entity.id);
     if (model == null) throw Exception('Record not found');
 
-    final company = await _activeCompany(isar);
+    // شروط **جهة السجل نفسه**، لا الجهة المعروضة. تعديل يوم قديم بعد تبديل
+    // الجهة كان يعيد حسابه بجدول وأجر جهة أخرى، فتتغيّر قيمته المالية بلا
+    // أن يمسّ المستخدم رقماً واحداً.
+    final company = await isar.companyModels.get(model.companyId);
+    if (company == null) throw Exception('جهة هذا السجل غير موجودة');
 
     final companyEntity = _mapCompanyToEntity(company);
 
