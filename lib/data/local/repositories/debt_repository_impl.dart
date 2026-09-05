@@ -41,9 +41,11 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<List<DebtEntity>> getDebtsByType(String type) async {
     final isar = await _db;
+    final companyId = await _companyId(isar);
     final debtType = type == 'owe' ? DebtType.owe : DebtType.owed;
     final debts = await isar.debtModels
         .filter()
+        .companyIdEqualTo(companyId)
         .debtTypeEqualTo(debtType)
         .sortByCreatedAtDesc()
         .findAll();

@@ -92,8 +92,11 @@ class BudgetLimitRepositoryImpl implements BudgetLimitRepository {
 
     final start = DateTime(year, month, 1);
     final end = DateTime(year, month + 1, 0, 23, 59, 59);
+    // الترشيح بالجهة إلزامي هنا كما في السقوف نفسها: بدونه تُقاس مصروفات
+    // كل الجهات على سقف جهة واحدة، فيظهر التجاوز في جهة لم تُنفق فيها شيئاً.
     final expenses = await isar.transactionModels
         .filter()
+        .companyIdEqualTo(companyId)
         .typeEqualTo(TransactionType.expense)
         .dateBetween(start, end)
         .findAll();
