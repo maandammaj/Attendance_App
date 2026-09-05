@@ -28,7 +28,7 @@ class AttendanceScreen extends ConsumerWidget {
     final today = ref.watch(todayAttendanceProvider);
     final stats =
         ref.watch(attendanceStatsProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ??
+    final currency = ref.watch(profileProvider).value?.currency ??
         AppConstants.defaultCurrency;
 
     return Scaffold(

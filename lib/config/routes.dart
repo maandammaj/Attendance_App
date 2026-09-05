@@ -11,6 +11,7 @@ import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/reminders/budget_limits_screen.dart';
 import '../presentation/screens/schedule/work_schedule_screen.dart';
 import '../domain/entities/company_entity.dart';
+import '../presentation/screens/backup/backup_screen.dart';
 import '../presentation/screens/companies/companies_screen.dart';
 import '../presentation/screens/companies/company_editor_screen.dart';
 import '../presentation/screens/reminders/reminder_settings_screen.dart';
@@ -31,6 +32,7 @@ class AppRoutes {
   static const String notifications = '/notification-history';
   static const String reminders = '/reminders';
   static const String companies = '/companies';
+  static const String backup = '/backup';
   static const String companyEditor = '/company-editor';
   static const String budgetLimits = '/budget-limits';
   static const String workSchedule = '/work-schedule';
@@ -46,6 +48,7 @@ class AppRoutes {
         notifications: (context) => const NotificationHistoryScreen(),
         reminders: (context) => const ReminderSettingsScreen(),
     companies: (context) => const CompaniesScreen(),
+    backup: (context) => const BackupScreen(),
     companyEditor: (context) => CompanyEditorScreen(
           company: ModalRoute.of(context)?.settings.arguments as CompanyEntity?,
         ),

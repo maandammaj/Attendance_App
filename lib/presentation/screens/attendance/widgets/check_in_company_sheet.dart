@@ -28,10 +28,10 @@ class CheckInCompanySheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final companies = (ref.watch(companiesProvider).valueOrNull ?? const [])
+    final companies = (ref.watch(companiesProvider).value ?? const [])
         .where((company) => !company.isArchived)
         .toList();
-    final active = ref.watch(activeCompanyProvider).valueOrNull;
+    final active = ref.watch(activeCompanyProvider).value;
 
     return SafeArea(
       child: Column(

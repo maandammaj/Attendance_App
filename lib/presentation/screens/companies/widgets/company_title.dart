@@ -19,9 +19,9 @@ class CompanyTitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final company = ref.watch(activeCompanyProvider).valueOrNull;
+    final company = ref.watch(activeCompanyProvider).value;
     final count =
-        (ref.watch(companiesProvider).valueOrNull ?? const []).length;
+        (ref.watch(companiesProvider).value ?? const []).length;
 
     if (company == null) return Text(fallback);
 

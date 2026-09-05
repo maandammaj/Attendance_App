@@ -71,7 +71,7 @@ class _Body extends ConsumerWidget {
     final expenses = ref
         .watch(monthlyExpensesByCategoryProvider(
             year: now.year, month: now.month))
-        .valueOrNull;
+        .value;
 
     return ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(

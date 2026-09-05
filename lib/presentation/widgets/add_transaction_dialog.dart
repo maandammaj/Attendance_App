@@ -50,7 +50,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             decoration: InputDecoration(
               labelText: 'المبلغ',
               prefixIcon: const Icon(Icons.attach_money),
-              suffixText: ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي',
+              suffixText: ref.watch(profileProvider).value?.currency ?? 'ر.ي',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (v) => (v == null || double.tryParse(v) == null) ? 'الرجاء إدخال مبلغ صحيح' : null,

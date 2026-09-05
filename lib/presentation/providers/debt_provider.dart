@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/local/repositories/debt_repository_impl.dart';
 import '../../domain/entities/debt_entity.dart';
@@ -27,13 +28,13 @@ final getDebtsSummaryUseCaseProvider = Provider(
 );
 
 @riverpod
-Future<List<DebtEntity>> allDebts(AllDebtsRef ref) async {
+Future<List<DebtEntity>> allDebts(Ref ref) async {
   final repo = ref.read(debtRepositoryProvider);
   return await repo.getAllDebts();
 }
 
 @riverpod
-Future<DebtSummary> debtSummary(DebtSummaryRef ref) async {
+Future<DebtSummary> debtSummary(Ref ref) async {
   final useCase = ref.read(getDebtsSummaryUseCaseProvider);
   return await useCase();
 }

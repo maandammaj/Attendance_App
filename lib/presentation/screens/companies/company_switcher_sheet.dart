@@ -18,8 +18,8 @@ class CompanySwitcherSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final companies = ref.watch(companiesProvider).valueOrNull ?? const [];
-    final active = ref.watch(activeCompanyProvider).valueOrNull;
+    final companies = ref.watch(companiesProvider).value ?? const [];
+    final active = ref.watch(activeCompanyProvider).value;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

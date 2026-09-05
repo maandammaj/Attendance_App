@@ -77,7 +77,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
-    final company = ref.watch(activeCompanyProvider).valueOrNull;
+    final company = ref.watch(activeCompanyProvider).value;
     final profileState = ref.watch(profileControllerProvider);
 
     profileAsync.whenData((profile) {
@@ -202,6 +202,12 @@ class _SystemLinks extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        _LinkTile(
+          icon: Icons.cloud_sync_outlined,
+          title: 'النسخ الاحتياطي',
+          subtitle: 'مزامنة بياناتك مع Google Drive',
+          route: AppRoutes.backup,
+        ),
         _LinkTile(
           icon: Icons.business_outlined,
           title: 'جهات العمل',

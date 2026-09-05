@@ -139,7 +139,7 @@ const DebtModelSchema = CollectionSchema(
   getId: _debtModelGetId,
   getLinks: _debtModelGetLinks,
   attach: _debtModelAttach,
-  version: '3.3.0-dev.1',
+  version: '3.3.2',
 );
 
 int _debtModelEstimateSize(

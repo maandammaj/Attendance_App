@@ -1,3 +1,4 @@
+import 'package:attendance_budget_app/app.dart';
 import 'package:attendance_budget_app/core/constants/theme.dart';
 import 'package:attendance_budget_app/domain/entities/profile_entity.dart';
 import 'package:attendance_budget_app/domain/repositories/profile_repository.dart';
@@ -33,6 +34,9 @@ ProfileEntity _profileEntity() => ProfileEntity(
 
 Widget _harness(ProfileRepository repository) {
   return ProviderScope(
+    // الإعداد نفسه الذي يعمل به التطبيق: بلا هذا يعيد Riverpod 3 المحاولة
+    // تلقائياً فلا تظهر حالة الخطأ التي يختبرها هذا الملف.
+    retry: noAutoRetry,
     overrides: [profileRepositoryProvider.overrideWithValue(repository)],
     child: MaterialApp(
       theme: AppTheme.lightTheme,

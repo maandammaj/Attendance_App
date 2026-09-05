@@ -14,7 +14,7 @@ class TransactionListScreen extends ConsumerWidget {
     final palette = context.palette;
     final now = DateTime.now();
     final transactions = ref.watch(monthlyTransactionsProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
+    final currency = ref.watch(profileProvider).value?.currency ?? 'ر.ي';
 
     return Scaffold(
       appBar: AppBar(title: const Text('سجل المصاريف والدخل'), centerTitle: true),

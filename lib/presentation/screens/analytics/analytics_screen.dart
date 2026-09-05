@@ -48,7 +48,7 @@ class AnalyticsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.ios_share_rounded),
             tooltip: 'تصدير',
-            onPressed: reportAsync.valueOrNull == null
+            onPressed: reportAsync.value == null
                 ? null
                 : () => showModalBottomSheet<void>(
                       context: context,
@@ -80,7 +80,7 @@ class AnalyticsScreen extends ConsumerWidget {
                                   bottom: AppSpacing.lg),
                               child: CompanyComparison(
                                 entries: entries,
-                                currency: reportAsync.valueOrNull?.currency ??
+                                currency: reportAsync.value?.currency ??
                                     AppConstants.defaultCurrency,
                               ),
                             ),

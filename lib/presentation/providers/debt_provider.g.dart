@@ -6,54 +6,127 @@ part of 'debt_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$allDebtsHash() => r'9237469965d6bd9891c36bd60e0ec8046239750c';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [allDebts].
 @ProviderFor(allDebts)
-final allDebtsProvider = AutoDisposeFutureProvider<List<DebtEntity>>.internal(
-  allDebts,
-  name: r'allDebtsProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$allDebtsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final allDebtsProvider = AllDebtsProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AllDebtsRef = AutoDisposeFutureProviderRef<List<DebtEntity>>;
-String _$debtSummaryHash() => r'c1c410ee338c53bba7943681b1ea353bce94de62';
+final class AllDebtsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DebtEntity>>,
+          List<DebtEntity>,
+          FutureOr<List<DebtEntity>>
+        >
+    with $FutureModifier<List<DebtEntity>>, $FutureProvider<List<DebtEntity>> {
+  AllDebtsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'allDebtsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [debtSummary].
+  @override
+  String debugGetCreateSourceHash() => _$allDebtsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<DebtEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<DebtEntity>> create(Ref ref) {
+    return allDebts(ref);
+  }
+}
+
+String _$allDebtsHash() => r'6e6f46b3ff9215edc004415622177c91642b4745';
+
 @ProviderFor(debtSummary)
-final debtSummaryProvider = AutoDisposeFutureProvider<DebtSummary>.internal(
-  debtSummary,
-  name: r'debtSummaryProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$debtSummaryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final debtSummaryProvider = DebtSummaryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DebtSummaryRef = AutoDisposeFutureProviderRef<DebtSummary>;
+final class DebtSummaryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DebtSummary>,
+          DebtSummary,
+          FutureOr<DebtSummary>
+        >
+    with $FutureModifier<DebtSummary>, $FutureProvider<DebtSummary> {
+  DebtSummaryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debtSummaryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debtSummaryHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<DebtSummary> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DebtSummary> create(Ref ref) {
+    return debtSummary(ref);
+  }
+}
+
+String _$debtSummaryHash() => r'7ff18f71a6d474666ec9c41b8fc66fec2729901a';
+
+@ProviderFor(DebtController)
+final debtControllerProvider = DebtControllerProvider._();
+
+final class DebtControllerProvider
+    extends $AsyncNotifierProvider<DebtController, void> {
+  DebtControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debtControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debtControllerHash();
+
+  @$internal
+  @override
+  DebtController create() => DebtController();
+}
+
 String _$debtControllerHash() => r'90d43b1bde23411b66005822388ed3ae1e62130e';
 
-/// See also [DebtController].
-@ProviderFor(DebtController)
-final debtControllerProvider =
-    AutoDisposeAsyncNotifierProvider<DebtController, void>.internal(
-      DebtController.new,
-      name: r'debtControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$debtControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$DebtController = AutoDisposeAsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$DebtController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

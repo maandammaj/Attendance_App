@@ -113,7 +113,7 @@ const CompanyModelSchema = CollectionSchema(
   getId: _companyModelGetId,
   getLinks: _companyModelGetLinks,
   attach: _companyModelAttach,
-  version: '3.3.0-dev.1',
+  version: '3.3.2',
 );
 
 int _companyModelEstimateSize(

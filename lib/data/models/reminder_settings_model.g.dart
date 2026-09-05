@@ -202,7 +202,7 @@ const ReminderSettingsModelSchema = CollectionSchema(
   getId: _reminderSettingsModelGetId,
   getLinks: _reminderSettingsModelGetLinks,
   attach: _reminderSettingsModelAttach,
-  version: '3.3.0-dev.1',
+  version: '3.3.2',
 );
 
 int _reminderSettingsModelEstimateSize(

@@ -17,7 +17,7 @@ class AccountsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
     final accounts = ref.watch(allAccountsProvider);
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
+    final currency = ref.watch(profileProvider).value?.currency ?? 'ر.ي';
 
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +82,7 @@ class AccountsScreen extends ConsumerWidget {
       floatingActionButtonLocation: aboveNavFabLocation,
       // حالة الفراغ تحمل الإجراء نفسه، فإظهار الزر معها يكرّره مرّتين على
       // شاشة واحدة بلا مقابل.
-      floatingActionButton: (accounts.valueOrNull?.isEmpty ?? true)
+      floatingActionButton: (accounts.value?.isEmpty ?? true)
           ? null
           : FloatingActionButton(
               heroTag: 'accounts_fab',

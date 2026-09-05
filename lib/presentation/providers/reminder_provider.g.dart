@@ -6,242 +6,259 @@ part of 'reminder_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// حالة تسليم التنبيهات كما يراها النظام.
+
+@ProviderFor(notificationDiagnostics)
+final notificationDiagnosticsProvider = NotificationDiagnosticsProvider._();
+
+/// حالة تسليم التنبيهات كما يراها النظام.
+
+final class NotificationDiagnosticsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<NotificationDiagnostics>,
+          NotificationDiagnostics,
+          FutureOr<NotificationDiagnostics>
+        >
+    with
+        $FutureModifier<NotificationDiagnostics>,
+        $FutureProvider<NotificationDiagnostics> {
+  /// حالة تسليم التنبيهات كما يراها النظام.
+  NotificationDiagnosticsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationDiagnosticsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationDiagnosticsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<NotificationDiagnostics> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<NotificationDiagnostics> create(Ref ref) {
+    return notificationDiagnostics(ref);
+  }
+}
+
 String _$notificationDiagnosticsHash() =>
     r'6085d93c0c86e1b4879aa4fd9d7b6c95a4d42fbf';
 
-/// حالة تسليم التنبيهات كما يراها النظام.
-///
-/// Copied from [notificationDiagnostics].
-@ProviderFor(notificationDiagnostics)
-final notificationDiagnosticsProvider =
-    AutoDisposeFutureProvider<NotificationDiagnostics>.internal(
-      notificationDiagnostics,
-      name: r'notificationDiagnosticsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$notificationDiagnosticsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef NotificationDiagnosticsRef =
-    AutoDisposeFutureProviderRef<NotificationDiagnostics>;
-String _$reminderSettingsHash() => r'cab030f6cc6c4f7d4a29c034a0716b27e75abf86';
-
-/// See also [reminderSettings].
 @ProviderFor(reminderSettings)
-final reminderSettingsProvider =
-    AutoDisposeFutureProvider<ReminderSettingsEntity>.internal(
-      reminderSettings,
-      name: r'reminderSettingsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$reminderSettingsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final reminderSettingsProvider = ReminderSettingsProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ReminderSettingsRef =
-    AutoDisposeFutureProviderRef<ReminderSettingsEntity>;
-String _$budgetLimitsHash() => r'bc0cc6349b38b93b93b50932093a1153cf040a71';
-
-/// See also [budgetLimits].
-@ProviderFor(budgetLimits)
-final budgetLimitsProvider =
-    AutoDisposeFutureProvider<List<BudgetLimitEntity>>.internal(
-      budgetLimits,
-      name: r'budgetLimitsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$budgetLimitsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef BudgetLimitsRef = AutoDisposeFutureProviderRef<List<BudgetLimitEntity>>;
-String _$budgetStatusHash() => r'220f1ae76c8100dd6e84139477f7b6c761fe0bb2';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [budgetStatus].
-@ProviderFor(budgetStatus)
-const budgetStatusProvider = BudgetStatusFamily();
-
-/// See also [budgetStatus].
-class BudgetStatusFamily extends Family<AsyncValue<List<BudgetStatusEntity>>> {
-  /// See also [budgetStatus].
-  const BudgetStatusFamily();
-
-  /// See also [budgetStatus].
-  BudgetStatusProvider call({required int year, required int month}) {
-    return BudgetStatusProvider(year: year, month: month);
-  }
-
-  @override
-  BudgetStatusProvider getProviderOverride(
-    covariant BudgetStatusProvider provider,
-  ) {
-    return call(year: provider.year, month: provider.month);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'budgetStatusProvider';
-}
-
-/// See also [budgetStatus].
-class BudgetStatusProvider
-    extends AutoDisposeFutureProvider<List<BudgetStatusEntity>> {
-  /// See also [budgetStatus].
-  BudgetStatusProvider({required int year, required int month})
-    : this._internal(
-        (ref) => budgetStatus(ref as BudgetStatusRef, year: year, month: month),
-        from: budgetStatusProvider,
-        name: r'budgetStatusProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$budgetStatusHash,
-        dependencies: BudgetStatusFamily._dependencies,
-        allTransitiveDependencies:
-            BudgetStatusFamily._allTransitiveDependencies,
-        year: year,
-        month: month,
+final class ReminderSettingsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ReminderSettingsEntity>,
+          ReminderSettingsEntity,
+          FutureOr<ReminderSettingsEntity>
+        >
+    with
+        $FutureModifier<ReminderSettingsEntity>,
+        $FutureProvider<ReminderSettingsEntity> {
+  ReminderSettingsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'reminderSettingsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
       );
 
-  BudgetStatusProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.year,
-    required this.month,
-  }) : super.internal();
+  @override
+  String debugGetCreateSourceHash() => _$reminderSettingsHash();
 
-  final int year;
-  final int month;
+  @$internal
+  @override
+  $FutureProviderElement<ReminderSettingsEntity> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Override overrideWith(
-    FutureOr<List<BudgetStatusEntity>> Function(BudgetStatusRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: BudgetStatusProvider._internal(
-        (ref) => create(ref as BudgetStatusRef),
-        from: from,
-        name: null,
+  FutureOr<ReminderSettingsEntity> create(Ref ref) {
+    return reminderSettings(ref);
+  }
+}
+
+String _$reminderSettingsHash() => r'cab030f6cc6c4f7d4a29c034a0716b27e75abf86';
+
+@ProviderFor(budgetLimits)
+final budgetLimitsProvider = BudgetLimitsProvider._();
+
+final class BudgetLimitsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<BudgetLimitEntity>>,
+          List<BudgetLimitEntity>,
+          FutureOr<List<BudgetLimitEntity>>
+        >
+    with
+        $FutureModifier<List<BudgetLimitEntity>>,
+        $FutureProvider<List<BudgetLimitEntity>> {
+  BudgetLimitsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetLimitsProvider',
+        isAutoDispose: true,
         dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        year: year,
-        month: month,
-      ),
-    );
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetLimitsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<BudgetLimitEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<BudgetLimitEntity>> create(Ref ref) {
+    return budgetLimits(ref);
+  }
+}
+
+String _$budgetLimitsHash() => r'bc0cc6349b38b93b93b50932093a1153cf040a71';
+
+@ProviderFor(budgetStatus)
+final budgetStatusProvider = BudgetStatusFamily._();
+
+final class BudgetStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<BudgetStatusEntity>>,
+          List<BudgetStatusEntity>,
+          FutureOr<List<BudgetStatusEntity>>
+        >
+    with
+        $FutureModifier<List<BudgetStatusEntity>>,
+        $FutureProvider<List<BudgetStatusEntity>> {
+  BudgetStatusProvider._({
+    required BudgetStatusFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'budgetStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetStatusHash();
+
+  @override
+  String toString() {
+    return r'budgetStatusProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<BudgetStatusEntity>> createElement() {
-    return _BudgetStatusProviderElement(this);
+  $FutureProviderElement<List<BudgetStatusEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<BudgetStatusEntity>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return budgetStatus(ref, year: argument.year, month: argument.month);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BudgetStatusProvider &&
-        other.year == year &&
-        other.month == month;
+    return other is BudgetStatusProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, year.hashCode);
-    hash = _SystemHash.combine(hash, month.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin BudgetStatusRef
-    on AutoDisposeFutureProviderRef<List<BudgetStatusEntity>> {
-  /// The parameter `year` of this provider.
-  int get year;
+String _$budgetStatusHash() => r'220f1ae76c8100dd6e84139477f7b6c761fe0bb2';
 
-  /// The parameter `month` of this provider.
-  int get month;
+final class BudgetStatusFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<BudgetStatusEntity>>,
+          ({int year, int month})
+        > {
+  BudgetStatusFamily._()
+    : super(
+        retry: null,
+        name: r'budgetStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  BudgetStatusProvider call({required int year, required int month}) =>
+      BudgetStatusProvider._(argument: (year: year, month: month), from: this);
+
+  @override
+  String toString() => r'budgetStatusProvider';
 }
 
-class _BudgetStatusProviderElement
-    extends AutoDisposeFutureProviderElement<List<BudgetStatusEntity>>
-    with BudgetStatusRef {
-  _BudgetStatusProviderElement(super.provider);
+@ProviderFor(ReminderController)
+final reminderControllerProvider = ReminderControllerProvider._();
+
+final class ReminderControllerProvider
+    extends $AsyncNotifierProvider<ReminderController, void> {
+  ReminderControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'reminderControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  int get year => (origin as BudgetStatusProvider).year;
+  String debugGetCreateSourceHash() => _$reminderControllerHash();
+
+  @$internal
   @override
-  int get month => (origin as BudgetStatusProvider).month;
+  ReminderController create() => ReminderController();
 }
 
 String _$reminderControllerHash() =>
     r'648db70ebe91ecfc461e2277cdd68483a2729950';
 
-/// See also [ReminderController].
-@ProviderFor(ReminderController)
-final reminderControllerProvider =
-    AsyncNotifierProvider<ReminderController, void>.internal(
-      ReminderController.new,
-      name: r'reminderControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$reminderControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$ReminderController = AsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ReminderController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

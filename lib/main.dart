@@ -19,8 +19,9 @@ void main() async {
   Intl.defaultLocale = 'ar';
 
   runApp(
-    const ProviderScope(
-      child: AttendanceBudgetApp(),
+    ProviderScope(
+      retry: noAutoRetry,
+      child: const AttendanceBudgetApp(),
     ),
   );
 }

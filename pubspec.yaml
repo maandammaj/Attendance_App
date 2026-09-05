@@ -20,8 +20,8 @@ dependencies:
   isar_community_flutter_libs: ^3.1.0+1
 
   # 🔄 إدارة الحالة
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
+  flutter_riverpod: ^3.0.0
+  riverpod_annotation: ^4.0.7
 
   # 🔐 المصادقة الحيوية
   local_auth: ^2.1.8
@@ -43,14 +43,17 @@ dependencies:
   pdf: ^3.12.0
   share_plus: ^10.1.4
   printing: ^5.14.3
+  google_sign_in: ^7.2.0
+  googleapis: ^17.0.0
+  googleapis_auth: ^2.3.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
-  build_runner: ^2.4.7
-  isar_community_generator: ^3.1.1
-  riverpod_generator: ^2.3.9
+  build_runner: ^2.16.1
+  isar_community_generator: ^3.3.2
+  riverpod_generator: ^4.0.9
 
 flutter:
   uses-material-design: true
@@ -77,3 +80,11 @@ flutter:
           weight: 500
         - asset: assets/fonts/Tajawal-Bold.ttf
           weight: 700
+
+# تجربة: هل قيد المحلّل في isar_community_generator محافظ أم حقيقي؟
+# Dart 3.13 يحتاج analyzer 13+، والمولّد يعلن <11.
+dependency_overrides:
+  analyzer: ^14.3.0
+  dart_style: ^3.1.13
+  source_gen: ^4.3.0
+  build: ^4.0.11

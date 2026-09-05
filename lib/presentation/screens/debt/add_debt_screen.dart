@@ -36,7 +36,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
     final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final debtState = ref.watch(debtControllerProvider);
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
+    final currency = ref.watch(profileProvider).value?.currency ?? 'ر.ي';
 
     // الاستماع لحالة الحفظ والتعامل مع النجاح أو الفشل
     ref.listen<AsyncValue<void>>(

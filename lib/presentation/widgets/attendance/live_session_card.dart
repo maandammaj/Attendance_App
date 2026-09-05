@@ -50,8 +50,8 @@ class _LiveSessionCardState extends ConsumerState<LiveSessionCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final today = ref.watch(todayAttendanceProvider).valueOrNull;
-    final company = ref.watch(activeCompanyProvider).valueOrNull;
+    final today = ref.watch(todayAttendanceProvider).value;
+    final company = ref.watch(activeCompanyProvider).value;
 
     final isOpen = today?.isOpen ?? false;
     WidgetsBinding.instance

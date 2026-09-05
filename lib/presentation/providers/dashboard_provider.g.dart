@@ -6,216 +6,155 @@ part of 'dashboard_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dashboardDataHash() => r'339a5e422398e8078753b87c699ecf574cb536df';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [dashboardData].
 @ProviderFor(dashboardData)
-final dashboardDataProvider = AutoDisposeFutureProvider<DashboardData>.internal(
-  dashboardData,
-  name: r'dashboardDataProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$dashboardDataHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final dashboardDataProvider = DashboardDataProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DashboardDataRef = AutoDisposeFutureProviderRef<DashboardData>;
-String _$monthlyExpensesByCategoryHash() =>
-    r'21915de1bc79ca00c48a1c2498a9ec2b3bf430be';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-///
-/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-///
-/// Copied from [monthlyExpensesByCategory].
-@ProviderFor(monthlyExpensesByCategory)
-const monthlyExpensesByCategoryProvider = MonthlyExpensesByCategoryFamily();
-
-/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-///
-/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-///
-/// Copied from [monthlyExpensesByCategory].
-class MonthlyExpensesByCategoryFamily
-    extends Family<AsyncValue<List<CategoryBreakdownItem>>> {
-  /// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-  ///
-  /// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-  ///
-  /// Copied from [monthlyExpensesByCategory].
-  const MonthlyExpensesByCategoryFamily();
-
-  /// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-  ///
-  /// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-  ///
-  /// Copied from [monthlyExpensesByCategory].
-  MonthlyExpensesByCategoryProvider call({
-    required int year,
-    required int month,
-  }) {
-    return MonthlyExpensesByCategoryProvider(year: year, month: month);
-  }
-
-  @override
-  MonthlyExpensesByCategoryProvider getProviderOverride(
-    covariant MonthlyExpensesByCategoryProvider provider,
-  ) {
-    return call(year: provider.year, month: provider.month);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'monthlyExpensesByCategoryProvider';
-}
-
-/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-///
-/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-///
-/// Copied from [monthlyExpensesByCategory].
-class MonthlyExpensesByCategoryProvider
-    extends AutoDisposeFutureProvider<List<CategoryBreakdownItem>> {
-  /// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
-  ///
-  /// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
-  ///
-  /// Copied from [monthlyExpensesByCategory].
-  MonthlyExpensesByCategoryProvider({required int year, required int month})
-    : this._internal(
-        (ref) => monthlyExpensesByCategory(
-          ref as MonthlyExpensesByCategoryRef,
-          year: year,
-          month: month,
-        ),
-        from: monthlyExpensesByCategoryProvider,
-        name: r'monthlyExpensesByCategoryProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$monthlyExpensesByCategoryHash,
-        dependencies: MonthlyExpensesByCategoryFamily._dependencies,
-        allTransitiveDependencies:
-            MonthlyExpensesByCategoryFamily._allTransitiveDependencies,
-        year: year,
-        month: month,
+final class DashboardDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DashboardData>,
+          DashboardData,
+          FutureOr<DashboardData>
+        >
+    with $FutureModifier<DashboardData>, $FutureProvider<DashboardData> {
+  DashboardDataProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dashboardDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
       );
 
-  MonthlyExpensesByCategoryProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.year,
-    required this.month,
-  }) : super.internal();
+  @override
+  String debugGetCreateSourceHash() => _$dashboardDataHash();
 
-  final int year;
-  final int month;
+  @$internal
+  @override
+  $FutureProviderElement<DashboardData> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Override overrideWith(
-    FutureOr<List<CategoryBreakdownItem>> Function(
-      MonthlyExpensesByCategoryRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MonthlyExpensesByCategoryProvider._internal(
-        (ref) => create(ref as MonthlyExpensesByCategoryRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        year: year,
-        month: month,
-      ),
-    );
+  FutureOr<DashboardData> create(Ref ref) {
+    return dashboardData(ref);
+  }
+}
+
+String _$dashboardDataHash() => r'2974b961215a9e7cf35e62a45251a3981e285762';
+
+/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
+///
+/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
+
+@ProviderFor(monthlyExpensesByCategory)
+final monthlyExpensesByCategoryProvider = MonthlyExpensesByCategoryFamily._();
+
+/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
+///
+/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
+
+final class MonthlyExpensesByCategoryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CategoryBreakdownItem>>,
+          List<CategoryBreakdownItem>,
+          FutureOr<List<CategoryBreakdownItem>>
+        >
+    with
+        $FutureModifier<List<CategoryBreakdownItem>>,
+        $FutureProvider<List<CategoryBreakdownItem>> {
+  /// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
+  ///
+  /// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
+  MonthlyExpensesByCategoryProvider._({
+    required MonthlyExpensesByCategoryFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthlyExpensesByCategoryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthlyExpensesByCategoryHash();
+
+  @override
+  String toString() {
+    return r'monthlyExpensesByCategoryProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<CategoryBreakdownItem>>
-  createElement() {
-    return _MonthlyExpensesByCategoryProviderElement(this);
+  $FutureProviderElement<List<CategoryBreakdownItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CategoryBreakdownItem>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return monthlyExpensesByCategory(
+      ref,
+      year: argument.year,
+      month: argument.month,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is MonthlyExpensesByCategoryProvider &&
-        other.year == year &&
-        other.month == month;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, year.hashCode);
-    hash = _SystemHash.combine(hash, month.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MonthlyExpensesByCategoryRef
-    on AutoDisposeFutureProviderRef<List<CategoryBreakdownItem>> {
-  /// The parameter `year` of this provider.
-  int get year;
+String _$monthlyExpensesByCategoryHash() =>
+    r'21915de1bc79ca00c48a1c2498a9ec2b3bf430be';
 
-  /// The parameter `month` of this provider.
-  int get month;
-}
+/// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
+///
+/// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
 
-class _MonthlyExpensesByCategoryProviderElement
-    extends AutoDisposeFutureProviderElement<List<CategoryBreakdownItem>>
-    with MonthlyExpensesByCategoryRef {
-  _MonthlyExpensesByCategoryProviderElement(super.provider);
+final class MonthlyExpensesByCategoryFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<CategoryBreakdownItem>>,
+          ({int year, int month})
+        > {
+  MonthlyExpensesByCategoryFamily._()
+    : super(
+        retry: null,
+        name: r'monthlyExpensesByCategoryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// مصروفات شهر مجمّعة حسب الفئة، مرتّبة تنازلياً.
+  ///
+  /// مفصولة عن `dashboardData` حتى لا يعيد تغيّر الرسم حساب الراتب كله.
+
+  MonthlyExpensesByCategoryProvider call({
+    required int year,
+    required int month,
+  }) => MonthlyExpensesByCategoryProvider._(
+    argument: (year: year, month: month),
+    from: this,
+  );
 
   @override
-  int get year => (origin as MonthlyExpensesByCategoryProvider).year;
-  @override
-  int get month => (origin as MonthlyExpensesByCategoryProvider).month;
+  String toString() => r'monthlyExpensesByCategoryProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

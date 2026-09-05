@@ -49,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _toggleAttendance() async {
-    final today = ref.read(todayAttendanceProvider).valueOrNull;
+    final today = ref.read(todayAttendanceProvider).value;
     final notifier = ref.read(attendanceControllerProvider.notifier);
 
     if (today?.isOpen ?? false) {
@@ -59,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // بأكثر من جهة يُسأل المستخدم صراحةً؛ بجهة واحدة لا سؤال — إضافة خطوة
     // حيث لا غموض احتكاك بلا مقابل.
-    final companies = (ref.read(companiesProvider).valueOrNull ?? const [])
+    final companies = (ref.read(companiesProvider).value ?? const [])
         .where((company) => !company.isArchived)
         .toList();
 
@@ -85,7 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final today = ref.watch(todayAttendanceProvider).valueOrNull;
+    final today = ref.watch(todayAttendanceProvider).value;
     final isBusy = ref.watch(attendanceControllerProvider) is AsyncLoading;
     final showFab = _fabTabs.contains(_currentIndex);
 

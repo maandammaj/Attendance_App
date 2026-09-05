@@ -21,14 +21,14 @@ class AccountDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.palette;
     final accounts = ref.watch(allAccountsProvider);
-    final account = accounts.whenData((list) => list.firstWhere((a) => a.id == accountId)).valueOrNull;
+    final account = accounts.whenData((list) => list.firstWhere((a) => a.id == accountId)).value;
 
     if (account == null) {
       return Scaffold(appBar: AppBar(), body: const Center(child: Text('الحساب غير موجود')));
     }
 
     final profileAsync = ref.watch(profileProvider);
-    final currency = profileAsync.valueOrNull?.currency ?? 'ر.ي';
+    final currency = profileAsync.value?.currency ?? 'ر.ي';
 
     final debts = ref.watch(allDebtsProvider);
     final transactions = ref.watch(monthlyTransactionsProvider(year: DateTime.now().year, month: DateTime.now().month));

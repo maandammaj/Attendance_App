@@ -6,362 +6,303 @@ part of 'attendance_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(todayAttendance)
+final todayAttendanceProvider = TodayAttendanceProvider._();
+
+final class TodayAttendanceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<AttendanceEntity?>,
+          AttendanceEntity?,
+          FutureOr<AttendanceEntity?>
+        >
+    with
+        $FutureModifier<AttendanceEntity?>,
+        $FutureProvider<AttendanceEntity?> {
+  TodayAttendanceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'todayAttendanceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayAttendanceHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<AttendanceEntity?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<AttendanceEntity?> create(Ref ref) {
+    return todayAttendance(ref);
+  }
+}
+
 String _$todayAttendanceHash() => r'419ed477bc4b014e2526a0968fd95b8dadea454d';
 
-/// See also [todayAttendance].
-@ProviderFor(todayAttendance)
-final todayAttendanceProvider =
-    AutoDisposeFutureProvider<AttendanceEntity?>.internal(
-      todayAttendance,
-      name: r'todayAttendanceProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$todayAttendanceHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+@ProviderFor(monthlyAttendance)
+final monthlyAttendanceProvider = MonthlyAttendanceFamily._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TodayAttendanceRef = AutoDisposeFutureProviderRef<AttendanceEntity?>;
+final class MonthlyAttendanceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AttendanceEntity>>,
+          List<AttendanceEntity>,
+          FutureOr<List<AttendanceEntity>>
+        >
+    with
+        $FutureModifier<List<AttendanceEntity>>,
+        $FutureProvider<List<AttendanceEntity>> {
+  MonthlyAttendanceProvider._({
+    required MonthlyAttendanceFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthlyAttendanceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthlyAttendanceHash();
+
+  @override
+  String toString() {
+    return r'monthlyAttendanceProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<AttendanceEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<AttendanceEntity>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return monthlyAttendance(ref, year: argument.year, month: argument.month);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MonthlyAttendanceProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
 String _$monthlyAttendanceHash() => r'7398fc7531de55a42d8206771a946373724cfd33';
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [monthlyAttendance].
-@ProviderFor(monthlyAttendance)
-const monthlyAttendanceProvider = MonthlyAttendanceFamily();
-
-/// See also [monthlyAttendance].
-class MonthlyAttendanceFamily
-    extends Family<AsyncValue<List<AttendanceEntity>>> {
-  /// See also [monthlyAttendance].
-  const MonthlyAttendanceFamily();
-
-  /// See also [monthlyAttendance].
-  MonthlyAttendanceProvider call({required int year, required int month}) {
-    return MonthlyAttendanceProvider(year: year, month: month);
-  }
-
-  @override
-  MonthlyAttendanceProvider getProviderOverride(
-    covariant MonthlyAttendanceProvider provider,
-  ) {
-    return call(year: provider.year, month: provider.month);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'monthlyAttendanceProvider';
-}
-
-/// See also [monthlyAttendance].
-class MonthlyAttendanceProvider
-    extends AutoDisposeFutureProvider<List<AttendanceEntity>> {
-  /// See also [monthlyAttendance].
-  MonthlyAttendanceProvider({required int year, required int month})
-    : this._internal(
-        (ref) => monthlyAttendance(
-          ref as MonthlyAttendanceRef,
-          year: year,
-          month: month,
-        ),
-        from: monthlyAttendanceProvider,
+final class MonthlyAttendanceFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<AttendanceEntity>>,
+          ({int year, int month})
+        > {
+  MonthlyAttendanceFamily._()
+    : super(
+        retry: null,
         name: r'monthlyAttendanceProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$monthlyAttendanceHash,
-        dependencies: MonthlyAttendanceFamily._dependencies,
-        allTransitiveDependencies:
-            MonthlyAttendanceFamily._allTransitiveDependencies,
-        year: year,
-        month: month,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  MonthlyAttendanceProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.year,
-    required this.month,
-  }) : super.internal();
-
-  final int year;
-  final int month;
+  MonthlyAttendanceProvider call({required int year, required int month}) =>
+      MonthlyAttendanceProvider._(
+        argument: (year: year, month: month),
+        from: this,
+      );
 
   @override
-  Override overrideWith(
-    FutureOr<List<AttendanceEntity>> Function(MonthlyAttendanceRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MonthlyAttendanceProvider._internal(
-        (ref) => create(ref as MonthlyAttendanceRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        year: year,
-        month: month,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<AttendanceEntity>> createElement() {
-    return _MonthlyAttendanceProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is MonthlyAttendanceProvider &&
-        other.year == year &&
-        other.month == month;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, year.hashCode);
-    hash = _SystemHash.combine(hash, month.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'monthlyAttendanceProvider';
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MonthlyAttendanceRef
-    on AutoDisposeFutureProviderRef<List<AttendanceEntity>> {
-  /// The parameter `year` of this provider.
-  int get year;
-
-  /// The parameter `month` of this provider.
-  int get month;
-}
-
-class _MonthlyAttendanceProviderElement
-    extends AutoDisposeFutureProviderElement<List<AttendanceEntity>>
-    with MonthlyAttendanceRef {
-  _MonthlyAttendanceProviderElement(super.provider);
-
-  @override
-  int get year => (origin as MonthlyAttendanceProvider).year;
-  @override
-  int get month => (origin as MonthlyAttendanceProvider).month;
-}
-
-String _$attendanceStatsHash() => r'e5c6d597ac38cdabd7439d640f8e4557ed0546df';
-
-/// See also [attendanceStats].
 @ProviderFor(attendanceStats)
-const attendanceStatsProvider = AttendanceStatsFamily();
+final attendanceStatsProvider = AttendanceStatsFamily._();
 
-/// See also [attendanceStats].
-class AttendanceStatsFamily extends Family<AsyncValue<MonthlyStats>> {
-  /// See also [attendanceStats].
-  const AttendanceStatsFamily();
+final class AttendanceStatsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<MonthlyStats>,
+          MonthlyStats,
+          FutureOr<MonthlyStats>
+        >
+    with $FutureModifier<MonthlyStats>, $FutureProvider<MonthlyStats> {
+  AttendanceStatsProvider._({
+    required AttendanceStatsFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'attendanceStatsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [attendanceStats].
-  AttendanceStatsProvider call({required int year, required int month}) {
-    return AttendanceStatsProvider(year: year, month: month);
+  @override
+  String debugGetCreateSourceHash() => _$attendanceStatsHash();
+
+  @override
+  String toString() {
+    return r'attendanceStatsProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AttendanceStatsProvider getProviderOverride(
-    covariant AttendanceStatsProvider provider,
-  ) {
-    return call(year: provider.year, month: provider.month);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<MonthlyStats> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'attendanceStatsProvider';
-}
-
-/// See also [attendanceStats].
-class AttendanceStatsProvider extends AutoDisposeFutureProvider<MonthlyStats> {
-  /// See also [attendanceStats].
-  AttendanceStatsProvider({required int year, required int month})
-    : this._internal(
-        (ref) => attendanceStats(
-          ref as AttendanceStatsRef,
-          year: year,
-          month: month,
-        ),
-        from: attendanceStatsProvider,
-        name: r'attendanceStatsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$attendanceStatsHash,
-        dependencies: AttendanceStatsFamily._dependencies,
-        allTransitiveDependencies:
-            AttendanceStatsFamily._allTransitiveDependencies,
-        year: year,
-        month: month,
-      );
-
-  AttendanceStatsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.year,
-    required this.month,
-  }) : super.internal();
-
-  final int year;
-  final int month;
-
-  @override
-  Override overrideWith(
-    FutureOr<MonthlyStats> Function(AttendanceStatsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AttendanceStatsProvider._internal(
-        (ref) => create(ref as AttendanceStatsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        year: year,
-        month: month,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<MonthlyStats> createElement() {
-    return _AttendanceStatsProviderElement(this);
+  FutureOr<MonthlyStats> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return attendanceStats(ref, year: argument.year, month: argument.month);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AttendanceStatsProvider &&
-        other.year == year &&
-        other.month == month;
+    return other is AttendanceStatsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, year.hashCode);
-    hash = _SystemHash.combine(hash, month.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AttendanceStatsRef on AutoDisposeFutureProviderRef<MonthlyStats> {
-  /// The parameter `year` of this provider.
-  int get year;
+String _$attendanceStatsHash() => r'663e3a7ad2952c4d8bb9a5d5befcb1545eae6ce0';
 
-  /// The parameter `month` of this provider.
-  int get month;
+final class AttendanceStatsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<MonthlyStats>,
+          ({int year, int month})
+        > {
+  AttendanceStatsFamily._()
+    : super(
+        retry: null,
+        name: r'attendanceStatsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AttendanceStatsProvider call({required int year, required int month}) =>
+      AttendanceStatsProvider._(
+        argument: (year: year, month: month),
+        from: this,
+      );
+
+  @override
+  String toString() => r'attendanceStatsProvider';
 }
 
-class _AttendanceStatsProviderElement
-    extends AutoDisposeFutureProviderElement<MonthlyStats>
-    with AttendanceStatsRef {
-  _AttendanceStatsProviderElement(super.provider);
+/// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
+
+@ProviderFor(anyOpenSession)
+final anyOpenSessionProvider = AnyOpenSessionProvider._();
+
+/// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
+
+final class AnyOpenSessionProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<AttendanceEntity?>,
+          AttendanceEntity?,
+          FutureOr<AttendanceEntity?>
+        >
+    with
+        $FutureModifier<AttendanceEntity?>,
+        $FutureProvider<AttendanceEntity?> {
+  /// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
+  AnyOpenSessionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'anyOpenSessionProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  int get year => (origin as AttendanceStatsProvider).year;
+  String debugGetCreateSourceHash() => _$anyOpenSessionHash();
+
+  @$internal
   @override
-  int get month => (origin as AttendanceStatsProvider).month;
+  $FutureProviderElement<AttendanceEntity?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<AttendanceEntity?> create(Ref ref) {
+    return anyOpenSession(ref);
+  }
 }
 
 String _$anyOpenSessionHash() => r'0004c38ed2c0e6b8fe123bcdc61083c63d299abe';
 
-/// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
-///
-/// Copied from [anyOpenSession].
-@ProviderFor(anyOpenSession)
-final anyOpenSessionProvider =
-    AutoDisposeFutureProvider<AttendanceEntity?>.internal(
-      anyOpenSession,
-      name: r'anyOpenSessionProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$anyOpenSessionHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+@ProviderFor(AttendanceController)
+final attendanceControllerProvider = AttendanceControllerProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AnyOpenSessionRef = AutoDisposeFutureProviderRef<AttendanceEntity?>;
+final class AttendanceControllerProvider
+    extends $AsyncNotifierProvider<AttendanceController, void> {
+  AttendanceControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'attendanceControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$attendanceControllerHash();
+
+  @$internal
+  @override
+  AttendanceController create() => AttendanceController();
+}
+
 String _$attendanceControllerHash() =>
     r'12729d4538ed72e9de676861af6624963ae54612';
 
-/// See also [AttendanceController].
-@ProviderFor(AttendanceController)
-final attendanceControllerProvider =
-    AsyncNotifierProvider<AttendanceController, void>.internal(
-      AttendanceController.new,
-      name: r'attendanceControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$attendanceControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$AttendanceController = AsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$AttendanceController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

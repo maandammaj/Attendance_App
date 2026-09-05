@@ -16,7 +16,7 @@ class DeliveryHealthCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final diagnostics = ref.watch(notificationDiagnosticsProvider).valueOrNull;
+    final diagnostics = ref.watch(notificationDiagnosticsProvider).value;
     if (diagnostics == null) return const SizedBox.shrink();
 
     final controller = ref.read(reminderControllerProvider.notifier);

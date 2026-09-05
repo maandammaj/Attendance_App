@@ -16,7 +16,7 @@ class CompaniesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final companies = ref.watch(companiesProvider);
-    final activeId = ref.watch(activeCompanyProvider).valueOrNull?.id;
+    final activeId = ref.watch(activeCompanyProvider).value?.id;
 
     return Scaffold(
       appBar: AppBar(title: const Text('جهات العمل')),

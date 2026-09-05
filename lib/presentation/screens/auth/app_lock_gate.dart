@@ -54,7 +54,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(reminderSettingsProvider).valueOrNull;
+    final settings = ref.watch(reminderSettingsProvider).value;
 
     // ريثما تُقرأ الإعدادات لا نعرض المحتوى، حتى لا يومض قبل القفل.
     if (settings == null) {

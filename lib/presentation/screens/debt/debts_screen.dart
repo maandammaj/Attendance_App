@@ -22,7 +22,7 @@ class DebtsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final debts = ref.watch(allDebtsProvider);
     final summary = ref.watch(debtSummaryProvider);
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ??
+    final currency = ref.watch(profileProvider).value?.currency ??
         AppConstants.defaultCurrency;
 
     return DefaultTabController(

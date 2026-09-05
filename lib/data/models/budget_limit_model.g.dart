@@ -84,7 +84,7 @@ const BudgetLimitModelSchema = CollectionSchema(
   getId: _budgetLimitModelGetId,
   getLinks: _budgetLimitModelGetLinks,
   attach: _budgetLimitModelAttach,
-  version: '3.3.0-dev.1',
+  version: '3.3.2',
 );
 
 int _budgetLimitModelEstimateSize(

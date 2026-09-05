@@ -100,7 +100,7 @@ class _WorkScheduleScreenState extends ConsumerState<WorkScheduleScreen> {
   }
 
   Future<void> _save() async {
-    final company = ref.read(activeCompanyProvider).valueOrNull;
+    final company = ref.read(activeCompanyProvider).value;
     if (company == null) {
       UIHelpers.showErrorSnackBar(context, 'اختر جهة عمل أولاً');
       return;

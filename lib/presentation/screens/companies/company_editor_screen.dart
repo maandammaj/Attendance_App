@@ -37,7 +37,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
       text: (widget.company?.overtimeRate ?? 1.5).toString());
 
   late String _currency = widget.company?.currency ??
-      ref.read(profileProvider).valueOrNull?.currency ??
+      ref.read(profileProvider).value?.currency ??
       AppConstants.defaultCurrency;
   late int _colorIndex = widget.company?.colorIndex ?? 0;
 

@@ -6,38 +6,88 @@ part of 'profile_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profileHash() => r'a264202cdf5a71f31071a061d423af5e85d4be04';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [profile].
 @ProviderFor(profile)
-final profileProvider = AutoDisposeFutureProvider<ProfileEntity?>.internal(
-  profile,
-  name: r'profileProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$profileHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final profileProvider = ProfileProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ProfileRef = AutoDisposeFutureProviderRef<ProfileEntity?>;
+final class ProfileProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ProfileEntity?>,
+          ProfileEntity?,
+          FutureOr<ProfileEntity?>
+        >
+    with $FutureModifier<ProfileEntity?>, $FutureProvider<ProfileEntity?> {
+  ProfileProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<ProfileEntity?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<ProfileEntity?> create(Ref ref) {
+    return profile(ref);
+  }
+}
+
+String _$profileHash() => r'40f17f67f6e5c71aec1a8c1e1d685453c274b0f6';
+
+@ProviderFor(ProfileController)
+final profileControllerProvider = ProfileControllerProvider._();
+
+final class ProfileControllerProvider
+    extends $AsyncNotifierProvider<ProfileController, void> {
+  ProfileControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileControllerHash();
+
+  @$internal
+  @override
+  ProfileController create() => ProfileController();
+}
+
 String _$profileControllerHash() => r'd847dba3af4779331ea1107969809d1f8e685c20';
 
-/// See also [ProfileController].
-@ProviderFor(ProfileController)
-final profileControllerProvider =
-    AsyncNotifierProvider<ProfileController, void>.internal(
-      ProfileController.new,
-      name: r'profileControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$profileControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$ProfileController = AsyncNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ProfileController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

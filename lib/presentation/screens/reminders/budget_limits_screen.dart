@@ -17,7 +17,7 @@ class BudgetLimitsScreen extends ConsumerWidget {
     final now = DateTime.now();
     final statusAsync =
         ref.watch(budgetStatusProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ??
+    final currency = ref.watch(profileProvider).value?.currency ??
         AppConstants.defaultCurrency;
 
     return Scaffold(
