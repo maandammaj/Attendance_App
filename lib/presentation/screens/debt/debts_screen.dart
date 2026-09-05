@@ -9,6 +9,7 @@ import '../../../domain/entities/debt_entity.dart';
 import '../../../domain/usecases/debt/get_debts_summary_usecase.dart';
 import '../../providers/debt_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/common/above_nav_fab_location.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/state_switcher.dart';
 import '../../widgets/debt_item_card.dart';
@@ -75,6 +76,7 @@ class DebtsScreen extends ConsumerWidget {
             ),
           ],
         ),
+        floatingActionButtonLocation: aboveNavFabLocation,
         floatingActionButton: FloatingActionButton.extended(
           heroTag: 'debts_fab',
           onPressed: () => UIHelpers.showModernBottomSheet(

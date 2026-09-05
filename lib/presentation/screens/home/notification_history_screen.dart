@@ -4,6 +4,7 @@ import 'package:isar_community/isar.dart';
 import 'package:intl/intl.dart';
 import '../../../data/local/database/isar_database.dart';
 import '../../../data/models/notification_model.dart';
+import '../../widgets/common/empty_state.dart';
 
 class NotificationHistoryScreen extends StatelessWidget {
   const NotificationHistoryScreen({super.key});
@@ -22,7 +23,13 @@ class NotificationHistoryScreen extends StatelessWidget {
             stream: isar.notificationModels.where().sortByTimestampDesc().watch(fireImmediately: true),
             builder: (context, streamSnapshot) {
               final list = streamSnapshot.data ?? [];
-              if (list.isEmpty) return const Center(child: Text('لا توجد تنبيهات سابقة'));
+              if (list.isEmpty) {
+                return const EmptyState(
+                  icon: Icons.notifications_none_rounded,
+                  title: 'لا تنبيهات بعد',
+                  message: 'تذكيرات الحضور والانصراف والديون تُحفظ هنا بعد وصولها.',
+                );
+              }
               return ListView.builder(
                 itemCount: list.length,
                 padding: const EdgeInsets.all(16),

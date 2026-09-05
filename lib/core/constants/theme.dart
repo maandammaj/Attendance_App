@@ -69,6 +69,20 @@ class AppTheme {
         },
       ),
 
+      // بلا هذا يأخذ الزر العائم `primaryContainer` الافتراضي، فيظهر رمادياً
+      // باهتاً كأنه معطّل — والزر هو الإجراء الرئيسي للشاشة.
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: palette.primary,
+        foregroundColor: palette.onPrimary,
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+      ),
+
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,

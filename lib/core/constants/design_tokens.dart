@@ -236,6 +236,16 @@ class AppSpacing {
   static const double xxl = 32;
   static const double xxxl = 40;
   static const double huge = 48;
+
+  // ── ما يشغله هيكل التطبيق أسفل كل تبويب ──────────────────────
+  // `HomeScreen` يرفع `extendBody`، فشريط التنقل العائم وزر الحضور يطفوان
+  // فوق جسم الشاشة لا تحته. أي محتوى لا يفرغ لهما هذه المسافة يُحجب.
+
+  /// شريط التنقل العائم: ارتفاع `NavigationBar` مع هامشه السفلي.
+  static const double bottomNavInset = 92;
+
+  /// الشريط وزر الحضور فوقه: يزيد هامش الطفو (16) وارتفاع الزر (64).
+  static const double bottomFabInset = 172;
 }
 
 /// أحجام الأيقونات كـ tokens بدل قيم عشوائية.
@@ -245,6 +255,9 @@ class AppIconSize {
   static const double sm = 16;
   static const double md = 20;
   static const double lg = 24;
+
+  /// أيقونة حالة الفراغ داخل دائرتها — الحجم الوحيد فوق أحجام الواجهة.
+  static const double xl = 40;
 }
 
 class AppDurations {

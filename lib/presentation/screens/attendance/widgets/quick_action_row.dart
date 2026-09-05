@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/design_tokens.dart';
 
 /// ثلاثة إجراءات سريعة تحت بطاقة الحالة.
+///
+/// الثلاثة أنداد وكلها تنقّل، فتتشارك سطحاً محايداً واحداً وتُميَّز بأيقونتها
+/// واسمها. كانت تحمل `info` و`primary` و`warning` — ألوان دلالية أُنفقت على
+/// زينة: الكهرماني يقول إن في «التذكيرات» خطأ ما، ولا خطأ فيها. وإخلاؤها من
+/// لون العلامة يترك الحضور وحده يحمله، وهو الإجراء الرئيسي فعلاً.
 class QuickActionRow extends StatelessWidget {
   const QuickActionRow({
     super.key,
@@ -17,27 +22,23 @@ class QuickActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     return Row(
       children: [
         _Action(
           icon: Icons.add_alarm_rounded,
           label: 'جلسة يدوية',
-          color: palette.info,
           onTap: onManualEntry,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: AppSpacing.md),
         _Action(
           icon: Icons.history_rounded,
           label: 'السجل',
-          color: palette.primary,
           onTap: onHistory,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: AppSpacing.md),
         _Action(
           icon: Icons.notifications_active_outlined,
           label: 'التذكيرات',
-          color: palette.warning,
           onTap: onReminders,
         ),
       ],
@@ -49,34 +50,45 @@ class _Action extends StatelessWidget {
   const _Action({
     required this.icon,
     required this.label,
-    required this.color,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
+    final radius = BorderRadius.circular(AppRadius.field);
+
     return Expanded(
       child: Material(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadius.field),
+        color: palette.surface,
+        borderRadius: radius,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.field),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.symmetric(vertical: 14),
-            child: Column(
-              children: [
-                Icon(icon, color: color, size: 22),
-                const SizedBox(height: 6),
-                Text(label,
-                    style: theme.textTheme.labelSmall?.copyWith(color: color)),
-              ],
+          borderRadius: radius,
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(color: palette.outline),
+            ),
+            child: Padding(
+              padding:
+                  const EdgeInsetsDirectional.symmetric(vertical: AppSpacing.lg),
+              child: Column(
+                children: [
+                  Icon(icon, color: palette.primary, size: AppIconSize.lg),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    label,
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: palette.onSurface),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

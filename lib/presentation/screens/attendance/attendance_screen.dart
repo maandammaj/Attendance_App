@@ -55,7 +55,10 @@ class AttendanceScreen extends ConsumerWidget {
           ref.invalidate(attendanceStatsProvider);
         },
         child: ListView(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 140),
+          // 140 كانت أقصر من الشريط وزر الحضور معاً، فكان الزر يجلس
+          // فوق بطاقة ملخّص الشهر ويحجب رقم الصافي.
+          padding: const EdgeInsetsDirectional.fromSTEB(
+              16, 8, 16, AppSpacing.bottomFabInset + AppSpacing.lg),
           children: [
             const LiveSessionCard(),
             const SizedBox(height: 20),

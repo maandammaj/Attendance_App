@@ -24,10 +24,24 @@ class SessionTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (sessions.isEmpty) {
+      // نسخة مضغوطة من حالة الفراغ: هذه تعيش داخل بطاقة، فـ`EmptyState`
+      // بحشوته الكاملة يضاعف ارتفاعها بلا داعٍ.
+      final palette = context.palette;
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text('لا جلسات مسجّلة لهذا اليوم',
-            style: theme.textTheme.bodySmall),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Row(
+          children: [
+            Icon(Icons.schedule_rounded,
+                size: AppIconSize.md, color: palette.onSurfaceVariant),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                'لا جلسات بعد — سجّل حضورك أو أضف جلسة يدوياً',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
       );
     }
 

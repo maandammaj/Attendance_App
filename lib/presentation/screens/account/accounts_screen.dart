@@ -3,6 +3,8 @@ import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/common/above_nav_fab_location.dart';
+import '../../widgets/common/empty_state.dart';
 import '../../../domain/entities/account_entity.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/profile_provider.dart';
@@ -25,11 +27,18 @@ class AccountsScreen extends ConsumerWidget {
       body: accounts.when(
         data: (list) {
           if (list.isEmpty) {
-            return const Center(child: Text('لا توجد حسابات مضافة'));
+            return EmptyState(
+              icon: Icons.account_balance_rounded,
+              title: 'لا حسابات بعد',
+              message: 'أضف حساباً لتربط به دخلك ومصروفاتك وتتابع رصيده.',
+              actionLabel: 'إضافة حساب',
+              onAction: () => _openAddSheet(context),
+            );
           }
           return ListView.builder(
             itemCount: list.length,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsetsDirectional.fromSTEB(
+                16, 16, 16, AppSpacing.bottomFabInset),
             itemBuilder: (context, index) {
               final account = list[index];
               return Card(
@@ -70,17 +79,25 @@ class AccountsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('خطأ: $err')),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'accounts_fab',
-        onPressed: () => UIHelpers.showModernBottomSheet(
-          context: context,
-          title: 'إضافة حساب جديد',
-          child: const _AddAccountBottomSheet(),
-        ),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButtonLocation: aboveNavFabLocation,
+      // حالة الفراغ تحمل الإجراء نفسه، فإظهار الزر معها يكرّره مرّتين على
+      // شاشة واحدة بلا مقابل.
+      floatingActionButton: (accounts.valueOrNull?.isEmpty ?? true)
+          ? null
+          : FloatingActionButton(
+              heroTag: 'accounts_fab',
+              tooltip: 'إضافة حساب',
+              onPressed: () => _openAddSheet(context),
+              child: const Icon(Icons.add),
+            ),
     );
   }
+
+  void _openAddSheet(BuildContext context) => UIHelpers.showModernBottomSheet(
+        context: context,
+        title: 'إضافة حساب جديد',
+        child: const _AddAccountBottomSheet(),
+      );
 
   void _confirmDelete(BuildContext context, WidgetRef ref, AccountEntity account) {
   final palette = context.palette;

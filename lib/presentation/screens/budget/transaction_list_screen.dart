@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/common/empty_state.dart';
 
 class TransactionListScreen extends ConsumerWidget {
   const TransactionListScreen({super.key});
@@ -19,7 +20,13 @@ class TransactionListScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('سجل المصاريف والدخل'), centerTitle: true),
       body: transactions.when(
         data: (list) {
-          if (list.isEmpty) return const Center(child: Text('لا توجد حركات مالية هذا هذا الشهر'));
+          if (list.isEmpty) {
+            return const EmptyState(
+              icon: Icons.receipt_long_rounded,
+              title: 'لا حركات هذا الشهر',
+              message: 'كل دخل أو مصروف تسجّله يظهر هنا مرتّباً بتاريخه.',
+            );
+          }
           return ListView.builder(
             itemCount: list.length,
             padding: const EdgeInsets.all(16),
