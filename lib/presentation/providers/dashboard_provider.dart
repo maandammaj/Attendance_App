@@ -14,15 +14,17 @@ part 'dashboard_provider.g.dart';
 @riverpod
 Future<DashboardData> dashboardData(Ref ref) async {
   final now = DateTime.now();
-  final companyAsync = ref.watch(activeCompanyProvider);
-  final statsAsync = ref.watch(attendanceStatsProvider(year: now.year, month: now.month));
-  final debtSummaryAsync = ref.watch(debtSummaryProvider);
-  final transactionsAsync = ref.watch(monthlyTransactionsProvider(year: now.year, month: now.month));
 
-  final company = companyAsync.valueOrNull;
-  final stats = statsAsync.valueOrNull;
-  final debtSummary = debtSummaryAsync.valueOrNull;
-  final transactions = transactionsAsync.valueOrNull ?? [];
+  // تُنتظر المصادر لا تُقرأ بـ `valueOrNull`. القراءة الفورية كانت تُكمل هذا
+  // المزوّد بنجاح قبل وصول أيٍّ منها، فيصير `null ?? 0` أصفاراً تُعرض كأنها
+  // حقائق: صفر أيام عمل وراتب كامل بلا خصم — أي أن اللوحة تُظهر للمستخدم
+  // مبلغاً أكبر من مستحقه الفعلي حتى تصل البيانات وتصحّحه.
+  final company = await ref.watch(activeCompanyProvider.future);
+  final stats = await ref
+      .watch(attendanceStatsProvider(year: now.year, month: now.month).future);
+  final debtSummary = await ref.watch(debtSummaryProvider.future);
+  final transactions = await ref
+      .watch(monthlyTransactionsProvider(year: now.year, month: now.month).future);
 
   if (company == null) {
     return DashboardData(
@@ -43,14 +45,14 @@ Future<DashboardData> dashboardData(Ref ref) async {
   final expenses = transactions.where((t) => t.type.name == 'expense').fold(0.0, (sum, t) => sum + t.amount);
   
   final monthly = calculator.calculateMonthly(
-    totalOvertimeValue: stats?.totalOvertimeValue ?? 0,
-    totalDeficitValue: stats?.totalDeficitValue ?? 0,
-    totalDebtPayments: debtSummary?.totalPaidOwe ?? 0,
+    totalOvertimeValue: stats.totalOvertimeValue,
+    totalDeficitValue: stats.totalDeficitValue,
+    totalDebtPayments: debtSummary.totalPaidOwe,
     totalTransactionsExpenses: expenses,
   );
 
   final debtToSalaryRatio = company.baseMonthlySalary > 0
-      ? (debtSummary?.remainingOwe ?? 0) / company.baseMonthlySalary
+      ? debtSummary.remainingOwe / company.baseMonthlySalary
       : 0;
 
   return DashboardData(
@@ -59,19 +61,19 @@ Future<DashboardData> dashboardData(Ref ref) async {
     netSalary: monthly.net,
     totalOvertimeValue: monthly.overtime,
     totalDeficitValue: monthly.deficit,
-    totalDebtPayments: debtSummary?.totalPaidOwe ?? 0,
+    totalDebtPayments: debtSummary.totalPaidOwe,
     totalTransactionsExpenses: expenses,
     totalAdjustments: monthly.adjustments,
     debtToSalaryRatio: debtToSalaryRatio.toDouble(),
     currency: company.currency ?? AppConstants.defaultCurrency,
-    expectedWorkingDays: stats?.expectedWorkingDays ?? 0,
-    attendedDays: stats?.actualWorkingDays ?? 0,
-    absentDays: stats?.absentDays ?? 0,
-    requiredHours: stats?.totalRequiredHours ?? 0,
-    workedHours: stats?.totalWorkedHours ?? 0,
-    overtimeHours: stats?.totalOvertimeHours ?? 0,
+    expectedWorkingDays: stats.expectedWorkingDays,
+    attendedDays: stats.actualWorkingDays,
+    absentDays: stats.absentDays,
+    requiredHours: stats.totalRequiredHours,
+    workedHours: stats.totalWorkedHours,
+    overtimeHours: stats.totalOvertimeHours,
     deficitHours:
-        (stats?.totalLatenessHours ?? 0) + (stats?.totalAbsenceHours ?? 0),
+        stats.totalLatenessHours + stats.totalAbsenceHours,
   );
 }
 

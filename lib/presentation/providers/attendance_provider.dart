@@ -50,7 +50,10 @@ Future<MonthlyStats> attendanceStats(
   required int year,
   required int month,
 }) async {
-  final company = ref.watch(activeCompanyProvider).valueOrNull;
+  // تُنتظر الجهة لا تُقرأ فوراً: القراءة الفورية تُنتج إحصاءات أصفاراً قبل
+  // وصولها، ثم تُعاد الحسبة عند وصولها — فيرى المستخدم شهراً بلا أيام عمل
+  // ولا خصم للحظة، ويُعاد بناء كل ما يعتمد عليها.
+  final company = await ref.watch(activeCompanyProvider.future);
 
   if (company == null) {
     return MonthlyStats(
