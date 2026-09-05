@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/design_tokens.dart';
 import '../../../../core/constants/theme.dart';
 import '../../../providers/dashboard_provider.dart';
+import '../../../widgets/common/chart_empty.dart';
 
 /// مساهمات موقّعة في الراتب: ما أُضيف وما خُصم.
 ///
@@ -29,9 +30,10 @@ class SalaryCompositionChart extends StatelessWidget {
     ].where((row) => row.$2.abs() > 0.01).toList();
 
     if (rows.isEmpty) {
-      return Text('لا بيانات لهذا الشهر بعد',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: palette.onSurfaceVariant));
+      return const ChartEmpty(
+        message: 'لا بيانات لهذا الشهر بعد',
+        height: 100,
+      );
     }
 
     // المقياس من أكبر قيمة مطلقة، فتُقارن الأعمدة ببعضها لا كلٌّ بنفسه.

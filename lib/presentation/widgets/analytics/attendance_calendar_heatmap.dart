@@ -4,6 +4,7 @@ import '../../../core/constants/design_tokens.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/analytics_report_entity.dart';
+import '../common/chart_empty.dart';
 
 /// خريطة حرارية تقويمية بأسبوع يبدأ بالسبت.
 ///
@@ -18,11 +19,10 @@ class AttendanceCalendarHeatmap extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (cells.isEmpty) {
-      return SizedBox(
+      return const ChartEmpty(
+        message: 'لا أيام في هذه الفترة',
+        icon: Icons.calendar_month_rounded,
         height: 100,
-        child: Center(
-            child: Text('لا توجد أيام في هذه الفترة',
-                style: theme.textTheme.bodySmall)),
       );
     }
 

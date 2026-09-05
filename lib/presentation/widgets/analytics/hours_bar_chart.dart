@@ -3,6 +3,7 @@ import '../../../core/constants/design_tokens.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/analytics_report_entity.dart';
+import '../common/chart_empty.dart';
 
 /// أعمدة مكدّسة: الساعات الرسمية أسفل والإضافي فوقها لكل يوم/شهر.
 class HoursBarChart extends StatelessWidget {
@@ -135,12 +136,6 @@ class _NoData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 120,
-      child: Center(
-        child: Text('لا توجد بيانات في هذه الفترة',
-            style: Theme.of(context).textTheme.bodySmall),
-      ),
-    );
+    return const ChartEmpty(message: 'لا بيانات في هذه الفترة');
   }
 }

@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../domain/entities/analytics_report_entity.dart';
+import '../../../widgets/common/chart_empty.dart';
 
 /// عمودان متجاوران لكل شهر: المستحق مقابل المصروف.
 class MonthlyComparisonChart extends StatelessWidget {
@@ -18,12 +19,9 @@ class MonthlyComparisonChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (points.isEmpty) {
-      return SizedBox(
+      return const ChartEmpty(
+        message: 'لا بيانات للمقارنة بعد',
         height: 100,
-        child: Center(
-          child: Text('لا توجد بيانات للمقارنة',
-              style: theme.textTheme.bodySmall),
-        ),
       );
     }
 

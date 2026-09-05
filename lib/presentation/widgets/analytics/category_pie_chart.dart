@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/analytics_report_entity.dart';
+import '../common/chart_empty.dart';
 
 /// دائري للفئات مع مفتاح جانبي. الفئات الصغيرة تُدمج في شريحة "أخرى"
 /// حتى لا تصبح الحلقة غير مقروءة.
@@ -35,14 +36,10 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (widget.items.isEmpty) {
-      return SizedBox(
-        height: 120,
-        child: Center(
-          child: Text('لا توجد مصروفات مسجّلة',
-              style: theme.textTheme.bodySmall),
-        ),
+      return const ChartEmpty(
+        message: 'لا مصروفات مسجّلة في هذه الفترة',
+        icon: Icons.pie_chart_outline_rounded,
       );
     }
 

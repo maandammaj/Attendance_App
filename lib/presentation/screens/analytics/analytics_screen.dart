@@ -20,6 +20,7 @@ import 'widgets/company_comparison.dart';
 import 'widgets/export_sheet.dart';
 import 'widgets/monthly_comparison_chart.dart';
 import 'widgets/salary_waterfall.dart';
+import '../../widgets/common/chart_empty.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -319,8 +320,11 @@ class _DetailTable extends StatelessWidget {
         .toList();
 
     if (rows.isEmpty) {
-      return Text('لا توجد أيام عمل في هذه الفترة',
-          style: theme.textTheme.bodySmall);
+      return const ChartEmpty(
+        message: 'لا أيام عمل في هذه الفترة',
+        icon: Icons.table_rows_rounded,
+        height: 100,
+      );
     }
 
     return SingleChildScrollView(

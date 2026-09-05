@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../common/chart_empty.dart';
 
 /// رادار لمتوسط ساعات كل يوم أسبوع — يُظهر أي الأيام يحمل العبء الأكبر.
 class WeekdayRadarChart extends StatelessWidget {
@@ -16,12 +17,9 @@ class WeekdayRadarChart extends StatelessWidget {
     final maxHours = averageHours.fold(0.0, (a, b) => a > b ? a : b);
 
     if (maxHours <= 0) {
-      return SizedBox(
-        height: 120,
-        child: Center(
-          child: Text('لا توجد ساعات مسجّلة في هذه الفترة',
-              style: theme.textTheme.bodySmall),
-        ),
+      return const ChartEmpty(
+        message: 'لا ساعات مسجّلة في هذه الفترة',
+        icon: Icons.radar_rounded,
       );
     }
 

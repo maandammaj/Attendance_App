@@ -58,7 +58,15 @@ class _LiveSessionCardState extends ConsumerState<LiveSessionCard> {
         .addPostFrameCallback((_) => _syncTicker(isOpen));
 
     final presenceMinutes = today?.presenceMinutesAt(_now) ?? 0;
-    final requiredMinutes = today?.requiredMinutesTotal ?? 0;
+
+    // قبل أول حضور لا سجل لليوم، والمطلوب معروف من الجدول رغم ذلك. قراءته
+    // من السجل وحده كانت تعرض "—" فلا يرى المستخدم هدف يومه قبل أن يبدأه.
+    final todayConfig = company?.configFor(_now);
+    final requiredMinutes =
+        today?.requiredMinutesTotal ?? todayConfig?.requiredMinutesTotal ?? 0;
+    final isDayOff = today == null &&
+        todayConfig != null &&
+        (!todayConfig.isWorkingDay || todayConfig.isHoliday);
     final progress = requiredMinutes == 0
         ? 0.0
         : (presenceMinutes / requiredMinutes).clamp(0.0, 1.0);
@@ -174,7 +182,9 @@ class _LiveSessionCardState extends ConsumerState<LiveSessionCard> {
               _Divider(),
               _Metric(
                 label: 'المطلوب',
-                value: requiredMinutes == 0
+                value: isDayOff
+                    ? 'عطلة'
+                    : requiredMinutes == 0
                     ? '—'
                     : DateHelpers.formatDurationCompact(requiredMinutes),
                 icon: Icons.flag_outlined,
