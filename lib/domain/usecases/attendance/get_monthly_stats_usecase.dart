@@ -75,6 +75,12 @@ class GetMonthlyStatsUseCase {
         totalLatenessMinutes += (record.deficitHours * 60) + record.deficitMinutes;
         totalOvertimeValue += record.overtimeValue;
         totalDeficitValue += record.deficitValue;
+      } else if (record.isAbsent) {
+        // غياب معلن صراحةً. بدون هذا الفرع كان يسقط من الحسابين معاً: الأول
+        // يتخطّاه لأنه بلا جلسات، والثاني لأن لليوم سجلاً — فيخرج إعلان
+        // الغياب أرخص من تركه فارغاً، وهو عكس المقصود تماماً.
+        totalAbsenceMinutes += record.requiredMinutesTotal;
+        totalDeficitValue += record.deficitValue;
       }
     }
 
@@ -102,7 +108,10 @@ class GetMonthlyStatsUseCase {
         totalRequiredMinutes +=
             (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
         
-        final hasRecord = records.any((r) => DateHelpers.isSameDay(r.date, date));
+        // سجل فارغ غير معلن غياباً لا يفسّر اليوم، فيبقى غياباً تلقائياً.
+        final hasRecord = records.any((r) =>
+            DateHelpers.isSameDay(r.date, date) &&
+            (r.sessions.isNotEmpty || r.isAbsent));
         if (!hasRecord) {
           final missingMinutes = (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
           totalAbsenceMinutes += missingMinutes;
