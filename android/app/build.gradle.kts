@@ -20,10 +20,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.attendance_budget_app"
@@ -44,6 +40,14 @@ android {
         }
     }
 }
+// Kotlin 2.3 حذف `android.kotlinOptions.jvmTarget` النصّي ويرفض البناء عليه.
+// البديل امتداد أعلى المستوى، ويأخذ قيمة مُعدّدة لا نصاً.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    }
+}
+
 dependencies {
     // Add this line (use latest version if needed, 2.0.1 is standard)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.1")
