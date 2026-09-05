@@ -11,6 +11,7 @@ import '../../../domain/repositories/attendance_repository.dart';
 import '../../models/attendance_model.dart';
 import '../../models/company_model.dart';
 import '../../models/profile_model.dart';
+import '../database/company_scope.dart';
 import '../database/isar_database.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
@@ -294,6 +295,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   @override
   Future<void> deleteRecord(int id) async {
     final isar = await _db;
+    final companyId = await _activeCompanyId(isar);
+    final record = await isar.attendanceModels.get(id);
+    CompanyScope.assertOwned(
+      recordCompanyId: record?.companyId,
+      activeCompanyId: companyId,
+      subject: 'هذا السجل',
+    );
+
     await isar.writeTxn(() async {
       await isar.attendanceModels.delete(id);
     });

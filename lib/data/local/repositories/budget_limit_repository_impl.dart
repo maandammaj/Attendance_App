@@ -4,33 +4,17 @@ import '../../../domain/entities/budget_limit_entity.dart';
 import '../../../domain/repositories/budget_limit_repository.dart';
 import '../../models/budget_limit_model.dart';
 import '../../models/transaction_model.dart';
-import '../../models/profile_model.dart';
-import '../../models/company_model.dart';
+import '../database/company_scope.dart';
 import '../database/isar_database.dart';
 
 class BudgetLimitRepositoryImpl implements BudgetLimitRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
-  /// معرّف الجهة الفعّالة — كل استعلام وكل كتابة تمرّ به، فبيانات جهة لا
-  /// تظهر أبداً في أخرى.
-  Future<int> _companyId(Isar isar) async {
-    final profile = await isar.profileModels.get(0);
-    final id = profile?.activeCompanyId;
-    if (id != null) return id;
-
-    final fallback = await isar.companyModels
-        .filter()
-        .isArchivedEqualTo(false)
-        .findFirst();
-    if (fallback == null) throw Exception('لم تُحدَّد جهة عمل');
-    return fallback.id;
-  }
-
 
   @override
   Future<List<BudgetLimitEntity>> getAll() async {
     final isar = await _db;
-    final companyId = await _companyId(isar);
+    final companyId = await CompanyScope.activeId(isar);
     final models =
         await isar.budgetLimitModels
         .filter()
@@ -47,7 +31,7 @@ class BudgetLimitRepositoryImpl implements BudgetLimitRepository {
     bool isActive = true,
   }) async {
     final isar = await _db;
-    final companyId = await _companyId(isar);
+    final companyId = await CompanyScope.activeId(isar);
     final now = DateTime.now();
     final existing = await isar.budgetLimitModels
         .filter()
@@ -73,6 +57,14 @@ class BudgetLimitRepositoryImpl implements BudgetLimitRepository {
   @override
   Future<void> delete(int id) async {
     final isar = await _db;
+    final companyId = await CompanyScope.activeId(isar);
+    final limit = await isar.budgetLimitModels.get(id);
+    CompanyScope.assertOwned(
+      recordCompanyId: limit?.companyId,
+      activeCompanyId: companyId,
+      subject: 'هذا السقف',
+    );
+
     await isar.writeTxn(() async {
       await isar.budgetLimitModels.delete(id);
     });
@@ -81,7 +73,7 @@ class BudgetLimitRepositoryImpl implements BudgetLimitRepository {
   @override
   Future<List<BudgetStatusEntity>> getStatus(int year, int month) async {
     final isar = await _db;
-    final companyId = await _companyId(isar);
+    final companyId = await CompanyScope.activeId(isar);
     final limits =
         await isar.budgetLimitModels
         .filter()

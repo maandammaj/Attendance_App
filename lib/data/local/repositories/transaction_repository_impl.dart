@@ -4,27 +4,11 @@ import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/repositories/transaction_repository.dart';
 import '../../models/transaction_model.dart';
 import '../../models/account_model.dart';
-import '../../models/profile_model.dart';
-import '../../models/company_model.dart';
+import '../database/company_scope.dart';
 import '../database/isar_database.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
-
-  /// معرّف الجهة الفعّالة — كل استعلام وكل كتابة تمرّ به، فبيانات جهة لا
-  /// تظهر أبداً في أخرى.
-  Future<int> _companyId(Isar isar) async {
-    final profile = await isar.profileModels.get(0);
-    final id = profile?.activeCompanyId;
-    if (id != null) return id;
-
-    final fallback = await isar.companyModels
-        .filter()
-        .isArchivedEqualTo(false)
-        .findFirst();
-    if (fallback == null) throw Exception('لم تُحدَّد جهة عمل');
-    return fallback.id;
-  }
 
 
   @override
@@ -39,7 +23,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<List<TransactionEntity>> getTransactionsBetween(
       DateTime from, DateTime to) async {
     final isar = await _db;
-    final companyId = await _companyId(isar);
+    final companyId = await CompanyScope.activeId(isar);
     final models = await isar.transactionModels
         .filter()
         .companyIdEqualTo(companyId)
@@ -53,7 +37,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<void> addTransaction(TransactionEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity)..companyId = await _companyId(isar);
+    final model = _mapToModel(entity)..companyId = await CompanyScope.activeId(isar);
     await isar.writeTxn(() async {
       await isar.transactionModels.put(model);
       
@@ -74,7 +58,28 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<void> deleteTransaction(int id) async {
     final isar = await _db;
+    final companyId = await CompanyScope.activeId(isar);
+    final model = await isar.transactionModels.get(id);
+    CompanyScope.assertOwned(
+      recordCompanyId: model?.companyId,
+      activeCompanyId: companyId,
+      subject: 'هذه الحركة',
+    );
+
     await isar.writeTxn(() async {
+      // عكس أثر الحركة على الحساب قبل حذفها. الإضافة كانت تعدّل الرصيد
+      // والحذف لا يعكسه، فكل حركة محذوفة كانت تترك رصيد الحساب مائلاً
+      // بمقدارها إلى الأبد — والفارق لا يظهر في أي شاشة تشرح سببه.
+      if (model!.accountId != null) {
+        final account = await isar.accountModels.get(model.accountId!);
+        if (account != null) {
+          final applied =
+              model.type == TransactionType.expense ? -model.amount : model.amount;
+          account.totalBalance -= applied;
+          account.updatedAt = DateTime.now();
+          await isar.accountModels.put(account);
+        }
+      }
       await isar.transactionModels.delete(id);
     });
   }
