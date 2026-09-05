@@ -29,7 +29,14 @@ Future<List<CompanyEntity>> companies(Ref ref) async {
 /// فتُعاد قراءة هذه تلقائياً ومعها كل ما يعتمد عليها.
 @riverpod
 Future<CompanyEntity?> activeCompany(Ref ref) async {
-  ref.watch(profileProvider);
+  // إبقاء حيّ صريح. هذا المزوّد يُنتظَر بـ `await` من مزوّدات أخرى، ومع
+  // الإتلاف التلقائي يُتلَف بينما المنتظِر معلّق عند `await`، ثم يُعاد إنشاؤه
+  // بمستقبل جديد فيُبطَل المنتظِر ويبدأ من جديد — حلقة إعادة بناء لا تنتهي
+  // تظهر كشاشة تحميل عالقة وGC متواصل. تُستدعى في الجسم لا كوسم، لأن تغيير
+  // الوسم يحتاج إعادة توليد، و`build_runner` معطّل على هذا الـSDK.
+  ref.keepAlive();
+
+  await ref.watch(profileProvider.future);
   return await ref.read(companyRepositoryProvider).getActive();
 }
 

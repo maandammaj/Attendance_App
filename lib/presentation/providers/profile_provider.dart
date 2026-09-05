@@ -22,6 +22,13 @@ final updateProfileUseCaseProvider = Provider(
 
 @riverpod
 Future<ProfileEntity?> profile(Ref ref) async {
+  // إبقاء حيّ صريح. هذا المزوّد يُنتظَر بـ `await` من مزوّدات أخرى، ومع
+  // الإتلاف التلقائي يُتلَف بينما المنتظِر معلّق عند `await`، ثم يُعاد إنشاؤه
+  // بمستقبل جديد فيُبطَل المنتظِر ويبدأ من جديد — حلقة إعادة بناء لا تنتهي
+  // تظهر كشاشة تحميل عالقة وGC متواصل. تُستدعى في الجسم لا كوسم، لأن تغيير
+  // الوسم يحتاج إعادة توليد، و`build_runner` معطّل على هذا الـSDK.
+  ref.keepAlive();
+
   final useCase = ref.read(getProfileUseCaseProvider);
   return await useCase();
 }

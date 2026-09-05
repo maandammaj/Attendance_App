@@ -16,6 +16,7 @@ import 'company_migration.dart';
 
 class IsarDatabase {
   static Isar? _instance;
+  static Future<Isar>? _opening;
 
   /// قائمة المخططات الوحيدة. تُقرأ هنا وفي الاختبارات معاً، فلا تنشأ نسخة
   /// ثانية تنسى مجموعة جديدة وتفشل استعلاماتها وقت التشغيل فقط.
@@ -32,9 +33,19 @@ class IsarDatabase {
     CompanyModelSchema,
   ];
 
-  static Future<Isar> get instance async {
-    _instance ??= await _init();
-    return _instance!;
+  static Future<Isar> get instance {
+    final ready = _instance;
+    if (ready != null) return Future.value(ready);
+
+    // تُخزَّن عملية الفتح نفسها لا نتيجتها فقط. `_instance ??= await _init()`
+    // يترك فجوة بين فحص القيمة وإسنادها — كل نداء يصل داخلها يرى `null`
+    // فيبدأ فتحاً ثانياً للقاعدة نفسها وهجرةً ثانية فوقها، فتتنازع معاملات
+    // الكتابة ويتوقّف الإقلاع عند شاشة التحميل بلا خطأ ولا نشاط.
+    return _opening ??= _init().then((isar) {
+      _instance = isar;
+      _opening = null;
+      return isar;
+    });
   }
 
   /// المنفذ الوحيد الذي تحقن منه الاختبارات قاعدة مؤقتة.
@@ -42,7 +53,10 @@ class IsarDatabase {
   /// المستودعات كلها تصل إلى القاعدة عبر [instance]، فبلا هذا المنفذ لا
   /// يمكن اختبار أيٍّ منها إلا على قاعدة الجهاز الحقيقية.
   @visibleForTesting
-  static void overrideInstance(Isar? isar) => _instance = isar;
+  static void overrideInstance(Isar? isar) {
+    _instance = isar;
+    _opening = null;
+  }
 
   static Future<Isar> _init() async {
     final isar = await _open();
