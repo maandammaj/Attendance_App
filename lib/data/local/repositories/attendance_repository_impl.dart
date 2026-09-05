@@ -142,7 +142,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(time);
-    final dayConfig = _configFor(companyEntity, time);
+    final dayConfig = companyEntity.configFor(time);
 
     final record = await isar.attendanceModels
             .filter()
@@ -208,7 +208,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     record.sessions = sessions;
 
     final companyEntity = _mapCompanyToEntity(company);
-    _recalculate(record, companyEntity, _configFor(companyEntity, record.date));
+    _recalculate(record, companyEntity, companyEntity.configFor(record.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -227,7 +227,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(date);
-    final dayConfig = _configFor(companyEntity, date);
+    final dayConfig = companyEntity.configFor(date);
 
     // جلسة يدوية تُضاف لسجل اليوم **في هذه الجهة** إن وُجد، بدل إنشاء سجل
     // ثانٍ لنفس التاريخ أو إلحاقها بسجل جهة أخرى.
@@ -284,7 +284,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
                     ..note = session.note,
             ];
 
-    _recalculate(model, companyEntity, _configFor(companyEntity, model.date));
+    _recalculate(model, companyEntity, companyEntity.configFor(model.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(model);
@@ -388,20 +388,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ..isBiometricVerified = false
       ..isAbsent = false
       ..dayType = _resolveDayType(dayConfig);
-  }
-
-  static WorkDayConfigEntity _configFor(CompanyEntity company, DateTime date) {
-    final scheduleDay = DateHelpers.scheduleDayOf(date);
-    return company.workSchedule.firstWhere(
-      (day) => day.dayOfWeek == scheduleDay,
-      orElse: () => WorkDayConfigEntity(
-        dayOfWeek: scheduleDay,
-        isWorkingDay: true,
-        requiredHours: 8,
-        requiredMinutes: 0,
-        isHoliday: false,
-      ),
-    );
   }
 
   CompanyEntity _mapCompanyToEntity(CompanyModel company) {

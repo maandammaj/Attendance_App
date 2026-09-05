@@ -1,3 +1,4 @@
+import '../../core/utils/date_helpers.dart';
 import 'profile_entity.dart';
 
 /// جهة عمل بشروطها. كل حساب راتب أو تقرير يجري على واحدة منها.
@@ -33,6 +34,25 @@ class CompanyEntity {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// إعداد الجدول ليوم بعينه.
+  ///
+  /// القاعدة الوحيدة: يُبحث بـ [DateHelpers.scheduleDayOf] لا بـ
+  /// `weekday % 7` — الثاني يُسقط الأحد على 0 فلا يطابق أي إعداد مخزَّن.
+  /// المستودع والواجهة يقرآن من هنا، فلا ينشأ جدولان متخالفان.
+  WorkDayConfigEntity configFor(DateTime date) {
+    final scheduleDay = DateHelpers.scheduleDayOf(date);
+    return workSchedule.firstWhere(
+      (day) => day.dayOfWeek == scheduleDay,
+      orElse: () => WorkDayConfigEntity(
+        dayOfWeek: scheduleDay,
+        isWorkingDay: true,
+        requiredHours: 8,
+        requiredMinutes: 0,
+        isHoliday: false,
+      ),
+    );
+  }
 
   /// إجمالي الساعات المطلوبة أسبوعياً — يظهر في بطاقة الجهة وشاشة الجدول.
   double get weeklyHours => workSchedule
