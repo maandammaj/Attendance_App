@@ -1,3 +1,4 @@
+import 'package:attendance_budget_app/core/utils/clock.dart';
 import 'package:attendance_budget_app/domain/entities/attendance_entity.dart';
 import 'package:attendance_budget_app/domain/entities/company_entity.dart';
 import 'package:attendance_budget_app/domain/entities/profile_entity.dart';
@@ -99,6 +100,7 @@ void main() {
   group('الغياب المعلن يُحتسب كالغياب الصامت', () {
     test('يوم غياب معلن يضيف عجزه وساعاته', () async {
       final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository([_declaredAbsence(DateTime(2026, 2, 3))]),
       )(2026, 2, _company());
 
@@ -110,11 +112,13 @@ void main() {
 
     test('إعلان الغياب لا يجعله أرخص من تركه فارغاً', () async {
       final declared = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository([_declaredAbsence(DateTime(2026, 2, 3))]),
       )(2026, 2, _company());
 
       // نفس الشهر بلا أي سجل إطلاقاً.
       final silent = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository(const []),
       )(2026, 2, _company());
 

@@ -1,3 +1,4 @@
+import '../../../core/utils/clock.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/company_entity.dart';
@@ -47,11 +48,16 @@ class MonthlyStats {
 
 class GetMonthlyStatsUseCase {
   final AttendanceRepository repository;
-  GetMonthlyStatsUseCase(this.repository);
+
+  /// الساعة مُدخَل صريح: «كم يوماً مضى من الشهر» يقرَّر منها، فهي جزء من
+  /// الحساب لا تفصيل تشغيلي.
+  final Clock clock;
+
+  GetMonthlyStatsUseCase(this.repository, {this.clock = const SystemClock()});
 
   Future<MonthlyStats> call(int year, int month, CompanyEntity company) async {
     final records = await repository.getMonthlyRecords(year, month);
-    final now = DateTime.now();
+    final now = clock.now();
     final calculator = SalaryCalculator(company);
 
     int totalOvertimeMinutes = 0;
@@ -85,8 +91,18 @@ class GetMonthlyStatsUseCase {
     }
 
     // 2. حساب الغياب التلقائي (الأيام التي مرت ولم يحضر فيها)
+    // آخر يوم يُحاسَب عليه المستخدم. الشهر القادم لم يُطلَب منه شيء بعد:
+    // بلا هذا الفرع يُحسب كاملاً غياباً ويُخصم راتبه — التزامٌ مُختلَق عن
+    // أيام لم تأتِ. غير مطروق من الواجهة اليوم (تمرّر الشهر الجاري وحده)،
+    // لكن الحساب نفسه يجب أن يصحّ لأي شهر يُسأل عنه.
     final daysInMonth = DateTime(year, month + 1, 0).day;
-    final endDay = (year == now.year && month == now.month) ? now.day - 1 : daysInMonth;
+    final isCurrentMonth = year == now.year && month == now.month;
+    final isFutureMonth = DateTime(year, month).isAfter(DateTime(now.year, now.month));
+    final endDay = isFutureMonth
+        ? 0
+        : isCurrentMonth
+            ? now.day - 1
+            : daysInMonth;
 
     for (int day = 1; day <= endDay; day++) {
       final date = DateTime(year, month, day);

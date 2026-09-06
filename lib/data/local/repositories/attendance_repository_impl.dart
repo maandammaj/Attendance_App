@@ -3,11 +3,12 @@ import 'dart:developer' as developer;
 import 'package:isar_community/isar.dart';
 
 import '../../../core/utils/date_helpers.dart';
-import '../../../core/utils/salary_calculator.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
+import '../../../domain/services/attendance_calculation_service.dart';
+import '../../../domain/services/session_overlap_rule.dart';
 import '../../models/attendance_model.dart';
 import '../../models/company_model.dart';
 import '../../models/profile_model.dart';
@@ -247,6 +248,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         ..isBiometricVerified = false,
     ]..sort((a, b) => (a.checkIn ?? day).compareTo(b.checkIn ?? day));
 
+    // داخل الجهة الواحدة، الدقائق المشتركة بين جلستين تُحتسب مرّتين: ينتفخ
+    // التواجد والإضافي ويُدفع أجر عن وقت لم يُعمل.
+    _assertNoOverlap(record);
+
     record.notes = notes ?? record.notes;
     record.isAbsent = false;
     _recalculate(record, companyEntity, dayConfig);
@@ -285,6 +290,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
                     ..note = session.note,
             ];
 
+    _assertNoOverlap(model);
     _recalculate(model, companyEntity, companyEntity.configFor(model.date));
 
     await isar.writeTxn(() async {
@@ -310,69 +316,54 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   // ── الحساب ──────────────────────────────────────────────────────
 
-  /// يعيد اشتقاق كل القيم المخزَّنة من [AttendanceModel.sessions].
+  /// يكتب على السجل ما حسبته [AttendanceCalculationService].
   ///
   /// هذه هي النقطة الوحيدة التي تُكتب فيها الحقول المشتقّة، فأي مسار
-  /// (بصمة، يدوي، تعديل) يمرّ منها ويبقى السجل متسقاً.
+  /// (بصمة، يدوي، تعديل) يمرّ منها ويبقى السجل متسقاً. الحساب نفسه انتقل
+  /// إلى الدومين، فبقي هنا الربط بين الأرقام والنموذج لا اشتقاقها.
   void _recalculate(
     AttendanceModel record,
     CompanyEntity company,
     WorkDayConfigEntity dayConfig,
   ) {
-    final closed = record.sessions
-        .where((s) => s.checkIn != null && s.checkOut != null)
-        .toList();
-
-    record.isOpen = record.sessions.any((s) => s.checkIn != null && s.checkOut == null);
-    record.sessionCount = closed.length;
-    record.checkIn = record.sessions.isEmpty ? null : record.sessions.first.checkIn;
-    record.checkOut = record.isOpen || record.sessions.isEmpty
-        ? null
-        : record.sessions.last.checkOut;
-    record.isBiometricVerified = record.sessions.isNotEmpty &&
-        record.sessions.every((s) => s.isBiometricVerified);
-    record.requiredHours = dayConfig.requiredHours;
-    record.requiredMinutes = dayConfig.requiredMinutes;
-
-    record.totalPresenceMinutes = closed.fold(
-      0,
-      (sum, s) {
-        final minutes = s.checkOut!.difference(s.checkIn!).inMinutes;
-        return sum + (minutes < 0 ? 0 : minutes);
-      },
-    );
-
-    // الجلسة المفتوحة لا تدخل الحساب المالي حتى تُغلق: قيمتها غير نهائية.
-    final calculator = SalaryCalculator(company);
-    final details = calculator.calculateDayDetails(
+    final result = const AttendanceCalculationService()(
       sessions: [
-        for (final session in closed)
-          SalaryCalculator.presence(session.checkIn!, session.checkOut!),
+        for (final session in record.sessions)
+          SessionInput(
+            checkIn: session.checkIn,
+            checkOut: session.checkOut,
+            isBiometricVerified: session.isBiometricVerified,
+          ),
       ],
-      scheduledStart: dayConfig.startTime,
-      scheduledEnd: dayConfig.endTime,
-      isCrossDay: dayConfig.isCrossDay,
-      requiredHours: dayConfig.requiredHours,
-      requiredMinutes: dayConfig.requiredMinutes,
+      company: company,
+      dayConfig: dayConfig,
+      isAbsent: record.isAbsent,
     );
 
-    record.workedHours = details.officialMinutes ~/ 60;
-    record.workedMinutes = details.officialMinutes % 60;
-    record.overtimeHours = details.overtimeMinutes ~/ 60;
-    record.overtimeMinutes = details.overtimeMinutes % 60;
-    record.overtimeValue = calculator.calculateOvertimeValue(
-        details.overtimeMinutes ~/ 60, details.overtimeMinutes % 60);
-    record.deficitHours = details.deficitMinutes ~/ 60;
-    record.deficitMinutes = details.deficitMinutes % 60;
-    record.deficitValue = calculator.calculateDeficitValue(
-        details.deficitMinutes ~/ 60, details.deficitMinutes % 60);
+    record
+      ..isOpen = result.isOpen
+      ..sessionCount = result.sessionCount
+      ..checkIn = result.firstCheckIn
+      ..checkOut = result.lastCheckOut
+      ..isBiometricVerified = result.isBiometricVerified
+      ..requiredHours = result.requiredHours
+      ..requiredMinutes = result.requiredMinutes
+      ..totalPresenceMinutes = result.presenceMinutes
+      ..workedHours = result.officialMinutes ~/ 60
+      ..workedMinutes = result.officialMinutes % 60
+      ..overtimeHours = result.overtimeMinutes ~/ 60
+      ..overtimeMinutes = result.overtimeMinutes % 60
+      ..overtimeValue = result.overtimeValue
+      ..deficitHours = result.deficitMinutes ~/ 60
+      ..deficitMinutes = result.deficitMinutes % 60
+      ..deficitValue = result.deficitValue;
+  }
 
-    // يوم بلا جلسات مغلقة ولا جلسة مفتوحة لا يُحتسب عليه عجز إلا إن أُعلن غياباً.
-    if (closed.isEmpty && !record.isOpen && !record.isAbsent) {
-      record.deficitHours = 0;
-      record.deficitMinutes = 0;
-      record.deficitValue = 0;
-    }
+  static void _assertNoOverlap(AttendanceModel record) {
+    SessionOverlapRule.assertNoOverlap([
+      for (final session in record.sessions)
+        SessionInput(checkIn: session.checkIn, checkOut: session.checkOut),
+    ]);
   }
 
   AttendanceModel _newRecord(

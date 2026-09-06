@@ -1,3 +1,4 @@
+import 'package:attendance_budget_app/core/utils/clock.dart';
 import 'package:attendance_budget_app/domain/entities/attendance_entity.dart';
 import 'package:attendance_budget_app/domain/entities/company_entity.dart';
 import 'package:attendance_budget_app/domain/entities/profile_entity.dart';
@@ -120,6 +121,7 @@ void main() {
       ];
 
       final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository(records),
       )(2026, 2, _company());
 
@@ -138,6 +140,7 @@ void main() {
       ];
 
       final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository(records),
       )(2026, 2, _company());
 
@@ -147,6 +150,7 @@ void main() {
 
     test('شهر بلا سجلات: المطلوب قائم والمنجز صفر', () async {
       final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 6, 1)),
         _FakeAttendanceRepository(const []),
       )(2026, 2, _company());
 
@@ -156,6 +160,31 @@ void main() {
       expect(stats.absentDays, 28);
       // الغياب كله يتحوّل إلى ساعات عجز.
       expect(stats.totalAbsenceHours, 224);
+    });
+  });
+
+  group('الشهر الجاري يُحتسب حتى أمس فقط', () {
+    test('الأيام القادمة لا تدخل المطلوب ولا الغياب', () async {
+      // 5 سبتمبر 2026: الأيام 1..4 مضت، والباقي لم يأتِ بعد.
+      final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 9, 5, 10)),
+        _FakeAttendanceRepository(const []),
+      )(2026, 9, _company());
+
+      expect(stats.expectedWorkingDays, 4,
+          reason: 'حُسبت أيام لم تأتِ بعد');
+      expect(stats.totalRequiredHours, 32);
+      expect(stats.totalAbsenceHours, 32);
+    });
+
+    test('شهر لم يبدأ بعد لا مطلوب فيه', () async {
+      final stats = await GetMonthlyStatsUseCase(
+        clock: FakeClock(DateTime(2026, 9, 5)),
+        _FakeAttendanceRepository(const []),
+      )(2026, 12, _company());
+
+      expect(stats.expectedWorkingDays, 0);
+      expect(stats.totalRequiredHours, 0);
     });
   });
 }

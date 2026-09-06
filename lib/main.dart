@@ -18,10 +18,5 @@ void main() async {
   await initializeDateFormatting('ar');
   Intl.defaultLocale = 'ar';
 
-  runApp(
-    ProviderScope(
-      retry: noAutoRetry,
-      child: const AttendanceBudgetApp(),
-    ),
-  );
+  runApp(const ProviderScope(retry: noAutoRetry, child: AttendanceBudgetApp()));
 }
