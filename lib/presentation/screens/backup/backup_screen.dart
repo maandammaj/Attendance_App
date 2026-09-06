@@ -203,10 +203,50 @@ class _DriveCard extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    final rows = await ref.read(backupControllerProvider.notifier).restore();
-    if (rows != null && context.mounted) {
-      UIHelpers.showSuccessSnackBar(context, 'استُعيد $rows سجلاً');
+    final report = await ref.read(backupControllerProvider.notifier).restore();
+    if (report == null || !context.mounted) return;
+
+    // ما أُسقط يُعرض في حوار لا في شريط عابر: المستخدم يستحق أن يقرأ سبب
+    // نقصان بياناته، وشريطٌ يختفي بعد ثانيتين ليس مكاناً لذلك.
+    if (report.isClean) {
+      UIHelpers.showSuccessSnackBar(
+          context, 'استُعيد ${report.rowsRestored} سجلاً');
+      return;
     }
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('اكتملت الاستعادة'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('استُعيد ${report.rowsRestored} سجلاً.'),
+            if (report.rowsDropped > 0) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text('أُسقط ${report.rowsDropped} صفاً:'),
+              for (final issue in report.issues)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(top: AppSpacing.xs),
+                  child: Text('• ${issue.message} (${issue.affectedRows})'),
+                ),
+            ],
+            if (!report.isVerified) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'تحذير: القاعدة تحوي ${report.rowsCounted} صفاً بينما '
+                'المتوقَّع ${report.expectedRows}.',
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('حسناً')),
+        ],
+      ),
+    );
   }
 
   static String _size(int? bytes) {

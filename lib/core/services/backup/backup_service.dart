@@ -16,6 +16,7 @@ import '../../../data/models/reminder_settings_model.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../constants/app_constants.dart';
 import 'backup_payload.dart';
+import 'backup_validator.dart';
 
 /// يحوّل قاعدة البيانات إلى JSON والعكس.
 ///
@@ -92,7 +93,18 @@ class BackupService {
   /// الاستبدال لا الدمج: دمج صفوف بمعرّفات متضاربة من جهازين ينتج بيانات
   /// مالية خاطئة بصمت، والاستبدال يُبقي الحالة مفهومة. العملية داخل معاملة
   /// واحدة فإما أن تكتمل أو لا يتغيّر شيء.
-  Future<int> restore(BackupPayload payload) async {
+  ///
+  /// تُفحص النسخة قبل مسح أي شيء. الصفوف المعطوبة المرجع تُسقط ويُبلَّغ عنها
+  /// بدل كتابتها: صفٌّ يشير إلى جهة غير موجودة يُكتب بنجاح ثم لا يظهر في أي
+  /// شاشة، فيبدو أنه ضاع بينما هو موجود ولا يُرى.
+  Future<RestoreReport> restore(BackupPayload payload) async {
+    final validation = BackupValidator.validate(payload);
+    if (!validation.isRestorable) {
+      throw BackupFormatException(
+        validation.issues.firstWhere((i) => i.isFatal).message,
+      );
+    }
+
     final isar = await IsarDatabase.instance;
     var restored = 0;
 
@@ -109,34 +121,45 @@ class BackupService {
       await isar.calendarDayModels.clear();
       await isar.leaveModels.clear();
 
-      restored += await _put(payload, _profiles,
+      restored += await _put(validation, payload, _profiles,
           (r) => isar.profileModels.put(_profileFromJson(r)));
-      restored += await _put(payload, _companies,
+      restored += await _put(validation, payload, _companies,
           (r) => isar.companyModels.put(_companyFromJson(r)));
-      restored += await _put(payload, _attendance,
+      restored += await _put(validation, payload, _attendance,
           (r) => isar.attendanceModels.put(_attendanceFromJson(r)));
-      restored += await _put(payload, _transactions,
+      restored += await _put(validation, payload, _transactions,
           (r) => isar.transactionModels.put(_transactionFromJson(r)));
       restored += await _put(
-          payload, _debts, (r) => isar.debtModels.put(_debtFromJson(r)));
-      restored += await _put(payload, _accounts,
+          validation, payload, _debts, (r) => isar.debtModels.put(_debtFromJson(r)));
+      restored += await _put(validation, payload, _accounts,
           (r) => isar.accountModels.put(_accountFromJson(r)));
-      restored += await _put(payload, _categories,
+      restored += await _put(validation, payload, _categories,
           (r) => isar.categoryModels.put(_categoryFromJson(r)));
-      restored += await _put(payload, _budgetLimits,
+      restored += await _put(validation, payload, _budgetLimits,
           (r) => isar.budgetLimitModels.put(_budgetLimitFromJson(r)));
-      restored += await _put(payload, _reminderSettings,
+      restored += await _put(validation, payload, _reminderSettings,
           (r) => isar.reminderSettingsModels.put(_reminderSettingsFromJson(r)));
-      restored += await _put(payload, _calendarDays,
+      restored += await _put(validation, payload, _calendarDays,
           (r) => isar.calendarDayModels.put(_calendarDayFromJson(r)));
       restored += await _put(
-          payload, _leaves, (r) => isar.leaveModels.put(_leaveFromJson(r)));
+          validation, payload, _leaves, (r) => isar.leaveModels.put(_leaveFromJson(r)));
     });
 
-    return restored;
+    // تحقّق بعد الكتابة: العدد المكتوب يجب أن يطابق المتوقَّع. اختلافه يعني
+    // أن صفوفاً ابتلعها المخزن بصمت — وهو ما لا يظهر من نجاح المعاملة وحده.
+    final expected = payload.rowCount - validation.droppedRows;
+    final counted = await _countAll(isar);
+
+    return RestoreReport(
+      rowsRestored: restored,
+      rowsDropped: validation.droppedRows,
+      rowsCounted: counted,
+      issues: validation.issues,
+      expectedRows: expected,
+    );
   }
 
-  Future<int> restoreJson(String json) async {
+  Future<RestoreReport> restoreJson(String json) async {
     try {
       return await restore(
           BackupPayload.fromJson(jsonDecode(json) as Map<String, dynamic>));
@@ -145,16 +168,39 @@ class BackupService {
     }
   }
 
+  /// يفحص نسخة بلا كتابة — لعرض ما سيحدث قبل أن يحدث.
+  BackupValidation inspect(BackupPayload payload) =>
+      BackupValidator.validate(payload);
+
+  static Future<int> _countAll(Isar isar) async =>
+      await isar.profileModels.count() +
+      await isar.companyModels.count() +
+      await isar.attendanceModels.count() +
+      await isar.transactionModels.count() +
+      await isar.debtModels.count() +
+      await isar.accountModels.count() +
+      await isar.categoryModels.count() +
+      await isar.budgetLimitModels.count() +
+      await isar.reminderSettingsModels.count() +
+      await isar.calendarDayModels.count() +
+      await isar.leaveModels.count();
+
   static Future<int> _put(
+    BackupValidation validation,
     BackupPayload payload,
     String table,
     Future<void> Function(Map<String, dynamic> row) write,
   ) async {
     final rows = payload.tables[table] ?? const [];
-    for (final row in rows) {
-      await write(row);
+    final skip = validation.droppedRowsByTable[table] ?? const <int>{};
+    var written = 0;
+
+    for (var i = 0; i < rows.length; i++) {
+      if (skip.contains(i)) continue;
+      await write(rows[i]);
+      written++;
     }
-    return rows.length;
+    return written;
   }
 
   // ── التسلسل ─────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
 import 'backup_service.dart';
+import 'backup_validator.dart';
 
 /// حساب مرتبط ونسخته الأخيرة على Drive.
 class DriveStatus {
@@ -137,7 +138,7 @@ class DriveSyncService {
   }
 
   /// ينزّل آخر نسخة ويستبدل بها المحتوى الحالي. يعيد عدد الصفوف المستعادة.
-  Future<int> restore() async {
+  Future<RestoreReport> restore() async {
     final api = await _api();
     final file = await _findBackupWith(api);
     if (file == null) {

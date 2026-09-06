@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/backup/backup_service.dart';
+import '../../core/services/backup/backup_validator.dart';
 import '../../core/services/backup/drive_sync_service.dart';
 import 'account_provider.dart';
 import 'analytics_provider.dart';
@@ -71,13 +72,13 @@ class BackupController extends AsyncNotifier<void> {
   }
 
   /// يستعيد النسخة ثم يُبطل كل شيء: المحتوى تبدّل بالكامل تحت المزوّدات.
-  Future<int?> restore() async {
+  Future<RestoreReport?> restore() async {
     state = const AsyncLoading();
     try {
-      final rows = await ref.read(driveSyncServiceProvider).restore();
+      final report = await ref.read(driveSyncServiceProvider).restore();
       _invalidateEverything();
       state = const AsyncData(null);
-      return rows;
+      return report;
     } catch (error, stack) {
       state = AsyncError(error, stack);
       return null;
