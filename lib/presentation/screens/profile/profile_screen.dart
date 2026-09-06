@@ -229,6 +229,12 @@ class _SystemLinks extends StatelessWidget {
           route: AppRoutes.companies,
         ),
         ProfileLinkTile(
+          icon: Icons.calendar_month_rounded,
+          title: 'تقويم العمل',
+          subtitle: 'عطلات رسمية ودوام استثنائي لهذه الجهة',
+          route: AppRoutes.workCalendar,
+        ),
+        ProfileLinkTile(
           icon: Icons.insights_rounded,
           title: 'التقارير والتحليلات',
           subtitle: 'رسوم بيانية وتصدير PDF و CSV',

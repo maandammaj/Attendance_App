@@ -7,9 +7,12 @@ import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
+import '../../../domain/entities/calendar_day_entity.dart';
 import '../../../domain/services/attendance_calculation_service.dart';
+import '../../../domain/services/effective_day_resolver.dart';
 import '../../../domain/services/session_overlap_rule.dart';
 import '../../models/attendance_model.dart';
+import '../../models/calendar_day_model.dart';
 import '../../models/company_model.dart';
 import '../../models/profile_model.dart';
 import '../database/company_scope.dart';
@@ -144,7 +147,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(time);
-    final dayConfig = companyEntity.configFor(time);
+    final dayConfig = await _effectiveConfig(isar, companyEntity, time);
 
     final record = await isar.attendanceModels
             .filter()
@@ -210,7 +213,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     record.sessions = sessions;
 
     final companyEntity = _mapCompanyToEntity(company);
-    _recalculate(record, companyEntity, companyEntity.configFor(record.date));
+    _recalculate(record, companyEntity,
+        await _effectiveConfig(isar, companyEntity, record.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -229,7 +233,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(date);
-    final dayConfig = companyEntity.configFor(date);
+    final dayConfig = await _effectiveConfig(isar, companyEntity, date);
 
     // جلسة يدوية تُضاف لسجل اليوم **في هذه الجهة** إن وُجد، بدل إنشاء سجل
     // ثانٍ لنفس التاريخ أو إلحاقها بسجل جهة أخرى.
@@ -291,7 +295,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
             ];
 
     _assertNoOverlap(model);
-    _recalculate(model, companyEntity, companyEntity.configFor(model.date));
+    _recalculate(model, companyEntity,
+        await _effectiveConfig(isar, companyEntity, model.date));
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(model);
@@ -358,6 +363,51 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ..deficitMinutes = result.deficitMinutes % 60
       ..deficitValue = result.deficitValue;
   }
+
+  /// إعداد اليوم بعد تطبيق تقويم الجهة عليه.
+  ///
+  /// العطلة تُفرِّغ المطلوب، فيصير كل تواجد فيها إضافياً بدل أن يُقاس على
+  /// ساعات لم تُطلَب. والقراءة تمرّ من هنا وحدها كي لا يحسب مسارٌ اليومَ
+  /// بجدوله الخام بينما يحسبه آخر بتقويمه.
+  Future<WorkDayConfigEntity> _effectiveConfig(
+    Isar isar,
+    CompanyEntity company,
+    DateTime date,
+  ) async {
+    final day = DateHelpers.startOfDay(date);
+    final entries = await isar.calendarDayModels
+        .filter()
+        .dateBetween(day, DateHelpers.endOfDay(date))
+        .group((q) =>
+            q.companyIdEqualTo(company.id).or().companyIdIsNull())
+        .findAll();
+
+    if (entries.isEmpty) return company.configFor(date);
+
+    return EffectiveDayResolver.apply(
+      base: company.configFor(date),
+      entry: EffectiveDayResolver.governing(
+        entries.map(_calendarToEntity).toList(),
+        company.id,
+      ),
+    );
+  }
+
+  static CalendarDayEntity _calendarToEntity(CalendarDayModel m) =>
+      CalendarDayEntity(
+        id: m.id,
+        companyId: m.companyId,
+        date: m.date,
+        kind: switch (m.kind) {
+          CalendarDayKind.publicHoliday => CalendarDayKindEntity.publicHoliday,
+          CalendarDayKind.workplaceHoliday =>
+            CalendarDayKindEntity.workplaceHoliday,
+          CalendarDayKind.specialWorkday =>
+            CalendarDayKindEntity.specialWorkday,
+        },
+        note: m.note,
+        createdAt: m.createdAt,
+      );
 
   static void _assertNoOverlap(AttendanceModel record) {
     SessionOverlapRule.assertNoOverlap([

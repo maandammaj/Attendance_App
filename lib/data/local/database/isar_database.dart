@@ -10,6 +10,7 @@ import '../../models/account_model.dart';
 import '../../models/notification_model.dart';
 import '../../models/reminder_settings_model.dart';
 import '../../models/budget_limit_model.dart';
+import '../../models/calendar_day_model.dart';
 import '../../models/company_model.dart';
 import 'attendance_migration.dart';
 import 'company_migration.dart';
@@ -31,6 +32,7 @@ class IsarDatabase {
     ReminderSettingsModelSchema,
     BudgetLimitModelSchema,
     CompanyModelSchema,
+    CalendarDayModelSchema,
   ];
 
   static Future<Isar> get instance {

@@ -4,6 +4,9 @@ import '../../data/local/repositories/attendance_repository_impl.dart';
 import '../../domain/entities/attendance_entity.dart';
 import '../../domain/usecases/attendance/check_in_usecase.dart';
 import '../../domain/usecases/attendance/check_out_usecase.dart';
+import '../../data/local/repositories/calendar_repository_impl.dart';
+import '../../domain/entities/calendar_day_entity.dart';
+import '../../domain/repositories/calendar_repository.dart';
 import '../../domain/usecases/attendance/get_monthly_stats_usecase.dart';
 import '../../core/utils/biometric_auth.dart';
 import '../../domain/services/attendance_auth_policy.dart';
@@ -44,6 +47,22 @@ Future<List<AttendanceEntity>> monthlyAttendance(
   return await repo.getMonthlyRecords(year, month);
 }
 
+final calendarRepositoryProvider =
+    Provider<CalendarRepository>((ref) => CalendarRepositoryImpl());
+
+/// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+@riverpod
+Future<List<CalendarDayEntity>> monthCalendar(
+  Ref ref, {
+  required int year,
+  required int month,
+}) async {
+  return ref.read(calendarRepositoryProvider).getBetween(
+        DateTime(year, month, 1),
+        DateTime(year, month + 1, 0),
+      );
+}
+
 @riverpod
 Future<MonthlyStats> attendanceStats(
   Ref ref, {
@@ -75,8 +94,10 @@ Future<MonthlyStats> attendanceStats(
     );
   }
 
+  final calendar =
+      await ref.watch(monthCalendarProvider(year: year, month: month).future);
   final useCase = ref.read(getMonthlyStatsUseCaseProvider);
-  return await useCase(year, month, company);
+  return await useCase(year, month, company, calendar: calendar);
 }
 
 /// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.

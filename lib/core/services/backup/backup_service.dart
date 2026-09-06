@@ -7,6 +7,7 @@ import '../../../data/models/account_model.dart';
 import '../../../data/models/attendance_model.dart';
 import '../../../data/models/budget_limit_model.dart';
 import '../../../data/models/category_model.dart';
+import '../../../data/models/calendar_day_model.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/models/debt_model.dart';
 import '../../../data/models/profile_model.dart';
@@ -32,6 +33,7 @@ class BackupService {
   static const _categories = 'categories';
   static const _budgetLimits = 'budgetLimits';
   static const _reminderSettings = 'reminderSettings';
+  static const _calendarDays = 'calendarDays';
 
   // سجل التنبيهات لا يُنسخ عمداً: مشتق وقابل لإعادة التوليد، وحجمه ينمو
   // بلا حد فيضخّم النسخة دون فائدة.
@@ -70,6 +72,9 @@ class BackupService {
         _reminderSettings: (await isar.reminderSettingsModels.where().findAll())
             .map(_reminderSettingsToJson)
             .toList(),
+        _calendarDays: (await isar.calendarDayModels.where().findAll())
+            .map(_calendarDayToJson)
+            .toList(),
       },
     );
   }
@@ -96,6 +101,7 @@ class BackupService {
       await isar.categoryModels.clear();
       await isar.budgetLimitModels.clear();
       await isar.reminderSettingsModels.clear();
+      await isar.calendarDayModels.clear();
 
       restored += await _put(payload, _profiles,
           (r) => isar.profileModels.put(_profileFromJson(r)));
@@ -115,6 +121,8 @@ class BackupService {
           (r) => isar.budgetLimitModels.put(_budgetLimitFromJson(r)));
       restored += await _put(payload, _reminderSettings,
           (r) => isar.reminderSettingsModels.put(_reminderSettingsFromJson(r)));
+      restored += await _put(payload, _calendarDays,
+          (r) => isar.calendarDayModels.put(_calendarDayFromJson(r)));
     });
 
     return restored;
@@ -207,6 +215,27 @@ class BackupService {
     ..graceMinutes = j['graceMinutes'] as int? ?? 0
     ..minOvertimeMinutes = j['minOvertimeMinutes'] as int? ?? 0
     ..paysOvertime = j['paysOvertime'] as bool? ?? true;
+
+  static Map<String, dynamic> _calendarDayToJson(CalendarDayModel m) => {
+        'id': m.id,
+        'companyId': m.companyId,
+        'date': _iso(m.date),
+        'kind': m.kind.name,
+        'note': m.note,
+        'createdAt': _iso(m.createdAt),
+      };
+
+  static CalendarDayModel _calendarDayFromJson(Map<String, dynamic> j) =>
+      CalendarDayModel()
+        ..id = j['id'] as int? ?? Isar.autoIncrement
+        ..companyId = j['companyId'] as int?
+        ..date = _date(j['date']) ?? DateTime(2026)
+        ..kind = CalendarDayKind.values.firstWhere(
+          (k) => k.name == j['kind'],
+          orElse: () => CalendarDayKind.publicHoliday,
+        )
+        ..note = j['note'] as String?
+        ..createdAt = _date(j['createdAt']) ?? DateTime(2026);
 
   static Map<String, dynamic> _companyToJson(CompanyModel m) => {
         'id': m.id,

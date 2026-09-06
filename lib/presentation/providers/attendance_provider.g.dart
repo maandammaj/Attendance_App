@@ -134,6 +134,96 @@ final class MonthlyAttendanceFamily extends $Family
   String toString() => r'monthlyAttendanceProvider';
 }
 
+/// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+
+@ProviderFor(monthCalendar)
+final monthCalendarProvider = MonthCalendarFamily._();
+
+/// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+
+final class MonthCalendarProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CalendarDayEntity>>,
+          List<CalendarDayEntity>,
+          FutureOr<List<CalendarDayEntity>>
+        >
+    with
+        $FutureModifier<List<CalendarDayEntity>>,
+        $FutureProvider<List<CalendarDayEntity>> {
+  /// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+  MonthCalendarProvider._({
+    required MonthCalendarFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthCalendarProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthCalendarHash();
+
+  @override
+  String toString() {
+    return r'monthCalendarProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<CalendarDayEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CalendarDayEntity>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return monthCalendar(ref, year: argument.year, month: argument.month);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MonthCalendarProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$monthCalendarHash() => r'ea10173b682127c003afd2c9189d4d7b98e57fa4';
+
+/// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+
+final class MonthCalendarFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<CalendarDayEntity>>,
+          ({int year, int month})
+        > {
+  MonthCalendarFamily._()
+    : super(
+        retry: null,
+        name: r'monthCalendarProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+
+  MonthCalendarProvider call({required int year, required int month}) =>
+      MonthCalendarProvider._(argument: (year: year, month: month), from: this);
+
+  @override
+  String toString() => r'monthCalendarProvider';
+}
+
 @ProviderFor(attendanceStats)
 final attendanceStatsProvider = AttendanceStatsFamily._();
 
@@ -189,7 +279,7 @@ final class AttendanceStatsProvider
   }
 }
 
-String _$attendanceStatsHash() => r'663e3a7ad2952c4d8bb9a5d5befcb1545eae6ce0';
+String _$attendanceStatsHash() => r'e277dd30114a6ab920bf173e2916a56f84b02295';
 
 final class AttendanceStatsFamily extends $Family
     with

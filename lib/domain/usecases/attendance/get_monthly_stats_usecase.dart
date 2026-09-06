@@ -1,9 +1,11 @@
 import '../../../core/utils/clock.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
+import '../../entities/calendar_day_entity.dart';
 import '../../entities/company_entity.dart';
 import '../../entities/profile_entity.dart';
 import '../../repositories/attendance_repository.dart';
+import '../../services/effective_day_resolver.dart';
 
 class MonthlyStats {
   final int expectedWorkingDays;
@@ -55,7 +57,12 @@ class GetMonthlyStatsUseCase {
 
   GetMonthlyStatsUseCase(this.repository, {this.clock = const SystemClock()});
 
-  Future<MonthlyStats> call(int year, int month, CompanyEntity company) async {
+  Future<MonthlyStats> call(
+    int year,
+    int month,
+    CompanyEntity company, {
+    List<CalendarDayEntity> calendar = const [],
+  }) async {
     final records = await repository.getMonthlyRecords(year, month);
     final now = clock.now();
     final calculator = SalaryCalculator(company);
@@ -108,7 +115,7 @@ class GetMonthlyStatsUseCase {
       final date = DateTime(year, month, day);
       final dayOfWeek = DateHelpers.scheduleDayOf(date);
       
-      final dayConfig = company.workSchedule.firstWhere(
+      final scheduled = company.workSchedule.firstWhere(
         (d) => d.dayOfWeek == dayOfWeek,
         orElse: () => WorkDayConfigEntity(
           dayOfWeek: dayOfWeek,
@@ -116,6 +123,18 @@ class GetMonthlyStatsUseCase {
           requiredHours: 0,
           requiredMinutes: 0,
           isHoliday: true,
+        ),
+      );
+
+      // التقويم يغلب الجدول: يوم مُعلَّم عطلةً لا يُطلَب فيه شيء، فلا يُعدّ
+      // غياباً ولا يُخصم — وبدون هذا كان إعلان العطلة يكلّف المستخدم يوماً.
+      final dayConfig = EffectiveDayResolver.apply(
+        base: scheduled,
+        entry: EffectiveDayResolver.governing(
+          calendar
+              .where((e) => DateHelpers.isSameDay(e.date, date))
+              .toList(),
+          company.id,
         ),
       );
 
