@@ -13,6 +13,7 @@ import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../schedule/widgets/schedule_presets.dart';
 import '../../widgets/common/section_header.dart';
+import '../../widgets/common/currency_field.dart';
 
 /// إنشاء جهة أو تعديلها. الجدول يُختار بقالب هنا ويُضبط تفصيلاً في شاشة
 /// جدول الدوام، فلا يتضخّم هذا النموذج.
@@ -253,18 +254,9 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _currency,
-                    decoration: const InputDecoration(labelText: 'العملة'),
-                    items: const [
-                      DropdownMenuItem(value: 'ر.ي', child: Text('ر.ي')),
-                      DropdownMenuItem(value: 'ر.س', child: Text('ر.س')),
-                      DropdownMenuItem(value: 'د.إ', child: Text('د.إ')),
-                      DropdownMenuItem(value: 'ج.م', child: Text('ج.م')),
-                      DropdownMenuItem(value: 'USD', child: Text('USD')),
-                    ],
-                    onChanged: (value) =>
-                        setState(() => _currency = value ?? _currency),
+                  child: CurrencyField(
+                    value: _currency,
+                    onChanged: (code) => setState(() => _currency = code),
                   ),
                 ),
               ],

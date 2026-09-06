@@ -7,6 +7,7 @@ import '../providers/transaction_provider.dart';
 import '../providers/account_provider.dart';
 import '../providers/profile_provider.dart';
 import 'app_button.dart';
+import '../../core/constants/currencies.dart';
 
 class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionTypeEntity type;
@@ -49,8 +50,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             autofocus: true,
             decoration: InputDecoration(
               labelText: 'المبلغ',
-              prefixIcon: const Icon(Icons.attach_money),
-              suffixText: ref.watch(profileProvider).value?.currency ?? 'ر.ي',
+              prefixIcon: const Icon(Icons.payments_rounded),
+              suffixText: AppCurrency.wordOf(ref.watch(profileProvider).value?.currency),
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (v) => (v == null || double.tryParse(v) == null) ? 'الرجاء إدخال مبلغ صحيح' : null,
@@ -94,7 +95,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           const SizedBox(height: 32),
           AppButton(
             label: isExpense ? 'إضافة مصروف' : 'إضافة دخل',
-            icon: isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline,
+            icon: isExpense ? Icons.remove_circle_outline_rounded : Icons.add_circle_outline_rounded,
             backgroundColor: isExpense ? palette.negative : palette.positive,
             isLoading: transactionState is AsyncLoading,
             onPressed: () async {

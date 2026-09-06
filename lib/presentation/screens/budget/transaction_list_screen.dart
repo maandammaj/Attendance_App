@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/common/empty_state.dart';
+import '../../../core/constants/currencies.dart';
 
 class TransactionListScreen extends ConsumerWidget {
   const TransactionListScreen({super.key});
@@ -14,7 +15,7 @@ class TransactionListScreen extends ConsumerWidget {
     final palette = context.palette;
     final now = DateTime.now();
     final transactions = ref.watch(monthlyTransactionsProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).value?.currency ?? 'ر.ي';
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(title: const Text('سجل المصاريف والدخل'), centerTitle: true),
@@ -35,7 +36,7 @@ class TransactionListScreen extends ConsumerWidget {
               final isExpense = trans.type.name == 'expense';
               return Card(
                 child: ListTile(
-                  leading: Icon(isExpense ? Icons.remove_circle : Icons.add_circle, 
+                  leading: Icon(isExpense ? Icons.remove_circle_rounded : Icons.add_circle_rounded, 
                       color: isExpense ? palette.negative : palette.positive),
                   title: Text(trans.categoryName),
                   subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(trans.date)),
@@ -46,7 +47,7 @@ class TransactionListScreen extends ConsumerWidget {
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       IconButton(
               tooltip: 'حذف',
-                        icon: Icon(Icons.delete, color: palette.onSurfaceVariant, size: 20),
+                        icon: Icon(Icons.delete_rounded, color: palette.onSurfaceVariant, size: 20),
                         onPressed: () => _confirmDelete(context, ref, trans.id),
                       ),
                     ],

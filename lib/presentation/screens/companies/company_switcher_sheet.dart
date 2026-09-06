@@ -6,6 +6,7 @@ import '../../../core/constants/design_tokens.dart';
 import '../../../core/constants/theme.dart';
 import '../../../domain/entities/company_entity.dart';
 import '../../providers/company_provider.dart';
+import '../../../core/constants/currencies.dart';
 
 /// ورقة التبديل السريع بين جهات العمل.
 ///
@@ -100,7 +101,7 @@ class _CompanyTile extends StatelessWidget {
       trailing: isActive
           ? Icon(Icons.check_circle_rounded, color: palette.primary)
           : Text(
-              '${company.baseMonthlySalary.toStringAsFixed(0)} ${company.currency ?? ''}',
+              '${company.baseMonthlySalary.toStringAsFixed(0)} ${AppCurrency.wordOf(company.currency)}',
               style: theme.textTheme.labelMedium
                   ?.copyWith(color: palette.onSurfaceVariant)
                   .merge(tabularFigures),

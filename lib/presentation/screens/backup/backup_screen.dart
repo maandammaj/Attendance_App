@@ -44,7 +44,7 @@ class BackupScreen extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline,
+                    Icon(Icons.info_outline_rounded,
                         size: AppIconSize.md, color: palette.info),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(

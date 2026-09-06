@@ -7,6 +7,7 @@ import '../../providers/debt_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../../core/constants/currencies.dart';
 
 class AddDebtBottomSheet extends ConsumerStatefulWidget {
   const AddDebtBottomSheet({super.key});
@@ -36,7 +37,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
     final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final debtState = ref.watch(debtControllerProvider);
-    final currency = ref.watch(profileProvider).value?.currency ?? 'ر.ي';
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     // الاستماع لحالة الحفظ والتعامل مع النجاح أو الفشل
     ref.listen<AsyncValue<void>>(
@@ -76,12 +77,12 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                     ButtonSegment(
                       value: 'owe',
                       label: Text('عليك'),
-                      icon: Icon(Icons.arrow_upward),
+                      icon: Icon(Icons.arrow_upward_rounded),
                     ),
                     ButtonSegment(
                       value: 'owed',
                       label: Text('لك'),
-                      icon: Icon(Icons.arrow_downward),
+                      icon: Icon(Icons.arrow_downward_rounded),
                     ),
                   ],
                   selected: {_debtType},
@@ -119,7 +120,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'الاسم / الجهة',
-                    prefixIcon: Icon(Icons.person_outline),
+                    prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'الرجاء إدخال الاسم' : null,
                 ),
@@ -128,7 +129,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   controller: _amountController,
                   decoration: InputDecoration(
                     labelText: 'المبلغ الإجمالي',
-                    prefixIcon: const Icon(Icons.attach_money_outlined),
+                    prefixIcon: const Icon(Icons.payments_outlined),
                     suffixText: currency,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),

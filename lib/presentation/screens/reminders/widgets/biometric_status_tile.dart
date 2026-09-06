@@ -44,7 +44,7 @@ class _BiometricStatusTileState extends State<BiometricStatusTile> {
           child: Row(
             children: [
               Icon(
-                isReady ? Icons.verified_user_rounded : Icons.info_outline,
+                isReady ? Icons.verified_user_rounded : Icons.info_outline_rounded,
                 size: 20,
                 color: color,
               ),

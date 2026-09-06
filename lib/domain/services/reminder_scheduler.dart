@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 
-import '../../core/constants/app_constants.dart';
 import '../../core/constants/notification_ids.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/utils/date_helpers.dart';
@@ -8,6 +7,7 @@ import '../../data/models/notification_model.dart';
 import '../entities/company_entity.dart';
 import '../entities/reminder_settings_entity.dart';
 import '../repositories/debt_repository.dart';
+import '../../core/constants/currencies.dart';
 
 /// يترجم جدول الدوام وقائمة الديون إلى تنبيهات مجدولة في نظام التشغيل.
 ///
@@ -246,5 +246,5 @@ class ReminderScheduler {
   static String _dayWord(int days) => days == 1 ? 'يوم' : 'أيام';
 
   static String _money(double value) =>
-      '${value.toStringAsFixed(0)} ${AppConstants.defaultCurrency}';
+      '${value.toStringAsFixed(0)} ${AppCurrency.fallback.word}';
 }

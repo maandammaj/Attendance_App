@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/account_entity.dart';
@@ -16,6 +15,7 @@ import 'account_details_screen.dart';
 import 'widgets/account_row.dart';
 import 'widgets/account_type_selector.dart';
 import 'widgets/accounts_summary_card.dart';
+import '../../../core/constants/currencies.dart';
 
 /// دفتر الحسابات: الموقف العام أولاً، ثم الحسابات التي كوّنته.
 class AccountsScreen extends ConsumerWidget {
@@ -24,8 +24,7 @@ class AccountsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accounts = ref.watch(allAccountsProvider);
-    final currency = ref.watch(profileProvider).value?.currency ??
-        AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(title: const Text('الحسابات'), centerTitle: true),

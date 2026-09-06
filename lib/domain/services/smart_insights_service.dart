@@ -1,4 +1,3 @@
-import '../../core/constants/app_constants.dart';
 import '../../core/constants/notification_ids.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/utils/date_helpers.dart';
@@ -13,6 +12,7 @@ import '../repositories/budget_limit_repository.dart';
 import '../repositories/debt_repository.dart';
 import '../repositories/transaction_repository.dart';
 import '../usecases/debt/get_debts_summary_usecase.dart';
+import '../../core/constants/currencies.dart';
 
 /// تنبيه محسوب من الحالة الحالية، قبل أن يُعرض.
 ///
@@ -347,5 +347,5 @@ class SmartInsightsService {
           .fold(0.0, (sum, t) => sum + t.amount);
 
   static String _money(double value, CompanyEntity company) =>
-      '${value.toStringAsFixed(0)} ${company.currency ?? AppConstants.defaultCurrency}';
+      '${value.toStringAsFixed(0)} ${AppCurrency.wordOf(company.currency)}';
 }

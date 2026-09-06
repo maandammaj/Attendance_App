@@ -3,11 +3,11 @@ import '../../widgets/common/state_switcher.dart';
 import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/budget_limit_entity.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/reminder_provider.dart';
+import '../../../core/constants/currencies.dart';
 
 class BudgetLimitsScreen extends ConsumerWidget {
   const BudgetLimitsScreen({super.key});
@@ -17,15 +17,14 @@ class BudgetLimitsScreen extends ConsumerWidget {
     final now = DateTime.now();
     final statusAsync =
         ref.watch(budgetStatusProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).value?.currency ??
-        AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(title: const Text('حدود الميزانية'), centerTitle: true),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_budget_limit',
         onPressed: () => _openEditor(context, ref),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
         label: const Text('حد جديد'),
       ),
       body: statusAsync.when(

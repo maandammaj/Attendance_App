@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/constants/theme.dart';
 import '../../../core/utils/date_helpers.dart';
@@ -13,6 +12,7 @@ import '../../../domain/entities/attendance_entity.dart';
 import '../../providers/attendance_provider.dart';
 import '../../providers/company_provider.dart';
 import '../common/pulsing_dot.dart';
+import '../../../core/constants/currencies.dart';
 
 /// البطاقة الرئيسية لليوم: الحالة، العدّاد الحيّ، المكتسب، والتقدّم نحو المطلوب.
 ///
@@ -79,7 +79,7 @@ class _LiveSessionCardState extends ConsumerState<LiveSessionCard> {
             today?.requiredMinutes ?? 0,
           );
 
-    final currency = company?.currency ?? AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(company?.currency);
     final gradient = isOpen
         ? AppPalette.activeGradient
         : AppPalette.brandGradient;

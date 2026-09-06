@@ -6,6 +6,7 @@ import '../../../../core/constants/theme.dart';
 import '../../../../core/utils/date_helpers.dart';
 import '../../../../domain/entities/company_entity.dart';
 import '../../../providers/company_provider.dart';
+import '../../../../core/constants/currencies.dart';
 
 /// يسأل: في أي جهة تبدأ دوامك؟
 ///
@@ -127,7 +128,7 @@ class _Option extends StatelessWidget {
       ),
       subtitle: Text(window, style: theme.textTheme.bodySmall),
       trailing: Text(
-        '${company.baseMonthlySalary.toStringAsFixed(0)} ${company.currency ?? ''}',
+        '${company.baseMonthlySalary.toStringAsFixed(0)} ${AppCurrency.wordOf(company.currency)}',
         style: theme.textTheme.labelMedium
             ?.copyWith(color: palette.onSurfaceVariant)
             .merge(tabularFigures),

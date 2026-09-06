@@ -10,6 +10,7 @@ class ProfileLinkTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.route,
+    this.tint,
   });
 
   final IconData icon;
@@ -17,10 +18,17 @@ class ProfileLinkTile extends StatelessWidget {
   final String subtitle;
   final String route;
 
+  /// لون هوية المقصد. بلا لون يقع على لون العلامة.
+  ///
+  /// ستّة مداخل بلون واحد تُقرأ ككتلة رمادية واحدة لا كقائمة يُنتقى منها؛
+  /// اللون هنا هو ما يجعل المدخل يُلمح قبل قراءة نصّه.
+  final Color? tint;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
+    final color = tint ?? palette.primary;
 
     return Padding(
       padding: const EdgeInsetsDirectional.only(bottom: AppSpacing.sm),
@@ -43,11 +51,10 @@ class ProfileLinkTile extends StatelessWidget {
                   height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: palette.primary.withValues(alpha: 0.10),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppRadius.badge),
                   ),
-                  child: Icon(icon,
-                      color: palette.primary, size: AppIconSize.md),
+                  child: Icon(icon, color: color, size: AppIconSize.md),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(

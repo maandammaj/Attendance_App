@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/design_tokens.dart';
 import 'setup_step_header.dart';
+import '../../../widgets/common/currency_field.dart';
 
 class SetupSalaryStep extends StatelessWidget {
   const SetupSalaryStep({
@@ -20,8 +21,6 @@ class SetupSalaryStep extends StatelessWidget {
   final TextEditingController overtimeRate;
   final String currency;
   final ValueChanged<String> onCurrencyChanged;
-
-  static const _currencies = ['ر.ي', 'ر.س', 'د.إ', 'ج.م', 'USD'];
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +60,9 @@ class SetupSalaryStep extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: currency,
-                  decoration: const InputDecoration(labelText: 'العملة'),
-                  items: [
-                    for (final code in _currencies)
-                      DropdownMenuItem(value: code, child: Text(code)),
-                  ],
-                  onChanged: (value) =>
-                      value == null ? null : onCurrencyChanged(value),
+                child: CurrencyField(
+                  value: currency,
+                  onChanged: onCurrencyChanged,
                 ),
               ),
             ],
@@ -107,7 +100,7 @@ class SetupSalaryStep extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline,
+                Icon(Icons.info_outline_rounded,
                     size: AppIconSize.sm, color: palette.info),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(

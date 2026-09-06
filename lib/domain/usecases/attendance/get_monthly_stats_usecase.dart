@@ -1,12 +1,10 @@
 import '../../../core/utils/clock.dart';
-import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/calendar_day_entity.dart';
 import '../../entities/company_entity.dart';
 import '../../entities/leave_entity.dart';
-import '../../entities/profile_entity.dart';
 import '../../repositories/attendance_repository.dart';
-import '../../services/effective_day_resolver.dart';
+import '../../services/month_absence_service.dart';
 
 class MonthlyStats {
   final int expectedWorkingDays;
@@ -66,7 +64,6 @@ class GetMonthlyStatsUseCase {
     List<LeaveEntity> leaves = const [],
   }) async {
     final records = await repository.getMonthlyRecords(year, month);
-    final now = clock.now();
     final calculator = SalaryCalculator(company);
 
     int totalOvertimeMinutes = 0;
@@ -99,67 +96,21 @@ class GetMonthlyStatsUseCase {
       }
     }
 
-    // 2. حساب الغياب التلقائي (الأيام التي مرت ولم يحضر فيها)
-    // آخر يوم يُحاسَب عليه المستخدم. الشهر القادم لم يُطلَب منه شيء بعد:
-    // بلا هذا الفرع يُحسب كاملاً غياباً ويُخصم راتبه — التزامٌ مُختلَق عن
-    // أيام لم تأتِ. غير مطروق من الواجهة اليوم (تمرّر الشهر الجاري وحده)،
-    // لكن الحساب نفسه يجب أن يصحّ لأي شهر يُسأل عنه.
-    final daysInMonth = DateTime(year, month + 1, 0).day;
-    final isCurrentMonth = year == now.year && month == now.month;
-    final isFutureMonth = DateTime(year, month).isAfter(DateTime(now.year, now.month));
-    final endDay = isFutureMonth
-        ? 0
-        : isCurrentMonth
-            ? now.day - 1
-            : daysInMonth;
+    // 2. الغياب التلقائي — قاعدة واحدة تقرأها هذه الشاشة وشاشة الدخل معاً.
+    final absence = MonthAbsenceService(clock: clock)(
+      year: year,
+      month: month,
+      company: company,
+      records: records,
+      calendar: calendar,
+      leaves: leaves,
+    );
 
-    for (int day = 1; day <= endDay; day++) {
-      final date = DateTime(year, month, day);
-      final dayOfWeek = DateHelpers.scheduleDayOf(date);
-      
-      final scheduled = company.workSchedule.firstWhere(
-        (d) => d.dayOfWeek == dayOfWeek,
-        orElse: () => WorkDayConfigEntity(
-          dayOfWeek: dayOfWeek,
-          isWorkingDay: false,
-          requiredHours: 0,
-          requiredMinutes: 0,
-          isHoliday: true,
-        ),
-      );
-
-      // التقويم يغلب الجدول: يوم مُعلَّم عطلةً لا يُطلَب فيه شيء، فلا يُعدّ
-      // غياباً ولا يُخصم — وبدون هذا كان إعلان العطلة يكلّف المستخدم يوماً.
-      final dayConfig = EffectiveDayResolver.apply(
-        base: scheduled,
-        entry: EffectiveDayResolver.governing(
-          calendar
-              .where((e) => DateHelpers.isSameDay(e.date, date))
-              .toList(),
-          company.id,
-        ),
-        // الإجازة المدفوعة تُفرِّغ المطلوب، فلا يُعدّ اليوم غياباً ولا يُخصم.
-        leave: EffectiveDayResolver.leaveOn(leaves, date),
-      );
-
-      if (dayConfig.isWorkingDay && !dayConfig.isHoliday) {
-        expectedWorkingDays++;
-        totalRequiredMinutes +=
-            (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
-        
-        // سجل فارغ غير معلن غياباً لا يفسّر اليوم، فيبقى غياباً تلقائياً.
-        final hasRecord = records.any((r) =>
-            DateHelpers.isSameDay(r.date, date) &&
-            (r.sessions.isNotEmpty || r.isAbsent));
-        if (!hasRecord) {
-          final missingMinutes = (dayConfig.requiredHours * 60) + dayConfig.requiredMinutes;
-          totalAbsenceMinutes += missingMinutes;
-          
-          totalDeficitValue += calculator.calculateDeficitValue(
-              missingMinutes ~/ 60, missingMinutes % 60);
-        }
-      }
-    }
+    expectedWorkingDays = absence.expectedWorkingDays;
+    totalRequiredMinutes = absence.requiredMinutes;
+    totalAbsenceMinutes += absence.absentMinutes;
+    totalDeficitValue += calculator.calculateDeficitValue(
+        absence.absentMinutes ~/ 60, absence.absentMinutes % 60);
 
     return MonthlyStats(
       expectedWorkingDays: expectedWorkingDays,

@@ -206,7 +206,7 @@ class _Mismatch extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: AppIconSize.sm, color: palette.warning),
+          Icon(Icons.info_outline_rounded, size: AppIconSize.sm, color: palette.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -237,7 +237,7 @@ class _Stepper extends StatelessWidget {
               tooltip: 'إنقاص',
           visualDensity: VisualDensity.compact,
           onPressed: minutes >= 30 ? () => onChanged(minutes - 30) : null,
-          icon: const Icon(Icons.remove_circle_outline),
+          icon: const Icon(Icons.remove_circle_outline_rounded),
         ),
         SizedBox(
           width: 64,
@@ -252,7 +252,7 @@ class _Stepper extends StatelessWidget {
           visualDensity: VisualDensity.compact,
           onPressed:
               minutes <= (16 * 60) - 30 ? () => onChanged(minutes + 30) : null,
-          icon: const Icon(Icons.add_circle_outline),
+          icon: const Icon(Icons.add_circle_outline_rounded),
         ),
       ],
     );

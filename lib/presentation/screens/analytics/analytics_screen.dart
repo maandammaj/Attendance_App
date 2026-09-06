@@ -14,13 +14,13 @@ import '../../widgets/analytics/hours_bar_chart.dart';
 import '../../widgets/analytics/metric_tile.dart';
 import '../../widgets/analytics/period_selector.dart';
 import '../../widgets/analytics/weekday_radar_chart.dart';
-import '../../../core/constants/app_constants.dart';
 import '../companies/widgets/company_title.dart';
 import 'widgets/company_comparison.dart';
 import 'widgets/export_sheet.dart';
 import 'widgets/monthly_comparison_chart.dart';
 import 'widgets/salary_waterfall.dart';
 import '../../widgets/common/chart_empty.dart';
+import '../../../core/constants/currencies.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -80,8 +80,8 @@ class AnalyticsScreen extends ConsumerWidget {
                                   bottom: AppSpacing.lg),
                               child: CompanyComparison(
                                 entries: entries,
-                                currency: reportAsync.value?.currency ??
-                                    AppConstants.defaultCurrency,
+                                currency: AppCurrency.wordOf(
+                                    reportAsync.value?.currency),
                               ),
                             ),
                       orElse: () => const SizedBox.shrink(),

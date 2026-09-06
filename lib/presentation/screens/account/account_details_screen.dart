@@ -11,6 +11,7 @@ import '../../providers/account_provider.dart';
 import '../../providers/debt_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../../core/constants/currencies.dart';
 
 class AccountDetailsScreen extends ConsumerWidget {
   final int accountId;
@@ -28,7 +29,7 @@ class AccountDetailsScreen extends ConsumerWidget {
     }
 
     final profileAsync = ref.watch(profileProvider);
-    final currency = profileAsync.value?.currency ?? 'ر.ي';
+    final currency = AppCurrency.wordOf(profileAsync.value?.currency);
 
     final debts = ref.watch(allDebtsProvider);
     final transactions = ref.watch(monthlyTransactionsProvider(year: DateTime.now().year, month: DateTime.now().month));
@@ -40,12 +41,12 @@ class AccountDetailsScreen extends ConsumerWidget {
         actions: [
           IconButton(
               tooltip: 'تعديل',
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.edit_rounded),
             onPressed: () => _showEditAccountDialog(context, ref, account),
           ),
           IconButton(
               tooltip: 'حذف نهائي',
-            icon: Icon(Icons.delete_forever, color: palette.negative),
+            icon: Icon(Icons.delete_forever_rounded, color: palette.negative),
             onPressed: () => _confirmDeleteAccount(context, ref, account),
           )
         ],
@@ -60,7 +61,7 @@ class AccountDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Row(
                 children: [
-                  Icon(Icons.history, color: palette.info),
+                  Icon(Icons.history_rounded, color: palette.info),
                   const SizedBox(width: 8),
                   Text('السجل المالي', style: Theme.of(context).textTheme.titleLarge),
                 ],

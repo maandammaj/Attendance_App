@@ -9,6 +9,7 @@ import '../../../domain/entities/company_entity.dart';
 import '../../providers/company_provider.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/state_switcher.dart';
+import '../../../core/constants/currencies.dart';
 
 class CompaniesScreen extends ConsumerWidget {
   const CompaniesScreen({super.key});
@@ -167,7 +168,7 @@ class _CompanyCard extends StatelessWidget {
                   _Stat(
                     label: 'الراتب',
                     value:
-                        '${company.baseMonthlySalary.toStringAsFixed(0)} ${company.currency ?? ''}',
+                        '${company.baseMonthlySalary.toStringAsFixed(0)} ${AppCurrency.wordOf(company.currency)}',
                   ),
                   _Stat(
                     label: 'أسبوعياً',

@@ -37,7 +37,7 @@ class NotificationHistoryScreen extends StatelessWidget {
                   final notif = list[index];
                   return Card(
                     child: ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.notifications)),
+                      leading: const CircleAvatar(child: Icon(Icons.notifications_rounded)),
                       title: Text(notif.title),
                       subtitle: Text(notif.body),
                       trailing: Text(DateFormat('HH:mm').format(notif.timestamp), 

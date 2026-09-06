@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/constants/theme.dart';
 import '../../../core/utils/ui_helpers.dart';
@@ -15,6 +14,7 @@ import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/state_switcher.dart';
 import '../../widgets/debt_item_card.dart';
 import 'add_debt_screen.dart';
+import '../../../core/constants/currencies.dart';
 
 class DebtsScreen extends ConsumerWidget {
   const DebtsScreen({super.key});
@@ -23,8 +23,7 @@ class DebtsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final debts = ref.watch(allDebtsProvider);
     final summary = ref.watch(debtSummaryProvider);
-    final currency = ref.watch(profileProvider).value?.currency ??
-        AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return DefaultTabController(
       length: 3,

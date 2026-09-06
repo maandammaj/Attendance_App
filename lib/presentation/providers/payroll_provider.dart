@@ -45,6 +45,8 @@ Future<PersonalPayroll> personalPayroll(
     from: DateTime(year, month, 1),
     to: DateTime(year, month + 1, 0, 23, 59, 59),
     leaves: leaves,
+    calendar: await ref
+        .watch(monthCalendarProvider(year: year, month: month).future),
   );
 }
 

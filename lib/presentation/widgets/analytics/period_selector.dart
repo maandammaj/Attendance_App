@@ -24,7 +24,7 @@ class PeriodSelector extends StatelessWidget {
           children: [
             IconButton(
               tooltip: 'الفترة السابقة',
-              icon: const Icon(Icons.chevron_right),
+              icon: const Icon(Icons.chevron_right_rounded),
               onPressed: () => onChanged(_shift(-1)),
             ),
             Expanded(
@@ -36,7 +36,7 @@ class PeriodSelector extends StatelessWidget {
             ),
             IconButton(
               tooltip: 'الفترة التالية',
-              icon: const Icon(Icons.chevron_left),
+              icon: const Icon(Icons.chevron_left_rounded),
               onPressed: () => onChanged(_shift(1)),
             ),
           ],

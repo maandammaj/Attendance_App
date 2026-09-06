@@ -1,4 +1,3 @@
-import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/analytics_report_entity.dart';
@@ -10,6 +9,7 @@ import '../../repositories/attendance_repository.dart';
 import '../../repositories/debt_repository.dart';
 import '../../repositories/transaction_repository.dart';
 import '../debt/get_debts_summary_usecase.dart';
+import '../../../core/constants/currencies.dart';
 
 /// يجمع سجلات الحضور والمعاملات لفترة واحدة في [AnalyticsReport].
 ///
@@ -58,7 +58,7 @@ class BuildAnalyticsReportUseCase {
       finance: finance,
       salary: salary,
       monthlyComparison: await _buildComparison(period, company),
-      currency: company.currency ?? AppConstants.defaultCurrency,
+      currency: AppCurrency.wordOf(company.currency),
       employeeName: employeeName,
       jobTitle: company.jobTitle,
       companyName: company.name,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
+import '../../../core/utils/arabic_plural.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/payroll_entity.dart';
 import '../../../domain/entities/personal_insight_entity.dart';
@@ -11,6 +11,7 @@ import '../../providers/profile_provider.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/section_header.dart';
 import '../../widgets/common/state_switcher.dart';
+import '../../../core/constants/currencies.dart';
 
 /// دخل المستخدم من كل جهاته في شهر.
 class PersonalPayrollScreen extends ConsumerWidget {
@@ -21,8 +22,7 @@ class PersonalPayrollScreen extends ConsumerWidget {
     final now = DateTime.now();
     final payrollAsync =
         ref.watch(personalPayrollProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).value?.currency ??
-        AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +91,7 @@ class _TotalCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'إجمالي دخلك من ${payroll.workplaces.length} جهات',
+            'إجمالي دخلك من ${ArabicPlural.workplaces(payroll.workplaces.length)}',
             style: theme.textTheme.titleSmall
                 ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
           ),
@@ -197,7 +197,7 @@ class _MonthSummary extends StatelessWidget {
             ),
             _SummaryCell(
               label: 'الإجازات',
-              value: '${payroll.totalLeaveDays} يوم',
+              value: ArabicPlural.days(payroll.totalLeaveDays),
             ),
           ],
         ),
@@ -261,7 +261,7 @@ class _WorkplaceCard extends StatelessWidget {
                       Text(workplace.company.name,
                           style: theme.textTheme.titleSmall),
                       Text(
-                        '${workplace.attendedDays} يوم حضور · '
+                        '${ArabicPlural.days(workplace.attendedDays)} حضور · '
                         '${DateHelpers.formatDurationCompact(workplace.presenceMinutes)}',
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: palette.onSurfaceVariant),
@@ -307,7 +307,7 @@ class _WorkplaceCard extends StatelessWidget {
                     'منه ${DateHelpers.formatDurationCompact(workplace.holidayOvertimeMinutes)} '
                         'إضافي في عطلة',
                   if (workplace.leaveDays > 0)
-                    '${workplace.leaveDays} يوم إجازة',
+                    '${ArabicPlural.days(workplace.leaveDays)} إجازة',
                 ].join(' · '),
                 style: Theme.of(context)
                     .textTheme

@@ -1,8 +1,10 @@
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/company_entity.dart';
 import '../../entities/payroll_entity.dart';
+import '../../entities/calendar_day_entity.dart';
 import '../../entities/leave_entity.dart';
 import '../../repositories/attendance_repository.dart';
+import '../../services/month_absence_service.dart';
 
 /// يبني دخل المستخدم من كل جهاته في فترة واحدة.
 ///
@@ -10,15 +12,22 @@ import '../../repositories/attendance_repository.dart';
 /// النواتج. الجمع يقع على المال وحده: الساعات والأيام تبقى مفصّلة، لأن
 /// «184 ساعة» عبر جهتين رقم لا يقود إلى قرار.
 class BuildPersonalPayrollUseCase {
-  const BuildPersonalPayrollUseCase(this.attendanceRepository);
+  const BuildPersonalPayrollUseCase(
+    this.attendanceRepository, {
+    this.absenceService = const MonthAbsenceService(),
+  });
 
   final AttendanceRepository attendanceRepository;
+
+  /// القاعدة نفسها التي تستعملها شاشة الدوام — لا نسخة ثانية منها.
+  final MonthAbsenceService absenceService;
 
   Future<PersonalPayroll> call({
     required List<CompanyEntity> companies,
     required DateTime from,
     required DateTime to,
     List<LeaveEntity> leaves = const [],
+    List<CalendarDayEntity> calendar = const [],
   }) async {
     final results = <WorkplacePayroll>[];
 
@@ -46,9 +55,24 @@ class BuildPersonalPayrollUseCase {
         if (record.sessions.isNotEmpty) attendedDays++;
       }
 
+      // أيام مضت بلا سجل يفسّرها تُخصم أيضاً. جمعُ السجلات وحدها كان يُظهر
+      // الراتب كاملاً في هذه الشاشة بينما تخصمه شاشة الدوام — رقمان
+      // متخالفان عن الشهر نفسه، والأعلى منهما هو الخاطئ.
+      final calculator = SalaryCalculator(company);
+      final absence = absenceService(
+        year: from.year,
+        month: from.month,
+        company: company,
+        records: records,
+        calendar: calendar,
+        leaves: leaves,
+      );
+      deficitValue += calculator.calculateDeficitValue(
+          absence.absentMinutes ~/ 60, absence.absentMinutes % 60);
+
       // البدلات تُقرأ من الحاسبة لا تُجمع هنا: هي شرط من شروط الجهة،
       // وحسابها في موضعين يفتح باب اختلافهما.
-      final monthly = SalaryCalculator(company).calculateMonthly(
+      final monthly = calculator.calculateMonthly(
         totalOvertimeValue: overtimeValue,
         totalDeficitValue: deficitValue,
         totalDebtPayments: 0,

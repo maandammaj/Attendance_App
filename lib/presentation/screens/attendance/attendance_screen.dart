@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/common/state_switcher.dart';
 import '../../../config/routes.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/constants/theme.dart';
 import '../../../core/utils/date_helpers.dart';
@@ -18,6 +17,7 @@ import '../companies/widgets/company_title.dart';
 import 'manual_attendance_dialog.dart';
 import 'widgets/quick_action_row.dart';
 import 'widgets/today_sessions_card.dart';
+import '../../../core/constants/currencies.dart';
 
 class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
@@ -28,8 +28,7 @@ class AttendanceScreen extends ConsumerWidget {
     final today = ref.watch(todayAttendanceProvider);
     final stats =
         ref.watch(attendanceStatsProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).value?.currency ??
-        AppConstants.defaultCurrency;
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(
@@ -214,7 +213,7 @@ class _ErrorCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.error_outline, color: theme.colorScheme.error),
+            Icon(Icons.error_outline_rounded, color: theme.colorScheme.error),
             const SizedBox(width: 12),
             Expanded(
               child: Text(message,

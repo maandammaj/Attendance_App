@@ -36,7 +36,7 @@ class _MonthlyReportScreenState extends ConsumerState<MonthlyReportScreen> {
         actions: [
           IconButton(
               tooltip: 'اختيار الشهر',
-            icon: const Icon(Icons.calendar_month),
+            icon: const Icon(Icons.calendar_month_rounded),
             onPressed: () async {
               final picked = await showDatePicker(
                 context: context,

@@ -85,7 +85,7 @@ class _MonthSwitcher extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(Icons.chevron_right_rounded),
             tooltip: 'الشهر السابق',
             onPressed: () =>
                 onChanged(DateTime(month.year, month.month - 1, 1)),
@@ -98,7 +98,7 @@ class _MonthSwitcher extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_left),
+            icon: const Icon(Icons.chevron_left_rounded),
             tooltip: 'الشهر التالي',
             onPressed: () =>
                 onChanged(DateTime(month.year, month.month + 1, 1)),

@@ -32,7 +32,7 @@ class ReminderStepperTile extends StatelessWidget {
           Expanded(child: Text(title, style: theme.textTheme.bodyMedium)),
           IconButton(
             onPressed: value - step >= min ? () => onChanged(value - step) : null,
-            icon: const Icon(Icons.remove_circle_outline),
+            icon: const Icon(Icons.remove_circle_outline_rounded),
             tooltip: 'إنقاص',
           ),
           SizedBox(
@@ -45,7 +45,7 @@ class ReminderStepperTile extends StatelessWidget {
           ),
           IconButton(
             onPressed: value + step <= max ? () => onChanged(value + step) : null,
-            icon: const Icon(Icons.add_circle_outline),
+            icon: const Icon(Icons.add_circle_outline_rounded),
             tooltip: 'زيادة',
           ),
         ],

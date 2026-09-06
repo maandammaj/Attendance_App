@@ -4,10 +4,10 @@ import 'attendance_provider.dart';
 import 'debt_provider.dart';
 import 'company_provider.dart';
 import 'transaction_provider.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/utils/salary_calculator.dart';
 import '../../domain/entities/analytics_report_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
+import '../../core/constants/currencies.dart';
 
 part 'dashboard_provider.g.dart';
 
@@ -72,7 +72,7 @@ Future<DashboardData> dashboardData(Ref ref) async {
     totalTransactionsExpenses: expenses,
     totalAdjustments: monthly.adjustments,
     debtToSalaryRatio: debtToSalaryRatio.toDouble(),
-    currency: company.currency ?? AppConstants.defaultCurrency,
+    currency: AppCurrency.wordOf(company.currency),
     expectedWorkingDays: stats.expectedWorkingDays,
     attendedDays: stats.actualWorkingDays,
     absentDays: stats.absentDays,
@@ -162,7 +162,7 @@ class DashboardData {
     required this.totalTransactionsExpenses,
     required this.totalAdjustments,
     required this.debtToSalaryRatio,
-    this.currency = AppConstants.defaultCurrency,
+    this.currency = AppCurrency.fallbackWord,
     this.expectedWorkingDays = 0,
     this.attendedDays = 0,
     this.absentDays = 0,

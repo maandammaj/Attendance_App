@@ -196,7 +196,7 @@ class _GapRow extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 36, bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.pause_circle_outline,
+          Icon(Icons.pause_circle_outline_rounded,
               size: 14, color: theme.disabledColor),
           const SizedBox(width: 6),
           Text(

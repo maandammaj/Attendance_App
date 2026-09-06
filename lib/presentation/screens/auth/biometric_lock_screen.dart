@@ -87,7 +87,7 @@ class _BiometricLockScreenState extends ConsumerState<BiometricLockScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline,
+                      Icon(Icons.info_outline_rounded,
                           size: 18, color: theme.colorScheme.error),
                       const SizedBox(width: 8),
                       Expanded(

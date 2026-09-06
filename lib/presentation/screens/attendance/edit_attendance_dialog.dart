@@ -183,7 +183,7 @@ class _EditAttendanceDialogState extends ConsumerState<EditAttendanceDialog> {
                       alignment: AlignmentDirectional.centerStart,
                       child: TextButton.icon(
                         onPressed: _addSession,
-                        icon: const Icon(Icons.add, size: 18),
+                        icon: const Icon(Icons.add_rounded, size: 18),
                         label: const Text('إضافة جلسة'),
                       ),
                     ),
@@ -257,7 +257,7 @@ class _SessionEditor extends StatelessWidget {
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+            icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
             tooltip: 'حذف الجلسة',
             onPressed: onDelete,
           ),
