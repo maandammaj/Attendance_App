@@ -45,13 +45,17 @@ class PersonalPayrollScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              _TotalCard(payroll: payroll, currency: currency),
+              _TotalCard(
+                payroll: payroll,
+                currency: currency,
+                month: DateHelpers.arabicMonths[now.month - 1],
+              ),
               const SizedBox(height: AppSpacing.lg),
               _MonthSummary(payroll: payroll),
               const SizedBox(height: AppSpacing.xl),
-              SectionHeader(
+              const SectionHeader(
                 title: 'من أين جاء',
-                subtitle: DateHelpers.arabicMonths[now.month - 1],
+                subtitle: 'تفصيل كل جهة على حدة',
               ),
               for (final workplace in payroll.workplaces)
                 _WorkplaceCard(
@@ -70,10 +74,17 @@ class PersonalPayrollScreen extends ConsumerWidget {
 }
 
 class _TotalCard extends StatelessWidget {
-  const _TotalCard({required this.payroll, required this.currency});
+  const _TotalCard({
+    required this.payroll,
+    required this.currency,
+    required this.month,
+  });
 
   final PersonalPayroll payroll;
   final String currency;
+
+  /// الشهر يُذكر مع الرقم لا تحته بأربع بطاقات: مبلغٌ بلا فترة ليس معلومة.
+  final String month;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +106,9 @@ class _TotalCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'إجمالي دخلك من ${ArabicPlural.workplaces(payroll.workplaces.length)}',
+            payroll.workplaces.length == 1
+                ? 'دخلك في $month'
+                : 'دخلك في $month من ${ArabicPlural.workplaces(payroll.workplaces.length)}',
             style: theme.textTheme.titleSmall
                 ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
           ),
@@ -130,24 +143,31 @@ class _TotalCard extends StatelessWidget {
                         color: palette.accentOnBrand.withValues(alpha: 0.75))),
               ],
             ),
-          if (payroll.hasComparableTotal) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              _TotalPart(
-                  label: 'الأساسي',
-                  value: payroll.totalBasic,
-                  currency: currency),
-              _TotalPart(
-                  label: 'الإضافي',
-                  value: payroll.totalOvertime,
-                  currency: currency),
-              _TotalPart(
-                  label: 'الخصم',
-                  value: payroll.totalDeductions,
-                  currency: currency),
-            ],
-          ),
+          // التفصيل يظهر بجهتين فأكثر فقط. بجهة واحدة تكرّره بطاقتها أدناه
+          // حرفياً، فيقرأ المستخدم الأرقام نفسها مرّتين.
+          //
+          // والبنود الصفرية تُحذف كما تُحذف في بطاقة الجهة: صفٌّ يقول «الإضافي
+          // صفر» لا يضيف، وثلاثة أصفار متجاورة تُسطّح ما يستحق الانتباه.
+          if (payroll.hasComparableTotal && payroll.workplaces.length > 1) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                _TotalPart(
+                    label: 'الأساسي',
+                    value: payroll.totalBasic,
+                    currency: currency),
+                if (payroll.totalOvertime != 0)
+                  _TotalPart(
+                      label: 'الإضافي',
+                      value: payroll.totalOvertime,
+                      currency: currency),
+                if (payroll.totalDeductions != 0)
+                  _TotalPart(
+                      label: 'الخصم',
+                      value: payroll.totalDeductions,
+                      currency: currency),
+              ],
+            ),
           ],
         ],
       ),
