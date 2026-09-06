@@ -245,4 +245,57 @@ void main() {
       expect(payroll.workplaces.single.leaveDays, 0);
     });
   });
+
+  group('عملات مختلفة', () {
+    CompanyEntity withCurrency(int id, String name, String? currency) =>
+        CompanyEntity(
+          id: id,
+          name: name,
+          jobTitle: 'موظف',
+          baseMonthlySalary: 5000,
+          hourlyRate: 100,
+          overtimeRate: 1.5,
+          workSchedule: const [],
+          adjustments: const [],
+          currency: currency,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    test('جهتان بعملة واحدة يصحّ جمعهما', () async {
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository(const {}))(
+        companies: [
+          withCurrency(1, 'أ', 'YER'),
+          withCurrency(2, 'ب', 'YER'),
+        ],
+        from: from,
+        to: to,
+      );
+      expect(payroll.sharedCurrency, 'YER');
+      expect(payroll.hasComparableTotal, isTrue);
+    });
+
+    test('جهتان بعملتين لا يصحّ جمعهما', () async {
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository(const {}))(
+        companies: [
+          withCurrency(1, 'أ', 'YER'),
+          withCurrency(2, 'ب', 'SAR'),
+        ],
+        from: from,
+        to: to,
+      );
+      expect(payroll.sharedCurrency, isNull);
+      expect(payroll.hasComparableTotal, isFalse,
+          reason: 'جُمعت عملتان مختلفتان في رقم واحد');
+    });
+
+    test('جهة واحدة يصحّ إجماليها دائماً', () async {
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository(const {}))(
+        companies: [withCurrency(1, 'أ', 'SAR')],
+        from: from,
+        to: to,
+      );
+      expect(payroll.hasComparableTotal, isTrue);
+    });
+  });
 }

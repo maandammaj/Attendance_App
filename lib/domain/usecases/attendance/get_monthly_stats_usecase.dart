@@ -4,7 +4,7 @@ import '../../entities/calendar_day_entity.dart';
 import '../../entities/company_entity.dart';
 import '../../entities/leave_entity.dart';
 import '../../repositories/attendance_repository.dart';
-import '../../services/month_absence_service.dart';
+import '../../services/absence_service.dart';
 
 class MonthlyStats {
   final int expectedWorkingDays;
@@ -97,9 +97,9 @@ class GetMonthlyStatsUseCase {
     }
 
     // 2. الغياب التلقائي — قاعدة واحدة تقرأها هذه الشاشة وشاشة الدخل معاً.
-    final absence = MonthAbsenceService(clock: clock)(
-      year: year,
-      month: month,
+    final absence = AbsenceService(clock: clock)(
+      from: DateTime(year, month, 1),
+      to: DateTime(year, month + 1, 0),
       company: company,
       records: records,
       calendar: calendar,

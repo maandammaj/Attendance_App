@@ -2,6 +2,7 @@ import '../../../core/utils/salary_calculator.dart';
 import '../../entities/analytics_report_entity.dart';
 import '../../entities/company_entity.dart';
 import '../../repositories/attendance_repository.dart';
+import '../../services/absence_service.dart';
 
 /// أداء جهة واحدة خلال فترة، بصيغة تسمح بمقارنتها بغيرها.
 class CompanyPerformance {
@@ -35,9 +36,15 @@ class CompanyPerformance {
 ///
 /// المقارنة هي السبب الرئيسي لتعدّد الجهات: أيّها يستحق وقتك أكثر.
 class CompareCompaniesUseCase {
-  CompareCompaniesUseCase(this.attendanceRepository);
+  CompareCompaniesUseCase(
+    this.attendanceRepository, {
+    this.absenceService = const AbsenceService(),
+  });
 
   final AttendanceRepository attendanceRepository;
+
+  /// القاعدة نفسها التي تستعملها شاشتا الدوام والدخل.
+  final AbsenceService absenceService;
 
   Future<List<CompanyPerformance>> call({
     required List<CompanyEntity> companies,
@@ -68,7 +75,20 @@ class CompareCompaniesUseCase {
         if (record.sessions.isNotEmpty) attended++;
       }
 
-      final monthly = SalaryCalculator(company).calculateMonthly(
+      // أيام مضت بلا سجل تُخصم هنا أيضاً. جمع السجلات وحدها كان يُظهر جهةً
+      // تغيّبتَ عنها وكأنها دفعت كاملاً، فتفسد المقارنة التي هي غرض الشاشة.
+      final calculator = SalaryCalculator(company);
+      final absence = absenceService(
+        from: period.from,
+        to: period.to,
+        company: company,
+        records: records,
+      );
+      deficitValue += calculator.calculateDeficitValue(
+          absence.absentMinutes ~/ 60, absence.absentMinutes % 60);
+      deficit += absence.absentMinutes;
+
+      final monthly = calculator.calculateMonthly(
         totalOvertimeValue: overtimeValue,
         totalDeficitValue: deficitValue,
         totalDebtPayments: 0,

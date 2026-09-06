@@ -6,6 +6,7 @@ import '../../entities/company_entity.dart';
 import '../../entities/profile_entity.dart';
 import '../../entities/transaction_entity.dart';
 import '../../repositories/attendance_repository.dart';
+import '../../services/absence_service.dart';
 import '../../repositories/debt_repository.dart';
 import '../../repositories/transaction_repository.dart';
 import '../debt/get_debts_summary_usecase.dart';
@@ -20,11 +21,15 @@ class BuildAnalyticsReportUseCase {
     required this.attendanceRepository,
     required this.transactionRepository,
     required this.debtRepository,
+    this.absenceService = const AbsenceService(),
   });
 
   final AttendanceRepository attendanceRepository;
   final TransactionRepository transactionRepository;
   final DebtRepository debtRepository;
+
+  /// القاعدة نفسها التي تستعملها شاشات الدوام والدخل والمقارنة.
+  final AbsenceService absenceService;
 
   Future<AnalyticsReport> call({
     required ReportPeriod period,
@@ -45,6 +50,7 @@ class BuildAnalyticsReportUseCase {
 
     final debtSummary = await GetDebtsSummaryUseCase(debtRepository)();
     final salary = _buildSalary(
+      period: period,
       company: company,
       attendance: attendance,
       records: records,
@@ -345,6 +351,7 @@ class BuildAnalyticsReportUseCase {
 
   SalaryBreakdown _buildSalary({
     required CompanyEntity company,
+    required ReportPeriod period,
     required AttendanceAnalytics attendance,
     required List<AttendanceEntity> records,
     required double expenses,
@@ -356,17 +363,22 @@ class BuildAnalyticsReportUseCase {
     final deficitValue =
         records.fold(0.0, (sum, record) => sum + record.deficitValue);
 
-    // الغياب غير المسجَّل لا يملك سجلاً، فقيمته تُحسب من دقائق العجز الكلية
-    // ناقص ما هو مخزن في السجلات.
-    final recordedDeficitMinutes = records.fold(
-        0, (sum, r) => sum + (r.deficitHours * 60) + r.deficitMinutes);
-    final absenceMinutes = attendance.absentDays == 0
-        ? 0
-        : attendance.totalDeficitMinutes - recordedDeficitMinutes;
-    final absenceValue = absenceMinutes <= 0
+    // الغياب غير المسجَّل لا يملك سجلاً يُجمع، فيُحسب من الجدول والتقويم
+    // والإجازات مباشرةً.
+    //
+    // كان يُستنتج بالطرح: «العجز الكلي ناقص العجز المخزَّن». وكلاهما يجمع
+    // السجلات نفسها، فالفرق صفر دائماً — أي أن الغياب لم يكن يُخصم هنا
+    // إطلاقاً رغم أن الشيفرة توحي بأنه يُخصم.
+    final absence = absenceService(
+      from: period.from,
+      to: period.to,
+      company: company,
+      records: records,
+    );
+    final absenceValue = absence.absentMinutes <= 0
         ? 0.0
         : calculator.calculateDeficitValue(
-            absenceMinutes ~/ 60, absenceMinutes % 60);
+            absence.absentMinutes ~/ 60, absence.absentMinutes % 60);
 
     final monthly = calculator.calculateMonthly(
       totalOvertimeValue: overtimeValue,

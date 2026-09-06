@@ -7,9 +7,9 @@ import '../entities/leave_entity.dart';
 import '../entities/profile_entity.dart';
 import 'effective_day_resolver.dart';
 
-/// أيام الشهر التي مضت ولم يُسجَّل فيها حضور.
-class MonthAbsence {
-  const MonthAbsence({
+/// أيام الفترة التي مضت ولم يُسجَّل فيها حضور.
+class Absence {
+  const Absence({
     required this.expectedWorkingDays,
     required this.requiredMinutes,
     required this.absentMinutes,
@@ -22,44 +22,38 @@ class MonthAbsence {
   final int absentMinutes;
 }
 
-/// يحسب غياب الشهر من الجدول والتقويم والإجازات.
+/// يحسب الغياب في فترة من الجدول والتقويم والإجازات.
 ///
 /// مستقلٌّ عن الإحصاءات والرواتب لأن كليهما يحتاجه: شاشة الدوام كانت تخصم
 /// الغياب وشاشة الدخل لا، فتعرض الأولى «عليك 462» وتعرض الثانية الراتب
 /// كاملاً عن الشهر نفسه. نسختان من القاعدة تعنيان رقمين متخالفين.
-class MonthAbsenceService {
-  const MonthAbsenceService({this.clock = const SystemClock()});
+class AbsenceService {
+  const AbsenceService({this.clock = const SystemClock()});
 
   final Clock clock;
 
-  MonthAbsence call({
-    required int year,
-    required int month,
+  Absence call({
+    required DateTime from,
+    required DateTime to,
     required CompanyEntity company,
     required List<AttendanceEntity> records,
     List<CalendarDayEntity> calendar = const [],
     List<LeaveEntity> leaves = const [],
   }) {
-    final now = clock.now();
-
-    // آخر يوم يُحاسَب عليه. الشهر القادم لم يُطلَب منه شيء بعد، فحسابه
-    // كاملاً غياباً التزامٌ مُختلَق عن أيام لم تأتِ.
-    final daysInMonth = DateTime(year, month + 1, 0).day;
-    final isCurrentMonth = year == now.year && month == now.month;
-    final isFuture =
-        DateTime(year, month).isAfter(DateTime(now.year, now.month));
-    final endDay = isFuture
-        ? 0
-        : isCurrentMonth
-            ? now.day - 1
-            : daysInMonth;
+    // آخر يوم يُحاسَب عليه هو أمس: اليوم الجاري لم ينتهِ بعد، وما بعده لم
+    // يُطلَب منه شيء أصلاً — فحسابه غياباً التزامٌ مُختلَق عن أيام لم تأتِ.
+    final yesterday =
+        DateHelpers.startOfDay(clock.now()).subtract(const Duration(days: 1));
+    final requestedEnd = DateHelpers.startOfDay(to);
+    final end = yesterday.isBefore(requestedEnd) ? yesterday : requestedEnd;
 
     var expectedWorkingDays = 0;
     var requiredMinutes = 0;
     var absentMinutes = 0;
 
-    for (var day = 1; day <= endDay; day++) {
-      final date = DateTime(year, month, day);
+    for (var date = DateHelpers.startOfDay(from);
+        !date.isAfter(end);
+        date = date.add(const Duration(days: 1))) {
       final dayOfWeek = DateHelpers.scheduleDayOf(date);
 
       final scheduled = company.workSchedule.firstWhere(
@@ -95,7 +89,7 @@ class MonthAbsenceService {
       if (!explained) absentMinutes += dayConfig.requiredMinutesTotal;
     }
 
-    return MonthAbsence(
+    return Absence(
       expectedWorkingDays: expectedWorkingDays,
       requiredMinutes: requiredMinutes,
       absentMinutes: absentMinutes,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/design_tokens.dart';
+import '../../../core/constants/currencies.dart';
 import '../../../core/utils/arabic_plural.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/payroll_entity.dart';
@@ -11,7 +12,6 @@ import '../../providers/profile_provider.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/section_header.dart';
 import '../../widgets/common/state_switcher.dart';
-import '../../../core/constants/currencies.dart';
 
 /// دخل المستخدم من كل جهاته في شهر.
 class PersonalPayrollScreen extends ConsumerWidget {
@@ -54,7 +54,11 @@ class PersonalPayrollScreen extends ConsumerWidget {
                 subtitle: DateHelpers.arabicMonths[now.month - 1],
               ),
               for (final workplace in payroll.workplaces)
-                _WorkplaceCard(workplace: workplace, currency: currency),
+                _WorkplaceCard(
+                  workplace: workplace,
+                  currency:
+                      AppCurrency.wordOf(workplace.company.currency),
+                ),
               const SizedBox(height: AppSpacing.md),
               _Insights(year: now.year, month: now.month),
             ],
@@ -96,27 +100,37 @@ class _TotalCard extends StatelessWidget {
                 ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            textBaseline: TextBaseline.alphabetic,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            children: [
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    payroll.totalNet.toStringAsFixed(0),
-                    style: theme.textTheme.displayLarge
-                        ?.copyWith(color: palette.accentOnBrand),
+          if (!payroll.hasComparableTotal)
+            // عملات مختلفة: يُعرض التفصيل ولا يُختلق إجمالي لا معنى له.
+            Text(
+              'جهاتك بعملات مختلفة، فلا يصحّ جمعها في رقم واحد — '
+              'التفصيل أدناه بعملة كل جهة.',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+            )
+          else
+            Row(
+              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      payroll.totalNet.toStringAsFixed(0),
+                      style: theme.textTheme.displayLarge
+                          ?.copyWith(color: palette.accentOnBrand),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(currency,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                      color: palette.accentOnBrand.withValues(alpha: 0.75))),
-            ],
-          ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(currency,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                        color: palette.accentOnBrand.withValues(alpha: 0.75))),
+              ],
+            ),
+          if (payroll.hasComparableTotal) ...[
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
@@ -134,6 +148,7 @@ class _TotalCard extends StatelessWidget {
                   currency: currency),
             ],
           ),
+          ],
         ],
       ),
     );

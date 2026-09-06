@@ -99,6 +99,22 @@ class PersonalPayroll {
   int get totalPresenceMinutes =>
       workplaces.fold(0, (sum, w) => sum + w.presenceMinutes);
 
+  /// عملات الجهات كلها إن اتفقت، وإلا null.
+  ///
+  /// جمعُ عملتين مختلفتين في رقم واحد لا معنى له: «128,500» من ريال ودولار
+  /// ليست مبلغاً. فحين تختلف، يُعرض تفصيل كل جهة بعملتها ولا يُعرض إجمالي.
+  String? get sharedCurrency {
+    if (workplaces.isEmpty) return null;
+    final first = workplaces.first.company.currency;
+    for (final workplace in workplaces) {
+      if (workplace.company.currency != first) return null;
+    }
+    return first;
+  }
+
+  /// هل يصحّ جمع دخل الجهات في رقم واحد.
+  bool get hasComparableTotal => workplaces.length < 2 || sharedCurrency != null;
+
   /// الجهة الأعلى دخلاً، أو null بلا جهات.
   WorkplacePayroll? get topEarner =>
       workplaces.isEmpty ? null : workplaces.first;

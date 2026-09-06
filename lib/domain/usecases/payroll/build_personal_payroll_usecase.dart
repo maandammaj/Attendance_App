@@ -4,7 +4,7 @@ import '../../entities/payroll_entity.dart';
 import '../../entities/calendar_day_entity.dart';
 import '../../entities/leave_entity.dart';
 import '../../repositories/attendance_repository.dart';
-import '../../services/month_absence_service.dart';
+import '../../services/absence_service.dart';
 
 /// يبني دخل المستخدم من كل جهاته في فترة واحدة.
 ///
@@ -14,13 +14,13 @@ import '../../services/month_absence_service.dart';
 class BuildPersonalPayrollUseCase {
   const BuildPersonalPayrollUseCase(
     this.attendanceRepository, {
-    this.absenceService = const MonthAbsenceService(),
+    this.absenceService = const AbsenceService(),
   });
 
   final AttendanceRepository attendanceRepository;
 
   /// القاعدة نفسها التي تستعملها شاشة الدوام — لا نسخة ثانية منها.
-  final MonthAbsenceService absenceService;
+  final AbsenceService absenceService;
 
   Future<PersonalPayroll> call({
     required List<CompanyEntity> companies,
@@ -60,8 +60,8 @@ class BuildPersonalPayrollUseCase {
       // متخالفان عن الشهر نفسه، والأعلى منهما هو الخاطئ.
       final calculator = SalaryCalculator(company);
       final absence = absenceService(
-        year: from.year,
-        month: from.month,
+        from: from,
+        to: to,
         company: company,
         records: records,
         calendar: calendar,
