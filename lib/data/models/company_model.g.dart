@@ -64,33 +64,40 @@ const CompanyModelSchema = CollectionSchema(
       name: r'jobTitle',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(id: 9, name: r'name', type: IsarType.string),
+    r'leaveAllowances': PropertySchema(
+      id: 9,
+      name: r'leaveAllowances',
+      type: IsarType.objectList,
+
+      target: r'LeaveAllowance',
+    ),
+    r'name': PropertySchema(id: 10, name: r'name', type: IsarType.string),
     r'overtimePolicy': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'overtimePolicy',
       type: IsarType.object,
 
       target: r'OvertimePolicy',
     ),
     r'overtimeRate': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'overtimeRate',
       type: IsarType.double,
     ),
     r'policy': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'policy',
       type: IsarType.object,
 
       target: r'WorkPolicy',
     ),
     r'updatedAt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'workSchedule': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'workSchedule',
       type: IsarType.objectList,
 
@@ -124,6 +131,7 @@ const CompanyModelSchema = CollectionSchema(
     r'WorkPolicy': WorkPolicySchema,
     r'OvertimePolicy': OvertimePolicySchema,
     r'OvertimeRate': OvertimeRateSchema,
+    r'LeaveAllowance': LeaveAllowanceSchema,
     r'SalaryAdjustment': SalaryAdjustmentSchema,
   },
 
@@ -158,6 +166,18 @@ int _companyModelEstimateSize(
     }
   }
   bytesCount += 3 + object.jobTitle.length * 3;
+  bytesCount += 3 + object.leaveAllowances.length * 3;
+  {
+    final offsets = allOffsets[LeaveAllowance]!;
+    for (var i = 0; i < object.leaveAllowances.length; i++) {
+      final value = object.leaveAllowances[i];
+      bytesCount += LeaveAllowanceSchema.estimateSize(
+        value,
+        offsets,
+        allOffsets,
+      );
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   {
     final value = object.overtimePolicy;
@@ -218,23 +238,29 @@ void _companyModelSerialize(
   writer.writeDouble(offsets[6], object.hourlyRate);
   writer.writeBool(offsets[7], object.isArchived);
   writer.writeString(offsets[8], object.jobTitle);
-  writer.writeString(offsets[9], object.name);
+  writer.writeObjectList<LeaveAllowance>(
+    offsets[9],
+    allOffsets,
+    LeaveAllowanceSchema.serialize,
+    object.leaveAllowances,
+  );
+  writer.writeString(offsets[10], object.name);
   writer.writeObject<OvertimePolicy>(
-    offsets[10],
+    offsets[11],
     allOffsets,
     OvertimePolicySchema.serialize,
     object.overtimePolicy,
   );
-  writer.writeDouble(offsets[11], object.overtimeRate);
+  writer.writeDouble(offsets[12], object.overtimeRate);
   writer.writeObject<WorkPolicy>(
-    offsets[12],
+    offsets[13],
     allOffsets,
     WorkPolicySchema.serialize,
     object.policy,
   );
-  writer.writeDateTime(offsets[13], object.updatedAt);
+  writer.writeDateTime(offsets[14], object.updatedAt);
   writer.writeObjectList<WorkDayConfig>(
-    offsets[14],
+    offsets[15],
     allOffsets,
     WorkDayConfigSchema.serialize,
     object.workSchedule,
@@ -265,22 +291,30 @@ CompanyModel _companyModelDeserialize(
   object.id = id;
   object.isArchived = reader.readBool(offsets[7]);
   object.jobTitle = reader.readString(offsets[8]);
-  object.name = reader.readString(offsets[9]);
+  object.leaveAllowances =
+      reader.readObjectList<LeaveAllowance>(
+        offsets[9],
+        LeaveAllowanceSchema.deserialize,
+        allOffsets,
+        LeaveAllowance(),
+      ) ??
+      [];
+  object.name = reader.readString(offsets[10]);
   object.overtimePolicy = reader.readObjectOrNull<OvertimePolicy>(
-    offsets[10],
+    offsets[11],
     OvertimePolicySchema.deserialize,
     allOffsets,
   );
-  object.overtimeRate = reader.readDouble(offsets[11]);
+  object.overtimeRate = reader.readDouble(offsets[12]);
   object.policy = reader.readObjectOrNull<WorkPolicy>(
-    offsets[12],
+    offsets[13],
     WorkPolicySchema.deserialize,
     allOffsets,
   );
-  object.updatedAt = reader.readDateTime(offsets[13]);
+  object.updatedAt = reader.readDateTime(offsets[14]);
   object.workSchedule =
       reader.readObjectList<WorkDayConfig>(
-        offsets[14],
+        offsets[15],
         WorkDayConfigSchema.deserialize,
         allOffsets,
         WorkDayConfig(),
@@ -322,26 +356,35 @@ P _companyModelDeserializeProp<P>(
     case 8:
       return (reader.readString(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readObjectList<LeaveAllowance>(
+                offset,
+                LeaveAllowanceSchema.deserialize,
+                allOffsets,
+                LeaveAllowance(),
+              ) ??
+              [])
+          as P;
     case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (reader.readObjectOrNull<OvertimePolicy>(
             offset,
             OvertimePolicySchema.deserialize,
             allOffsets,
           ))
           as P;
-    case 11:
-      return (reader.readDouble(offset)) as P;
     case 12:
+      return (reader.readDouble(offset)) as P;
+    case 13:
       return (reader.readObjectOrNull<WorkPolicy>(
             offset,
             WorkPolicySchema.deserialize,
             allOffsets,
           ))
           as P;
-    case 13:
-      return (reader.readDateTime(offset)) as P;
     case 14:
+      return (reader.readDateTime(offset)) as P;
+    case 15:
       return (reader.readObjectList<WorkDayConfig>(
                 offset,
                 WorkDayConfigSchema.deserialize,
@@ -1270,6 +1313,65 @@ extension CompanyModelQueryFilter
     });
   }
 
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'leaveAllowances', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'leaveAllowances', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'leaveAllowances', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesLengthLessThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'leaveAllowances', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesLengthGreaterThan(int length, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'leaveAllowances',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'leaveAllowances',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1643,6 +1745,13 @@ extension CompanyModelQueryObject
   adjustmentsElement(FilterQuery<SalaryAdjustment> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'adjustments');
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  leaveAllowancesElement(FilterQuery<LeaveAllowance> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'leaveAllowances');
     });
   }
 
@@ -2109,6 +2218,13 @@ extension CompanyModelQueryProperty
   QueryBuilder<CompanyModel, String, QQueryOperations> jobTitleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'jobTitle');
+    });
+  }
+
+  QueryBuilder<CompanyModel, List<LeaveAllowance>, QQueryOperations>
+  leaveAllowancesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'leaveAllowances');
     });
   }
 

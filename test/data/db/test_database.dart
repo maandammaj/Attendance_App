@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:attendance_budget_app/data/local/database/isar_database.dart';
 import 'package:attendance_budget_app/data/models/company_model.dart';
+import 'package:attendance_budget_app/data/models/leave_model.dart';
 import 'package:attendance_budget_app/data/models/profile_model.dart';
 import 'package:isar_community/isar.dart';
 
@@ -44,6 +45,7 @@ class TestDatabase {
     String? startTime,
     String? endTime,
     OvertimePolicy? overtimePolicy,
+    int annualLeaveDays = 0,
   }) async {
     final company = CompanyModel()
       ..name = name
@@ -65,6 +67,13 @@ class TestDatabase {
       ]
       ..adjustments = []
       ..overtimePolicy = overtimePolicy
+      ..leaveAllowances = annualLeaveDays == 0
+          ? []
+          : [
+              LeaveAllowance()
+                ..type = LeaveTypeStored.annual
+                ..days = annualLeaveDays,
+            ]
       ..createdAt = DateTime(2026)
       ..updatedAt = DateTime(2026);
 

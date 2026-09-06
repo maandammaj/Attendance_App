@@ -9,6 +9,7 @@ import '../presentation/screens/budget/budget_dashboard_screen.dart';
 import '../presentation/screens/home/notification_history_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/calendar/work_calendar_screen.dart';
+import '../presentation/screens/leave/leave_screen.dart';
 import '../presentation/screens/reminders/budget_limits_screen.dart';
 import '../presentation/screens/schedule/work_schedule_screen.dart';
 import '../domain/entities/company_entity.dart';
@@ -37,6 +38,7 @@ class AppRoutes {
   static const String companyEditor = '/company-editor';
   static const String budgetLimits = '/budget-limits';
   static const String workCalendar = '/work-calendar';
+  static const String leave = '/leave';
   static const String workSchedule = '/work-schedule';
 
   static Map<String, WidgetBuilder> get routes => {
@@ -56,6 +58,7 @@ class AppRoutes {
         ),
         budgetLimits: (context) => const BudgetLimitsScreen(),
         workCalendar: (context) => const WorkCalendarScreen(),
+        leave: (context) => const LeaveScreen(),
         workSchedule: (context) => const WorkScheduleScreen(),
       };
 }

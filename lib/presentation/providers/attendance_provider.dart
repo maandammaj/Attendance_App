@@ -5,8 +5,11 @@ import '../../domain/entities/attendance_entity.dart';
 import '../../domain/usecases/attendance/check_in_usecase.dart';
 import '../../domain/usecases/attendance/check_out_usecase.dart';
 import '../../data/local/repositories/calendar_repository_impl.dart';
+import '../../data/local/repositories/leave_repository_impl.dart';
 import '../../domain/entities/calendar_day_entity.dart';
+import '../../domain/entities/leave_entity.dart';
 import '../../domain/repositories/calendar_repository.dart';
+import '../../domain/repositories/leave_repository.dart';
 import '../../domain/usecases/attendance/get_monthly_stats_usecase.dart';
 import '../../core/utils/biometric_auth.dart';
 import '../../domain/services/attendance_auth_policy.dart';
@@ -63,6 +66,37 @@ Future<List<CalendarDayEntity>> monthCalendar(
       );
 }
 
+final leaveRepositoryProvider =
+    Provider<LeaveRepository>((ref) => LeaveRepositoryImpl());
+
+/// إجازات شهر في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveEntity>> monthLeaves(
+  Ref ref, {
+  required int year,
+  required int month,
+}) async {
+  return ref.read(leaveRepositoryProvider).getBetween(
+        DateTime(year, month, 1),
+        DateTime(year, month + 1, 0),
+      );
+}
+
+/// كل إجازات سنة في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveEntity>> allLeaves(Ref ref, {required int year}) {
+  return ref.read(leaveRepositoryProvider).getBetween(
+        DateTime(year, 1, 1),
+        DateTime(year, 12, 31),
+      );
+}
+
+/// أرصدة الإجازات لسنة في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveBalanceEntity>> leaveBalances(Ref ref, {required int year}) {
+  return ref.read(leaveRepositoryProvider).getBalances(year);
+}
+
 @riverpod
 Future<MonthlyStats> attendanceStats(
   Ref ref, {
@@ -96,8 +130,11 @@ Future<MonthlyStats> attendanceStats(
 
   final calendar =
       await ref.watch(monthCalendarProvider(year: year, month: month).future);
+  final leaves =
+      await ref.watch(monthLeavesProvider(year: year, month: month).future);
   final useCase = ref.read(getMonthlyStatsUseCaseProvider);
-  return await useCase(year, month, company, calendar: calendar);
+  return await useCase(year, month, company,
+      calendar: calendar, leaves: leaves);
 }
 
 /// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.

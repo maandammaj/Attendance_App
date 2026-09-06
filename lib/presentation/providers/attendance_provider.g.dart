@@ -224,6 +224,268 @@ final class MonthCalendarFamily extends $Family
   String toString() => r'monthCalendarProvider';
 }
 
+/// إجازات شهر في الجهة الفعّالة.
+
+@ProviderFor(monthLeaves)
+final monthLeavesProvider = MonthLeavesFamily._();
+
+/// إجازات شهر في الجهة الفعّالة.
+
+final class MonthLeavesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<LeaveEntity>>,
+          List<LeaveEntity>,
+          FutureOr<List<LeaveEntity>>
+        >
+    with
+        $FutureModifier<List<LeaveEntity>>,
+        $FutureProvider<List<LeaveEntity>> {
+  /// إجازات شهر في الجهة الفعّالة.
+  MonthLeavesProvider._({
+    required MonthLeavesFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthLeavesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthLeavesHash();
+
+  @override
+  String toString() {
+    return r'monthLeavesProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<LeaveEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<LeaveEntity>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return monthLeaves(ref, year: argument.year, month: argument.month);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MonthLeavesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$monthLeavesHash() => r'6e03ce8e8b4acb5e3d50f09b582a2f7c05b276c6';
+
+/// إجازات شهر في الجهة الفعّالة.
+
+final class MonthLeavesFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<LeaveEntity>>,
+          ({int year, int month})
+        > {
+  MonthLeavesFamily._()
+    : super(
+        retry: null,
+        name: r'monthLeavesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// إجازات شهر في الجهة الفعّالة.
+
+  MonthLeavesProvider call({required int year, required int month}) =>
+      MonthLeavesProvider._(argument: (year: year, month: month), from: this);
+
+  @override
+  String toString() => r'monthLeavesProvider';
+}
+
+/// كل إجازات سنة في الجهة الفعّالة.
+
+@ProviderFor(allLeaves)
+final allLeavesProvider = AllLeavesFamily._();
+
+/// كل إجازات سنة في الجهة الفعّالة.
+
+final class AllLeavesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<LeaveEntity>>,
+          List<LeaveEntity>,
+          FutureOr<List<LeaveEntity>>
+        >
+    with
+        $FutureModifier<List<LeaveEntity>>,
+        $FutureProvider<List<LeaveEntity>> {
+  /// كل إجازات سنة في الجهة الفعّالة.
+  AllLeavesProvider._({
+    required AllLeavesFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'allLeavesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$allLeavesHash();
+
+  @override
+  String toString() {
+    return r'allLeavesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<LeaveEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<LeaveEntity>> create(Ref ref) {
+    final argument = this.argument as int;
+    return allLeaves(ref, year: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AllLeavesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$allLeavesHash() => r'f175dd401c5c0aef5c1c2747477a498a78df49aa';
+
+/// كل إجازات سنة في الجهة الفعّالة.
+
+final class AllLeavesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<LeaveEntity>>, int> {
+  AllLeavesFamily._()
+    : super(
+        retry: null,
+        name: r'allLeavesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// كل إجازات سنة في الجهة الفعّالة.
+
+  AllLeavesProvider call({required int year}) =>
+      AllLeavesProvider._(argument: year, from: this);
+
+  @override
+  String toString() => r'allLeavesProvider';
+}
+
+/// أرصدة الإجازات لسنة في الجهة الفعّالة.
+
+@ProviderFor(leaveBalances)
+final leaveBalancesProvider = LeaveBalancesFamily._();
+
+/// أرصدة الإجازات لسنة في الجهة الفعّالة.
+
+final class LeaveBalancesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<LeaveBalanceEntity>>,
+          List<LeaveBalanceEntity>,
+          FutureOr<List<LeaveBalanceEntity>>
+        >
+    with
+        $FutureModifier<List<LeaveBalanceEntity>>,
+        $FutureProvider<List<LeaveBalanceEntity>> {
+  /// أرصدة الإجازات لسنة في الجهة الفعّالة.
+  LeaveBalancesProvider._({
+    required LeaveBalancesFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'leaveBalancesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$leaveBalancesHash();
+
+  @override
+  String toString() {
+    return r'leaveBalancesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<LeaveBalanceEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<LeaveBalanceEntity>> create(Ref ref) {
+    final argument = this.argument as int;
+    return leaveBalances(ref, year: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LeaveBalancesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$leaveBalancesHash() => r'1d11f51185a4376e27ffac920482712cfc62df0f';
+
+/// أرصدة الإجازات لسنة في الجهة الفعّالة.
+
+final class LeaveBalancesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<LeaveBalanceEntity>>, int> {
+  LeaveBalancesFamily._()
+    : super(
+        retry: null,
+        name: r'leaveBalancesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// أرصدة الإجازات لسنة في الجهة الفعّالة.
+
+  LeaveBalancesProvider call({required int year}) =>
+      LeaveBalancesProvider._(argument: year, from: this);
+
+  @override
+  String toString() => r'leaveBalancesProvider';
+}
+
 @ProviderFor(attendanceStats)
 final attendanceStatsProvider = AttendanceStatsFamily._();
 
@@ -279,7 +541,7 @@ final class AttendanceStatsProvider
   }
 }
 
-String _$attendanceStatsHash() => r'e277dd30114a6ab920bf173e2916a56f84b02295';
+String _$attendanceStatsHash() => r'e4eb749186be3292181e774d4324ea8cc7d7c52d';
 
 final class AttendanceStatsFamily extends $Family
     with

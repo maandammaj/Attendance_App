@@ -3,6 +3,7 @@ import '../../../core/utils/date_helpers.dart';
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/calendar_day_entity.dart';
 import '../../entities/company_entity.dart';
+import '../../entities/leave_entity.dart';
 import '../../entities/profile_entity.dart';
 import '../../repositories/attendance_repository.dart';
 import '../../services/effective_day_resolver.dart';
@@ -62,6 +63,7 @@ class GetMonthlyStatsUseCase {
     int month,
     CompanyEntity company, {
     List<CalendarDayEntity> calendar = const [],
+    List<LeaveEntity> leaves = const [],
   }) async {
     final records = await repository.getMonthlyRecords(year, month);
     final now = clock.now();
@@ -136,6 +138,8 @@ class GetMonthlyStatsUseCase {
               .toList(),
           company.id,
         ),
+        // الإجازة المدفوعة تُفرِّغ المطلوب، فلا يُعدّ اليوم غياباً ولا يُخصم.
+        leave: EffectiveDayResolver.leaveOn(leaves, date),
       );
 
       if (dayConfig.isWorkingDay && !dayConfig.isHoliday) {

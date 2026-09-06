@@ -1,5 +1,7 @@
 import 'package:isar_community/isar.dart';
 
+import 'leave_model.dart';
+
 part 'profile_model.g.dart';
 
 /// الشخص نفسه — صف مفرد (`id = 0`).
@@ -88,4 +90,12 @@ class OvertimePolicy {
   OvertimeRate? weekend;
   OvertimeRate? publicHoliday;
   OvertimeRate? workplaceHoliday;
+}
+
+/// رصيد نوع إجازة سنوياً في جهة واحدة.
+@embedded
+class LeaveAllowance {
+  @enumerated
+  LeaveTypeStored type = LeaveTypeStored.annual;
+  int days = 0;
 }

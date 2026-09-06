@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/leave_entity.dart';
 import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import 'widgets/overtime_rate_field.dart';
@@ -87,6 +88,23 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
             : null,
       );
 
+  /// حقل لكل نوع إجازة. القيمة صفر تعني «بلا رصيد مُعلَن» فلا تُخزَّن.
+  late final Map<LeaveTypeEntity, TextEditingController> _leaveDays = {
+    for (final type in LeaveTypeEntity.values)
+      type: TextEditingController(
+        text: '${widget.company?.leaveAllowances.where((a) => a.type == type).map((a) => a.days).firstOrNull ?? 0}',
+      ),
+  };
+
+  List<LeaveAllowanceEntity> get _allowances => [
+        for (final entry in _leaveDays.entries)
+          if ((int.tryParse(entry.value.text.trim()) ?? 0) > 0)
+            LeaveAllowanceEntity(
+              type: entry.key,
+              days: int.parse(entry.value.text.trim()),
+            ),
+      ];
+
   WorkPolicyEntity get _policy => WorkPolicyEntity(
         graceMinutes: int.tryParse(_grace.text.trim()) ?? 0,
         minOvertimeMinutes: int.tryParse(_minOvertime.text.trim()) ?? 0,
@@ -121,6 +139,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
       _otNormal,
       _otHoliday,
       _otWeekend,
+      ..._leaveDays.values,
     ]) {
       c.dispose();
     }
@@ -144,6 +163,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         workSchedule: _schedule,
         policy: _policy,
         explicitOvertimePolicy: _overtimePolicy,
+        leaveAllowances: _allowances,
         adjustments: const [],
         currency: _currency,
         employmentStartDate: now,
@@ -161,6 +181,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         workSchedule: _schedule,
         policy: _policy,
         explicitOvertimePolicy: _overtimePolicy,
+        leaveAllowances: _allowances,
         currency: _currency,
         colorIndex: _colorIndex,
       ));
@@ -370,6 +391,25 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
                 kind: _otHolidayKind,
                 onKindChanged: (k) => setState(() => _otHolidayKind = k),
               ),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader(
+              title: 'أرصدة الإجازات',
+              subtitle: 'أيام سنوية لهذه الجهة — اتركه صفراً إن لم يكن لها رصيد',
+            ),
+            for (final type in LeaveTypeEntity.values)
+              if (type != LeaveTypeEntity.unpaid)
+                Padding(
+                  padding:
+                      const EdgeInsetsDirectional.only(bottom: AppSpacing.md),
+                  child: TextFormField(
+                    controller: _leaveDays[type],
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: type.label,
+                      suffixText: 'يوم',
+                    ),
+                  ),
+                ),
             const SizedBox(height: AppSpacing.xl),
             const SectionHeader(
               title: 'لون التمييز',

@@ -27,6 +27,9 @@ class CompanyModel {
 
   /// أجور الإضافي مفصّلة بنوع اليوم. غيابها يعني اشتقاقها من [overtimeRate].
   OvertimePolicy? overtimePolicy;
+
+  /// أرصدة الإجازات السنوية لهذه الجهة وحدها.
+  List<LeaveAllowance> leaveAllowances = [];
   late List<SalaryAdjustment> adjustments;
 
   String? currency;

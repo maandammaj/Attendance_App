@@ -5,6 +5,7 @@ import 'package:isar_community/isar.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/leave_entity.dart';
 import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
@@ -15,6 +16,7 @@ import '../../../domain/services/session_overlap_rule.dart';
 import '../../models/attendance_model.dart';
 import '../../models/calendar_day_model.dart';
 import '../../models/company_model.dart';
+import '../../models/leave_model.dart';
 import '../../models/profile_model.dart';
 import '../database/company_scope.dart';
 import '../database/isar_database.dart';
@@ -393,10 +395,22 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         : EffectiveDayResolver.governing(
             entries.map(_calendarToEntity).toList(), company.id);
 
+    // الإجازة تُقرأ من سجلها لا من التقويم: التقويم يخصّ الجهة كلها،
+    // والإجازة تخصّ هذا الشخص في هذه الجهة.
+    final leaves = await isar.leaveModels
+        .filter()
+        .companyIdEqualTo(company.id)
+        .fromLessThan(DateHelpers.endOfDay(date))
+        .toGreaterThan(day.subtract(const Duration(milliseconds: 1)))
+        .findAll();
+    final leave = EffectiveDayResolver.leaveOn(
+        leaves.map(_leaveToEntity).toList(), date);
+
     return (
-      config: EffectiveDayResolver.apply(base: scheduled, entry: entry),
-      dayType: EffectiveDayResolver.dayTypeOf(
-          scheduled: scheduled, entry: entry),
+      config: EffectiveDayResolver.apply(
+          base: scheduled, entry: entry, leave: leave),
+      dayType:
+          EffectiveDayResolver.dayTypeOf(scheduled: scheduled, entry: entry),
     );
   }
 
@@ -437,6 +451,23 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       workplaceHoliday: rate(p?.workplaceHoliday),
     );
   }
+
+  static LeaveEntity _leaveToEntity(LeaveModel m) => LeaveEntity(
+        id: m.id,
+        companyId: m.companyId,
+        from: m.from,
+        to: m.to,
+        type: switch (m.type) {
+          LeaveTypeStored.annual => LeaveTypeEntity.annual,
+          LeaveTypeStored.sick => LeaveTypeEntity.sick,
+          LeaveTypeStored.emergency => LeaveTypeEntity.emergency,
+          LeaveTypeStored.official => LeaveTypeEntity.official,
+          LeaveTypeStored.unpaid => LeaveTypeEntity.unpaid,
+          LeaveTypeStored.other => LeaveTypeEntity.other,
+        },
+        note: m.note,
+        createdAt: m.createdAt,
+      );
 
   static void _assertNoOverlap(AttendanceModel record) {
     SessionOverlapRule.assertNoOverlap([

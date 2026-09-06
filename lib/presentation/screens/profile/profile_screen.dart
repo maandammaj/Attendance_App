@@ -235,6 +235,12 @@ class _SystemLinks extends StatelessWidget {
           route: AppRoutes.workCalendar,
         ),
         ProfileLinkTile(
+          icon: Icons.beach_access_rounded,
+          title: 'الإجازات',
+          subtitle: 'أرصدة وإجازات مسجّلة لهذه الجهة',
+          route: AppRoutes.leave,
+        ),
+        ProfileLinkTile(
           icon: Icons.insights_rounded,
           title: 'التقارير والتحليلات',
           subtitle: 'رسوم بيانية وتصدير PDF و CSV',

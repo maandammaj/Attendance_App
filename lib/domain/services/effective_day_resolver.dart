@@ -1,4 +1,6 @@
 import '../entities/calendar_day_entity.dart';
+import '../entities/leave_entity.dart';
+import '../../core/utils/date_helpers.dart';
 import '../entities/overtime_policy_entity.dart';
 import '../entities/profile_entity.dart';
 
@@ -29,10 +31,32 @@ class EffectiveDayResolver {
   ///
   /// العطلة تُفرِّغ المطلوب ونافذة الوردية معاً: بلا تفريغ النافذة يبقى
   /// اليوم يحسب عجزاً عن ساعات لم تُطلَب أصلاً.
+  /// الإجازة التي تغطّي يوماً، إن وُجدت.
+  static LeaveEntity? leaveOn(List<LeaveEntity> leaves, DateTime date) {
+    for (final leave in leaves) {
+      if (leave.covers(DateHelpers.startOfDay(date))) return leave;
+    }
+    return null;
+  }
+
   static WorkDayConfigEntity apply({
     required WorkDayConfigEntity base,
     required CalendarDayEntity? entry,
+    LeaveEntity? leave,
   }) {
+    // الإجازة المدفوعة تُفرِّغ مطلوب اليوم: لا عمل مطلوب فلا عجز ولا غياب.
+    // وغير المدفوعة تترك المطلوب قائماً، فيُخصم اليوم كما لو لم يُعمل — وهو
+    // معنى «بلا أجر» بالضبط.
+    if (leave != null && leave.type.isPaid) {
+      return base.copyWith(
+        isWorkingDay: false,
+        isHoliday: true,
+        requiredHours: 0,
+        requiredMinutes: 0,
+        clearWindow: true,
+      );
+    }
+
     if (entry == null) return base;
 
     return switch (entry.kind) {

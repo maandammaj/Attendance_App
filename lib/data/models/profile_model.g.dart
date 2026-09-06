@@ -3873,3 +3873,209 @@ extension OvertimePolicyQueryObject
     });
   }
 }
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const LeaveAllowanceSchema = Schema(
+  name: r'LeaveAllowance',
+  id: -6997509307606353436,
+  properties: {
+    r'days': PropertySchema(id: 0, name: r'days', type: IsarType.long),
+    r'type': PropertySchema(
+      id: 1,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _LeaveAllowancetypeEnumValueMap,
+    ),
+  },
+
+  estimateSize: _leaveAllowanceEstimateSize,
+  serialize: _leaveAllowanceSerialize,
+  deserialize: _leaveAllowanceDeserialize,
+  deserializeProp: _leaveAllowanceDeserializeProp,
+);
+
+int _leaveAllowanceEstimateSize(
+  LeaveAllowance object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _leaveAllowanceSerialize(
+  LeaveAllowance object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.days);
+  writer.writeByte(offsets[1], object.type.index);
+}
+
+LeaveAllowance _leaveAllowanceDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = LeaveAllowance();
+  object.days = reader.readLong(offsets[0]);
+  object.type =
+      _LeaveAllowancetypeValueEnumMap[reader.readByteOrNull(offsets[1])] ??
+      LeaveTypeStored.annual;
+  return object;
+}
+
+P _leaveAllowanceDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (_LeaveAllowancetypeValueEnumMap[reader.readByteOrNull(offset)] ??
+              LeaveTypeStored.annual)
+          as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+const _LeaveAllowancetypeEnumValueMap = {
+  'annual': 0,
+  'sick': 1,
+  'emergency': 2,
+  'official': 3,
+  'unpaid': 4,
+  'other': 5,
+};
+const _LeaveAllowancetypeValueEnumMap = {
+  0: LeaveTypeStored.annual,
+  1: LeaveTypeStored.sick,
+  2: LeaveTypeStored.emergency,
+  3: LeaveTypeStored.official,
+  4: LeaveTypeStored.unpaid,
+  5: LeaveTypeStored.other,
+};
+
+extension LeaveAllowanceQueryFilter
+    on QueryBuilder<LeaveAllowance, LeaveAllowance, QFilterCondition> {
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  daysEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'days', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  daysGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'days',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  daysLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'days',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  daysBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'days',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  typeEqualTo(LeaveTypeStored value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'type', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  typeGreaterThan(LeaveTypeStored value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  typeLessThan(LeaveTypeStored value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'type',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LeaveAllowance, LeaveAllowance, QAfterFilterCondition>
+  typeBetween(
+    LeaveTypeStored lower,
+    LeaveTypeStored upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'type',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+}
+
+extension LeaveAllowanceQueryObject
+    on QueryBuilder<LeaveAllowance, LeaveAllowance, QFilterCondition> {}

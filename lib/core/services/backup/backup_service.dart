@@ -10,6 +10,7 @@ import '../../../data/models/category_model.dart';
 import '../../../data/models/calendar_day_model.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/models/debt_model.dart';
+import '../../../data/models/leave_model.dart';
 import '../../../data/models/profile_model.dart';
 import '../../../data/models/reminder_settings_model.dart';
 import '../../../data/models/transaction_model.dart';
@@ -34,6 +35,7 @@ class BackupService {
   static const _budgetLimits = 'budgetLimits';
   static const _reminderSettings = 'reminderSettings';
   static const _calendarDays = 'calendarDays';
+  static const _leaves = 'leaves';
 
   // سجل التنبيهات لا يُنسخ عمداً: مشتق وقابل لإعادة التوليد، وحجمه ينمو
   // بلا حد فيضخّم النسخة دون فائدة.
@@ -75,6 +77,9 @@ class BackupService {
         _calendarDays: (await isar.calendarDayModels.where().findAll())
             .map(_calendarDayToJson)
             .toList(),
+        _leaves: (await isar.leaveModels.where().findAll())
+            .map(_leaveToJson)
+            .toList(),
       },
     );
   }
@@ -102,6 +107,7 @@ class BackupService {
       await isar.budgetLimitModels.clear();
       await isar.reminderSettingsModels.clear();
       await isar.calendarDayModels.clear();
+      await isar.leaveModels.clear();
 
       restored += await _put(payload, _profiles,
           (r) => isar.profileModels.put(_profileFromJson(r)));
@@ -123,6 +129,8 @@ class BackupService {
           (r) => isar.reminderSettingsModels.put(_reminderSettingsFromJson(r)));
       restored += await _put(payload, _calendarDays,
           (r) => isar.calendarDayModels.put(_calendarDayFromJson(r)));
+      restored += await _put(
+          payload, _leaves, (r) => isar.leaveModels.put(_leaveFromJson(r)));
     });
 
     return restored;
@@ -245,6 +253,28 @@ class BackupService {
     ..minOvertimeMinutes = j['minOvertimeMinutes'] as int? ?? 0
     ..paysOvertime = j['paysOvertime'] as bool? ?? true;
 
+  static Map<String, dynamic> _leaveToJson(LeaveModel m) => {
+        'id': m.id,
+        'companyId': m.companyId,
+        'from': _iso(m.from),
+        'to': _iso(m.to),
+        'type': m.type.name,
+        'note': m.note,
+        'createdAt': _iso(m.createdAt),
+      };
+
+  static LeaveModel _leaveFromJson(Map<String, dynamic> j) => LeaveModel()
+    ..id = j['id'] as int? ?? Isar.autoIncrement
+    ..companyId = j['companyId'] as int? ?? 0
+    ..from = _date(j['from']) ?? DateTime(2026)
+    ..to = _date(j['to']) ?? DateTime(2026)
+    ..type = LeaveTypeStored.values.firstWhere(
+      (t) => t.name == j['type'],
+      orElse: () => LeaveTypeStored.other,
+    )
+    ..note = j['note'] as String?
+    ..createdAt = _date(j['createdAt']) ?? DateTime(2026);
+
   static Map<String, dynamic> _calendarDayToJson(CalendarDayModel m) => {
         'id': m.id,
         'companyId': m.companyId,
@@ -278,6 +308,9 @@ class BackupService {
         'overtimePolicy': m.overtimePolicy == null
             ? null
             : _overtimePolicyToJson(m.overtimePolicy!),
+        'leaveAllowances': m.leaveAllowances
+            .map((a) => {'type': a.type.name, 'days': a.days})
+            .toList(),
         'adjustments': m.adjustments.map(_adjustmentToJson).toList(),
         'currency': m.currency,
         'employmentStartDate': _iso(m.employmentStartDate),
@@ -309,6 +342,15 @@ class BackupService {
         ? null
         : _overtimePolicyFromJson(
             Map<String, dynamic>.from(j['overtimePolicy'] as Map))
+    ..leaveAllowances = [
+      for (final a in (j['leaveAllowances'] as List? ?? []))
+        LeaveAllowance()
+          ..type = LeaveTypeStored.values.firstWhere(
+            (t) => t.name == (a as Map)['type'],
+            orElse: () => LeaveTypeStored.annual,
+          )
+          ..days = (a as Map)['days'] as int? ?? 0,
+    ]
     ..adjustments = [
       for (final a in (j['adjustments'] as List? ?? []))
         _adjustmentFromJson(Map<String, dynamic>.from(a as Map)),

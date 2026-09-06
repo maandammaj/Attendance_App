@@ -1,4 +1,5 @@
 import '../../core/utils/date_helpers.dart';
+import 'leave_entity.dart';
 import 'overtime_policy_entity.dart';
 import 'profile_entity.dart';
 
@@ -17,6 +18,9 @@ class CompanyEntity {
 
   /// أجور الإضافي إن حُدِّدت صراحةً. الوصول إليها من [overtimePolicy].
   final OvertimePolicyEntity? explicitOvertimePolicy;
+
+  /// أرصدة الإجازات المُعلَنة لهذه الجهة.
+  final List<LeaveAllowanceEntity> leaveAllowances;
   final List<SalaryAdjustmentEntity> adjustments;
   final String? currency;
   final DateTime? employmentStartDate;
@@ -35,6 +39,7 @@ class CompanyEntity {
     required this.workSchedule,
     this.policy = const WorkPolicyEntity(),
     this.explicitOvertimePolicy,
+    this.leaveAllowances = const [],
     required this.adjustments,
     this.currency,
     this.employmentStartDate,
@@ -85,6 +90,7 @@ class CompanyEntity {
     List<WorkDayConfigEntity>? workSchedule,
     WorkPolicyEntity? policy,
     OvertimePolicyEntity? explicitOvertimePolicy,
+    List<LeaveAllowanceEntity>? leaveAllowances,
     List<SalaryAdjustmentEntity>? adjustments,
     String? currency,
     DateTime? employmentStartDate,
@@ -102,6 +108,7 @@ class CompanyEntity {
       policy: policy ?? this.policy,
       explicitOvertimePolicy:
           explicitOvertimePolicy ?? this.explicitOvertimePolicy,
+      leaveAllowances: leaveAllowances ?? this.leaveAllowances,
       adjustments: adjustments ?? this.adjustments,
       currency: currency ?? this.currency,
       employmentStartDate: employmentStartDate ?? this.employmentStartDate,

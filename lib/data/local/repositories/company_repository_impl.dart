@@ -1,6 +1,7 @@
 import 'package:isar_community/isar.dart';
 
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/leave_entity.dart';
 import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/company_repository.dart';
@@ -10,6 +11,7 @@ import '../../models/debt_model.dart';
 import '../../models/budget_limit_model.dart';
 import '../../models/account_model.dart';
 import '../../models/company_model.dart';
+import '../../models/leave_model.dart';
 import '../../models/profile_model.dart';
 import '../database/isar_database.dart';
 
@@ -195,6 +197,24 @@ class CompanyRepositoryImpl implements CompanyRepository {
       ..value = e.value;
   }
 
+  static LeaveTypeEntity _leaveType(LeaveTypeStored t) => switch (t) {
+        LeaveTypeStored.annual => LeaveTypeEntity.annual,
+        LeaveTypeStored.sick => LeaveTypeEntity.sick,
+        LeaveTypeStored.emergency => LeaveTypeEntity.emergency,
+        LeaveTypeStored.official => LeaveTypeEntity.official,
+        LeaveTypeStored.unpaid => LeaveTypeEntity.unpaid,
+        LeaveTypeStored.other => LeaveTypeEntity.other,
+      };
+
+  static LeaveTypeStored _leaveTypeStored(LeaveTypeEntity t) => switch (t) {
+        LeaveTypeEntity.annual => LeaveTypeStored.annual,
+        LeaveTypeEntity.sick => LeaveTypeStored.sick,
+        LeaveTypeEntity.emergency => LeaveTypeStored.emergency,
+        LeaveTypeEntity.official => LeaveTypeStored.official,
+        LeaveTypeEntity.unpaid => LeaveTypeStored.unpaid,
+        LeaveTypeEntity.other => LeaveTypeStored.other,
+      };
+
   CompanyEntity _mapToEntity(CompanyModel m) {
     return CompanyEntity(
       id: m.id,
@@ -204,6 +224,10 @@ class CompanyRepositoryImpl implements CompanyRepository {
       hourlyRate: m.hourlyRate,
       overtimeRate: m.overtimeRate,
       explicitOvertimePolicy: _overtimePolicyToEntity(m.overtimePolicy),
+      leaveAllowances: [
+        for (final a in m.leaveAllowances)
+          LeaveAllowanceEntity(type: _leaveType(a.type), days: a.days),
+      ],
       policy: WorkPolicyEntity(
         graceMinutes: m.policy?.graceMinutes ?? 0,
         minOvertimeMinutes: m.policy?.minOvertimeMinutes ?? 0,
@@ -246,6 +270,12 @@ class CompanyRepositoryImpl implements CompanyRepository {
       ..hourlyRate = e.hourlyRate
       ..overtimeRate = e.overtimeRate
       ..overtimePolicy = _overtimePolicyToModel(e.explicitOvertimePolicy)
+      ..leaveAllowances = [
+        for (final a in e.leaveAllowances)
+          LeaveAllowance()
+            ..type = _leaveTypeStored(a.type)
+            ..days = a.days,
+      ]
       ..policy = (WorkPolicy()
         ..graceMinutes = e.policy.graceMinutes
         ..minOvertimeMinutes = e.policy.minOvertimeMinutes
