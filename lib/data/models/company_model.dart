@@ -24,6 +24,9 @@ class CompanyModel {
 
   /// قواعد الجهة السارية على كل أيامها. مضمَّنة لا مرتبطة.
   WorkPolicy? policy;
+
+  /// أجور الإضافي مفصّلة بنوع اليوم. غيابها يعني اشتقاقها من [overtimeRate].
+  OvertimePolicy? overtimePolicy;
   late List<SalaryAdjustment> adjustments;
 
   String? currency;

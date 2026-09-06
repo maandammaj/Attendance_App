@@ -205,6 +205,35 @@ class BackupService {
     ..currency = j['currency'] as String?
     ..updatedAt = _dateOr(j['updatedAt']);
 
+  static Map<String, dynamic>? _rateToJson(OvertimeRate? r) => r == null
+      ? null
+      : {'kind': r.kind.name, 'value': r.value};
+
+  static OvertimeRate? _rateFromJson(Object? raw) {
+    if (raw == null) return null;
+    final j = Map<String, dynamic>.from(raw as Map);
+    return OvertimeRate()
+      ..kind = OvertimeRateKindStored.values.firstWhere(
+        (k) => k.name == j['kind'],
+        orElse: () => OvertimeRateKindStored.multiplier,
+      )
+      ..value = (j['value'] as num?)?.toDouble() ?? 1.5;
+  }
+
+  static Map<String, dynamic> _overtimePolicyToJson(OvertimePolicy p) => {
+        'normal': _rateToJson(p.normal),
+        'weekend': _rateToJson(p.weekend),
+        'publicHoliday': _rateToJson(p.publicHoliday),
+        'workplaceHoliday': _rateToJson(p.workplaceHoliday),
+      };
+
+  static OvertimePolicy _overtimePolicyFromJson(Map<String, dynamic> j) =>
+      OvertimePolicy()
+        ..normal = _rateFromJson(j['normal'])
+        ..weekend = _rateFromJson(j['weekend'])
+        ..publicHoliday = _rateFromJson(j['publicHoliday'])
+        ..workplaceHoliday = _rateFromJson(j['workplaceHoliday']);
+
   static Map<String, dynamic> _policyToJson(WorkPolicy p) => {
         'graceMinutes': p.graceMinutes,
         'minOvertimeMinutes': p.minOvertimeMinutes,
@@ -246,6 +275,9 @@ class BackupService {
         'overtimeRate': m.overtimeRate,
         'workSchedule': m.workSchedule.map(_workDayToJson).toList(),
         'policy': m.policy == null ? null : _policyToJson(m.policy!),
+        'overtimePolicy': m.overtimePolicy == null
+            ? null
+            : _overtimePolicyToJson(m.overtimePolicy!),
         'adjustments': m.adjustments.map(_adjustmentToJson).toList(),
         'currency': m.currency,
         'employmentStartDate': _iso(m.employmentStartDate),
@@ -271,6 +303,12 @@ class BackupService {
     ..policy = j['policy'] == null
         ? null
         : _policyFromJson(Map<String, dynamic>.from(j['policy'] as Map))
+    // نسخة أقدم من سياسة الإضافي تُستعاد بلا سياسة، فتُشتقّ من
+    // `overtimeRate` كما كانت تُحسب يوم أُخذت النسخة.
+    ..overtimePolicy = j['overtimePolicy'] == null
+        ? null
+        : _overtimePolicyFromJson(
+            Map<String, dynamic>.from(j['overtimePolicy'] as Map))
     ..adjustments = [
       for (final a in (j['adjustments'] as List? ?? []))
         _adjustmentFromJson(Map<String, dynamic>.from(a as Map)),

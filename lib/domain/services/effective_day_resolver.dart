@@ -1,4 +1,5 @@
 import '../entities/calendar_day_entity.dart';
+import '../entities/overtime_policy_entity.dart';
 import '../entities/profile_entity.dart';
 
 /// يدمج تقويم الجهة مع جدولها ليخرج بإعداد اليوم الفعلي.
@@ -56,5 +57,27 @@ class EffectiveDayResolver {
               base.requiredMinutesTotal > 0 ? base.requiredMinutes : 0,
         ),
     };
+  }
+
+  /// نوع اليوم لأغراض أجر الإضافي.
+  ///
+  /// التقويم يميّز العطلة الرسمية من عطلة الجهة، وهو تمييز لا يظهر في إعداد
+  /// اليوم بعد تطبيقه — كلاهما يصير «غير يوم عمل». فيُقرأ من الإدخال نفسه.
+  static OvertimeDayType dayTypeOf({
+    required WorkDayConfigEntity scheduled,
+    required CalendarDayEntity? entry,
+  }) {
+    if (entry != null) {
+      switch (entry.kind) {
+        case CalendarDayKindEntity.publicHoliday:
+          return OvertimeDayType.publicHoliday;
+        case CalendarDayKindEntity.workplaceHoliday:
+          return OvertimeDayType.workplaceHoliday;
+        case CalendarDayKindEntity.specialWorkday:
+          return OvertimeDayType.normal;
+      }
+    }
+    final isOff = !scheduled.isWorkingDay || scheduled.isHoliday;
+    return isOff ? OvertimeDayType.weekend : OvertimeDayType.normal;
   }
 }

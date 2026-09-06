@@ -43,6 +43,7 @@ class TestDatabase {
     double baseMonthlySalary = 0,
     String? startTime,
     String? endTime,
+    OvertimePolicy? overtimePolicy,
   }) async {
     final company = CompanyModel()
       ..name = name
@@ -63,6 +64,7 @@ class TestDatabase {
             ..isCrossDay = false,
       ]
       ..adjustments = []
+      ..overtimePolicy = overtimePolicy
       ..createdAt = DateTime(2026)
       ..updatedAt = DateTime(2026);
 

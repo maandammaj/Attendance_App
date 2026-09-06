@@ -1,4 +1,5 @@
 import '../../core/utils/date_helpers.dart';
+import 'overtime_policy_entity.dart';
 import 'profile_entity.dart';
 
 /// جهة عمل بشروطها. كل حساب راتب أو تقرير يجري على واحدة منها.
@@ -13,6 +14,9 @@ class CompanyEntity {
 
   /// قواعد هذه الجهة. غيابها يعني الافتراضي المحايد.
   final WorkPolicyEntity policy;
+
+  /// أجور الإضافي إن حُدِّدت صراحةً. الوصول إليها من [overtimePolicy].
+  final OvertimePolicyEntity? explicitOvertimePolicy;
   final List<SalaryAdjustmentEntity> adjustments;
   final String? currency;
   final DateTime? employmentStartDate;
@@ -30,6 +34,7 @@ class CompanyEntity {
     required this.overtimeRate,
     required this.workSchedule,
     this.policy = const WorkPolicyEntity(),
+    this.explicitOvertimePolicy,
     required this.adjustments,
     this.currency,
     this.employmentStartDate,
@@ -38,6 +43,14 @@ class CompanyEntity {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// أجور الإضافي المطبَّقة فعلاً.
+  ///
+  /// السياسة الصريحة إن وُجدت، وإلا فمشتقّة من [overtimeRate] بالقاعدة
+  /// القديمة نفسها — فجهة لم تُحدَّد لها سياسة تحسب كما كانت تماماً.
+  OvertimePolicyEntity get overtimePolicy =>
+      explicitOvertimePolicy ??
+      OvertimePolicyEntity.fromLegacyRate(overtimeRate);
 
   /// إعداد الجدول ليوم بعينه.
   ///
@@ -71,6 +84,7 @@ class CompanyEntity {
     double? overtimeRate,
     List<WorkDayConfigEntity>? workSchedule,
     WorkPolicyEntity? policy,
+    OvertimePolicyEntity? explicitOvertimePolicy,
     List<SalaryAdjustmentEntity>? adjustments,
     String? currency,
     DateTime? employmentStartDate,
@@ -86,6 +100,8 @@ class CompanyEntity {
       overtimeRate: overtimeRate ?? this.overtimeRate,
       workSchedule: workSchedule ?? this.workSchedule,
       policy: policy ?? this.policy,
+      explicitOvertimePolicy:
+          explicitOvertimePolicy ?? this.explicitOvertimePolicy,
       adjustments: adjustments ?? this.adjustments,
       currency: currency ?? this.currency,
       employmentStartDate: employmentStartDate ?? this.employmentStartDate,

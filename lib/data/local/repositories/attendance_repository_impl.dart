@@ -5,6 +5,7 @@ import 'package:isar_community/isar.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
 import '../../../domain/entities/calendar_day_entity.dart';
@@ -147,7 +148,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(time);
-    final dayConfig = await _effectiveConfig(isar, companyEntity, time);
+    final effective = await _effectiveConfig(isar, companyEntity, time);
+    final dayConfig = effective.config;
 
     final record = await isar.attendanceModels
             .filter()
@@ -163,7 +165,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         ..isBiometricVerified = isBiometricVerified,
     ];
     record.isAbsent = false;
-    _recalculate(record, companyEntity, dayConfig);
+    _recalculate(record, companyEntity, dayConfig, effective.dayType);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -213,8 +215,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     record.sessions = sessions;
 
     final companyEntity = _mapCompanyToEntity(company);
-    _recalculate(record, companyEntity,
-        await _effectiveConfig(isar, companyEntity, record.date));
+    final effective = await _effectiveConfig(isar, companyEntity, record.date);
+    _recalculate(record, companyEntity, effective.config, effective.dayType);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -233,7 +235,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     final companyEntity = _mapCompanyToEntity(company);
     final day = DateHelpers.startOfDay(date);
-    final dayConfig = await _effectiveConfig(isar, companyEntity, date);
+    final effective = await _effectiveConfig(isar, companyEntity, date);
+    final dayConfig = effective.config;
 
     // جلسة يدوية تُضاف لسجل اليوم **في هذه الجهة** إن وُجد، بدل إنشاء سجل
     // ثانٍ لنفس التاريخ أو إلحاقها بسجل جهة أخرى.
@@ -258,7 +261,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     record.notes = notes ?? record.notes;
     record.isAbsent = false;
-    _recalculate(record, companyEntity, dayConfig);
+    _recalculate(record, companyEntity, dayConfig, effective.dayType);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(record);
@@ -295,8 +298,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
             ];
 
     _assertNoOverlap(model);
-    _recalculate(model, companyEntity,
-        await _effectiveConfig(isar, companyEntity, model.date));
+    final effective = await _effectiveConfig(isar, companyEntity, model.date);
+    _recalculate(model, companyEntity, effective.config, effective.dayType);
 
     await isar.writeTxn(() async {
       await isar.attendanceModels.put(model);
@@ -330,6 +333,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     AttendanceModel record,
     CompanyEntity company,
     WorkDayConfigEntity dayConfig,
+    OvertimeDayType dayType,
   ) {
     final result = const AttendanceCalculationService()(
       sessions: [
@@ -343,6 +347,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       company: company,
       dayConfig: dayConfig,
       isAbsent: record.isAbsent,
+      dayType: dayType,
     );
 
     record
@@ -369,27 +374,29 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   /// العطلة تُفرِّغ المطلوب، فيصير كل تواجد فيها إضافياً بدل أن يُقاس على
   /// ساعات لم تُطلَب. والقراءة تمرّ من هنا وحدها كي لا يحسب مسارٌ اليومَ
   /// بجدوله الخام بينما يحسبه آخر بتقويمه.
-  Future<WorkDayConfigEntity> _effectiveConfig(
+  Future<({WorkDayConfigEntity config, OvertimeDayType dayType})>
+      _effectiveConfig(
     Isar isar,
     CompanyEntity company,
     DateTime date,
   ) async {
     final day = DateHelpers.startOfDay(date);
+    final scheduled = company.configFor(date);
     final entries = await isar.calendarDayModels
         .filter()
         .dateBetween(day, DateHelpers.endOfDay(date))
-        .group((q) =>
-            q.companyIdEqualTo(company.id).or().companyIdIsNull())
+        .group((q) => q.companyIdEqualTo(company.id).or().companyIdIsNull())
         .findAll();
 
-    if (entries.isEmpty) return company.configFor(date);
+    final entry = entries.isEmpty
+        ? null
+        : EffectiveDayResolver.governing(
+            entries.map(_calendarToEntity).toList(), company.id);
 
-    return EffectiveDayResolver.apply(
-      base: company.configFor(date),
-      entry: EffectiveDayResolver.governing(
-        entries.map(_calendarToEntity).toList(),
-        company.id,
-      ),
+    return (
+      config: EffectiveDayResolver.apply(base: scheduled, entry: entry),
+      dayType: EffectiveDayResolver.dayTypeOf(
+          scheduled: scheduled, entry: entry),
     );
   }
 
@@ -408,6 +415,28 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         note: m.note,
         createdAt: m.createdAt,
       );
+
+  static OvertimePolicyEntity? _overtimePolicy(OvertimePolicy? p) {
+    final normal = p?.normal;
+    if (normal == null) return null;
+    OvertimeRateEntity? rate(OvertimeRate? r) => r == null
+        ? null
+        : OvertimeRateEntity(
+            kind: switch (r.kind) {
+              OvertimeRateKindStored.multiplier => OvertimeRateKind.multiplier,
+              OvertimeRateKindStored.fixedPerHour =>
+                OvertimeRateKind.fixedPerHour,
+              OvertimeRateKindStored.fixedPerDay =>
+                OvertimeRateKind.fixedPerDay,
+            },
+            value: r.value);
+    return OvertimePolicyEntity(
+      normal: rate(normal)!,
+      weekend: rate(p?.weekend),
+      publicHoliday: rate(p?.publicHoliday),
+      workplaceHoliday: rate(p?.workplaceHoliday),
+    );
+  }
 
   static void _assertNoOverlap(AttendanceModel record) {
     SessionOverlapRule.assertNoOverlap([
@@ -448,6 +477,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       baseMonthlySalary: company.baseMonthlySalary,
       hourlyRate: company.hourlyRate,
       overtimeRate: company.overtimeRate,
+      explicitOvertimePolicy: _overtimePolicy(company.overtimePolicy),
       policy: WorkPolicyEntity(
         graceMinutes: company.policy?.graceMinutes ?? 0,
         minOvertimeMinutes: company.policy?.minOvertimeMinutes ?? 0,

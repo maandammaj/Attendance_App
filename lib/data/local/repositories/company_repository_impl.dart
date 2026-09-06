@@ -1,6 +1,7 @@
 import 'package:isar_community/isar.dart';
 
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../../domain/repositories/company_repository.dart';
 import '../../models/attendance_model.dart';
@@ -151,6 +152,49 @@ class CompanyRepositoryImpl implements CompanyRepository {
     });
   }
 
+  static OvertimePolicyEntity? _overtimePolicyToEntity(OvertimePolicy? p) {
+    final normal = p?.normal;
+    if (normal == null) return null;
+    return OvertimePolicyEntity(
+      normal: _rateToEntity(normal)!,
+      weekend: _rateToEntity(p?.weekend),
+      publicHoliday: _rateToEntity(p?.publicHoliday),
+      workplaceHoliday: _rateToEntity(p?.workplaceHoliday),
+    );
+  }
+
+  static OvertimeRateEntity? _rateToEntity(OvertimeRate? r) {
+    if (r == null) return null;
+    return OvertimeRateEntity(
+      kind: switch (r.kind) {
+        OvertimeRateKindStored.multiplier => OvertimeRateKind.multiplier,
+        OvertimeRateKindStored.fixedPerHour => OvertimeRateKind.fixedPerHour,
+        OvertimeRateKindStored.fixedPerDay => OvertimeRateKind.fixedPerDay,
+      },
+      value: r.value,
+    );
+  }
+
+  static OvertimePolicy? _overtimePolicyToModel(OvertimePolicyEntity? e) {
+    if (e == null) return null;
+    return OvertimePolicy()
+      ..normal = _rateToModel(e.normal)
+      ..weekend = _rateToModel(e.weekend)
+      ..publicHoliday = _rateToModel(e.publicHoliday)
+      ..workplaceHoliday = _rateToModel(e.workplaceHoliday);
+  }
+
+  static OvertimeRate? _rateToModel(OvertimeRateEntity? e) {
+    if (e == null) return null;
+    return OvertimeRate()
+      ..kind = switch (e.kind) {
+        OvertimeRateKind.multiplier => OvertimeRateKindStored.multiplier,
+        OvertimeRateKind.fixedPerHour => OvertimeRateKindStored.fixedPerHour,
+        OvertimeRateKind.fixedPerDay => OvertimeRateKindStored.fixedPerDay,
+      }
+      ..value = e.value;
+  }
+
   CompanyEntity _mapToEntity(CompanyModel m) {
     return CompanyEntity(
       id: m.id,
@@ -159,6 +203,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       baseMonthlySalary: m.baseMonthlySalary,
       hourlyRate: m.hourlyRate,
       overtimeRate: m.overtimeRate,
+      explicitOvertimePolicy: _overtimePolicyToEntity(m.overtimePolicy),
       policy: WorkPolicyEntity(
         graceMinutes: m.policy?.graceMinutes ?? 0,
         minOvertimeMinutes: m.policy?.minOvertimeMinutes ?? 0,
@@ -200,6 +245,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       ..baseMonthlySalary = e.baseMonthlySalary
       ..hourlyRate = e.hourlyRate
       ..overtimeRate = e.overtimeRate
+      ..overtimePolicy = _overtimePolicyToModel(e.explicitOvertimePolicy)
       ..policy = (WorkPolicy()
         ..graceMinutes = e.policy.graceMinutes
         ..minOvertimeMinutes = e.policy.minOvertimeMinutes

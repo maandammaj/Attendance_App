@@ -65,25 +65,32 @@ const CompanyModelSchema = CollectionSchema(
       type: IsarType.string,
     ),
     r'name': PropertySchema(id: 9, name: r'name', type: IsarType.string),
-    r'overtimeRate': PropertySchema(
+    r'overtimePolicy': PropertySchema(
       id: 10,
+      name: r'overtimePolicy',
+      type: IsarType.object,
+
+      target: r'OvertimePolicy',
+    ),
+    r'overtimeRate': PropertySchema(
+      id: 11,
       name: r'overtimeRate',
       type: IsarType.double,
     ),
     r'policy': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'policy',
       type: IsarType.object,
 
       target: r'WorkPolicy',
     ),
     r'updatedAt': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'workSchedule': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'workSchedule',
       type: IsarType.objectList,
 
@@ -115,6 +122,8 @@ const CompanyModelSchema = CollectionSchema(
   embeddedSchemas: {
     r'WorkDayConfig': WorkDayConfigSchema,
     r'WorkPolicy': WorkPolicySchema,
+    r'OvertimePolicy': OvertimePolicySchema,
+    r'OvertimeRate': OvertimeRateSchema,
     r'SalaryAdjustment': SalaryAdjustmentSchema,
   },
 
@@ -150,6 +159,18 @@ int _companyModelEstimateSize(
   }
   bytesCount += 3 + object.jobTitle.length * 3;
   bytesCount += 3 + object.name.length * 3;
+  {
+    final value = object.overtimePolicy;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          OvertimePolicySchema.estimateSize(
+            value,
+            allOffsets[OvertimePolicy]!,
+            allOffsets,
+          );
+    }
+  }
   {
     final value = object.policy;
     if (value != null) {
@@ -198,16 +219,22 @@ void _companyModelSerialize(
   writer.writeBool(offsets[7], object.isArchived);
   writer.writeString(offsets[8], object.jobTitle);
   writer.writeString(offsets[9], object.name);
-  writer.writeDouble(offsets[10], object.overtimeRate);
+  writer.writeObject<OvertimePolicy>(
+    offsets[10],
+    allOffsets,
+    OvertimePolicySchema.serialize,
+    object.overtimePolicy,
+  );
+  writer.writeDouble(offsets[11], object.overtimeRate);
   writer.writeObject<WorkPolicy>(
-    offsets[11],
+    offsets[12],
     allOffsets,
     WorkPolicySchema.serialize,
     object.policy,
   );
-  writer.writeDateTime(offsets[12], object.updatedAt);
+  writer.writeDateTime(offsets[13], object.updatedAt);
   writer.writeObjectList<WorkDayConfig>(
-    offsets[13],
+    offsets[14],
     allOffsets,
     WorkDayConfigSchema.serialize,
     object.workSchedule,
@@ -239,16 +266,21 @@ CompanyModel _companyModelDeserialize(
   object.isArchived = reader.readBool(offsets[7]);
   object.jobTitle = reader.readString(offsets[8]);
   object.name = reader.readString(offsets[9]);
-  object.overtimeRate = reader.readDouble(offsets[10]);
+  object.overtimePolicy = reader.readObjectOrNull<OvertimePolicy>(
+    offsets[10],
+    OvertimePolicySchema.deserialize,
+    allOffsets,
+  );
+  object.overtimeRate = reader.readDouble(offsets[11]);
   object.policy = reader.readObjectOrNull<WorkPolicy>(
-    offsets[11],
+    offsets[12],
     WorkPolicySchema.deserialize,
     allOffsets,
   );
-  object.updatedAt = reader.readDateTime(offsets[12]);
+  object.updatedAt = reader.readDateTime(offsets[13]);
   object.workSchedule =
       reader.readObjectList<WorkDayConfig>(
-        offsets[13],
+        offsets[14],
         WorkDayConfigSchema.deserialize,
         allOffsets,
         WorkDayConfig(),
@@ -292,17 +324,24 @@ P _companyModelDeserializeProp<P>(
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readObjectOrNull<OvertimePolicy>(
+            offset,
+            OvertimePolicySchema.deserialize,
+            allOffsets,
+          ))
+          as P;
     case 11:
+      return (reader.readDouble(offset)) as P;
+    case 12:
       return (reader.readObjectOrNull<WorkPolicy>(
             offset,
             WorkPolicySchema.deserialize,
             allOffsets,
           ))
           as P;
-    case 12:
-      return (reader.readDateTime(offset)) as P;
     case 13:
+      return (reader.readDateTime(offset)) as P;
+    case 14:
       return (reader.readObjectList<WorkDayConfig>(
                 offset,
                 WorkDayConfigSchema.deserialize,
@@ -1379,6 +1418,24 @@ extension CompanyModelQueryFilter
   }
 
   QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  overtimePolicyIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'overtimePolicy'),
+      );
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  overtimePolicyIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'overtimePolicy'),
+      );
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
   overtimeRateEqualTo(double value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1586,6 +1643,13 @@ extension CompanyModelQueryObject
   adjustmentsElement(FilterQuery<SalaryAdjustment> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'adjustments');
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  overtimePolicy(FilterQuery<OvertimePolicy> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'overtimePolicy');
     });
   }
 
@@ -2051,6 +2115,13 @@ extension CompanyModelQueryProperty
   QueryBuilder<CompanyModel, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<CompanyModel, OvertimePolicy?, QQueryOperations>
+  overtimePolicyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'overtimePolicy');
     });
   }
 

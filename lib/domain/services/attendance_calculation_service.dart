@@ -1,5 +1,6 @@
 import '../../core/utils/salary_calculator.dart';
 import '../entities/company_entity.dart';
+import '../entities/overtime_policy_entity.dart';
 import '../entities/profile_entity.dart';
 
 /// كل ما يُشتقّ من جلسات يوم واحد.
@@ -69,6 +70,7 @@ class AttendanceCalculationService {
     required CompanyEntity company,
     required WorkDayConfigEntity dayConfig,
     required bool isAbsent,
+    OvertimeDayType dayType = OvertimeDayType.normal,
   }) {
     final closed = sessions.where((s) => s.isClosed).toList();
     final isOpen = sessions.any((s) => s.isOpen);
@@ -126,7 +128,8 @@ class AttendanceCalculationService {
       overtimeMinutes: overtimeMinutes,
       deficitMinutes: deficitMinutes,
       overtimeValue: calculator.calculateOvertimeValue(
-          payableOvertimeMinutes ~/ 60, payableOvertimeMinutes % 60),
+          payableOvertimeMinutes ~/ 60, payableOvertimeMinutes % 60,
+          dayType: dayType),
       deficitValue: calculator.calculateDeficitValue(
           deficitMinutes ~/ 60, deficitMinutes % 60),
     );

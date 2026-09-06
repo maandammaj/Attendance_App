@@ -3341,3 +3341,535 @@ extension WorkPolicyQueryFilter
 
 extension WorkPolicyQueryObject
     on QueryBuilder<WorkPolicy, WorkPolicy, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const OvertimeRateSchema = Schema(
+  name: r'OvertimeRate',
+  id: -6102963356236605061,
+  properties: {
+    r'kind': PropertySchema(
+      id: 0,
+      name: r'kind',
+      type: IsarType.byte,
+      enumMap: _OvertimeRatekindEnumValueMap,
+    ),
+    r'value': PropertySchema(id: 1, name: r'value', type: IsarType.double),
+  },
+
+  estimateSize: _overtimeRateEstimateSize,
+  serialize: _overtimeRateSerialize,
+  deserialize: _overtimeRateDeserialize,
+  deserializeProp: _overtimeRateDeserializeProp,
+);
+
+int _overtimeRateEstimateSize(
+  OvertimeRate object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _overtimeRateSerialize(
+  OvertimeRate object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeByte(offsets[0], object.kind.index);
+  writer.writeDouble(offsets[1], object.value);
+}
+
+OvertimeRate _overtimeRateDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = OvertimeRate();
+  object.kind =
+      _OvertimeRatekindValueEnumMap[reader.readByteOrNull(offsets[0])] ??
+      OvertimeRateKindStored.multiplier;
+  object.value = reader.readDouble(offsets[1]);
+  return object;
+}
+
+P _overtimeRateDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (_OvertimeRatekindValueEnumMap[reader.readByteOrNull(offset)] ??
+              OvertimeRateKindStored.multiplier)
+          as P;
+    case 1:
+      return (reader.readDouble(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+const _OvertimeRatekindEnumValueMap = {
+  'multiplier': 0,
+  'fixedPerHour': 1,
+  'fixedPerDay': 2,
+};
+const _OvertimeRatekindValueEnumMap = {
+  0: OvertimeRateKindStored.multiplier,
+  1: OvertimeRateKindStored.fixedPerHour,
+  2: OvertimeRateKindStored.fixedPerDay,
+};
+
+extension OvertimeRateQueryFilter
+    on QueryBuilder<OvertimeRate, OvertimeRate, QFilterCondition> {
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> kindEqualTo(
+    OvertimeRateKindStored value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'kind', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition>
+  kindGreaterThan(OvertimeRateKindStored value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'kind',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> kindLessThan(
+    OvertimeRateKindStored value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'kind',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> kindBetween(
+    OvertimeRateKindStored lower,
+    OvertimeRateKindStored upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'kind',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> valueEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'value',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition>
+  valueGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'value',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> valueLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'value',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimeRate, OvertimeRate, QAfterFilterCondition> valueBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'value',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+}
+
+extension OvertimeRateQueryObject
+    on QueryBuilder<OvertimeRate, OvertimeRate, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const OvertimePolicySchema = Schema(
+  name: r'OvertimePolicy',
+  id: 8741156494698816830,
+  properties: {
+    r'normal': PropertySchema(
+      id: 0,
+      name: r'normal',
+      type: IsarType.object,
+
+      target: r'OvertimeRate',
+    ),
+    r'publicHoliday': PropertySchema(
+      id: 1,
+      name: r'publicHoliday',
+      type: IsarType.object,
+
+      target: r'OvertimeRate',
+    ),
+    r'weekend': PropertySchema(
+      id: 2,
+      name: r'weekend',
+      type: IsarType.object,
+
+      target: r'OvertimeRate',
+    ),
+    r'workplaceHoliday': PropertySchema(
+      id: 3,
+      name: r'workplaceHoliday',
+      type: IsarType.object,
+
+      target: r'OvertimeRate',
+    ),
+  },
+
+  estimateSize: _overtimePolicyEstimateSize,
+  serialize: _overtimePolicySerialize,
+  deserialize: _overtimePolicyDeserialize,
+  deserializeProp: _overtimePolicyDeserializeProp,
+);
+
+int _overtimePolicyEstimateSize(
+  OvertimePolicy object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.normal;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          OvertimeRateSchema.estimateSize(
+            value,
+            allOffsets[OvertimeRate]!,
+            allOffsets,
+          );
+    }
+  }
+  {
+    final value = object.publicHoliday;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          OvertimeRateSchema.estimateSize(
+            value,
+            allOffsets[OvertimeRate]!,
+            allOffsets,
+          );
+    }
+  }
+  {
+    final value = object.weekend;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          OvertimeRateSchema.estimateSize(
+            value,
+            allOffsets[OvertimeRate]!,
+            allOffsets,
+          );
+    }
+  }
+  {
+    final value = object.workplaceHoliday;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          OvertimeRateSchema.estimateSize(
+            value,
+            allOffsets[OvertimeRate]!,
+            allOffsets,
+          );
+    }
+  }
+  return bytesCount;
+}
+
+void _overtimePolicySerialize(
+  OvertimePolicy object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeObject<OvertimeRate>(
+    offsets[0],
+    allOffsets,
+    OvertimeRateSchema.serialize,
+    object.normal,
+  );
+  writer.writeObject<OvertimeRate>(
+    offsets[1],
+    allOffsets,
+    OvertimeRateSchema.serialize,
+    object.publicHoliday,
+  );
+  writer.writeObject<OvertimeRate>(
+    offsets[2],
+    allOffsets,
+    OvertimeRateSchema.serialize,
+    object.weekend,
+  );
+  writer.writeObject<OvertimeRate>(
+    offsets[3],
+    allOffsets,
+    OvertimeRateSchema.serialize,
+    object.workplaceHoliday,
+  );
+}
+
+OvertimePolicy _overtimePolicyDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = OvertimePolicy();
+  object.normal = reader.readObjectOrNull<OvertimeRate>(
+    offsets[0],
+    OvertimeRateSchema.deserialize,
+    allOffsets,
+  );
+  object.publicHoliday = reader.readObjectOrNull<OvertimeRate>(
+    offsets[1],
+    OvertimeRateSchema.deserialize,
+    allOffsets,
+  );
+  object.weekend = reader.readObjectOrNull<OvertimeRate>(
+    offsets[2],
+    OvertimeRateSchema.deserialize,
+    allOffsets,
+  );
+  object.workplaceHoliday = reader.readObjectOrNull<OvertimeRate>(
+    offsets[3],
+    OvertimeRateSchema.deserialize,
+    allOffsets,
+  );
+  return object;
+}
+
+P _overtimePolicyDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readObjectOrNull<OvertimeRate>(
+            offset,
+            OvertimeRateSchema.deserialize,
+            allOffsets,
+          ))
+          as P;
+    case 1:
+      return (reader.readObjectOrNull<OvertimeRate>(
+            offset,
+            OvertimeRateSchema.deserialize,
+            allOffsets,
+          ))
+          as P;
+    case 2:
+      return (reader.readObjectOrNull<OvertimeRate>(
+            offset,
+            OvertimeRateSchema.deserialize,
+            allOffsets,
+          ))
+          as P;
+    case 3:
+      return (reader.readObjectOrNull<OvertimeRate>(
+            offset,
+            OvertimeRateSchema.deserialize,
+            allOffsets,
+          ))
+          as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension OvertimePolicyQueryFilter
+    on QueryBuilder<OvertimePolicy, OvertimePolicy, QFilterCondition> {
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  normalIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'normal'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  normalIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'normal'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  publicHolidayIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'publicHoliday'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  publicHolidayIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'publicHoliday'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  weekendIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'weekend'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  weekendIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'weekend'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  workplaceHolidayIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'workplaceHoliday'),
+      );
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  workplaceHolidayIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'workplaceHoliday'),
+      );
+    });
+  }
+}
+
+extension OvertimePolicyQueryObject
+    on QueryBuilder<OvertimePolicy, OvertimePolicy, QFilterCondition> {
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition> normal(
+    FilterQuery<OvertimeRate> q,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'normal');
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  publicHoliday(FilterQuery<OvertimeRate> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'publicHoliday');
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition> weekend(
+    FilterQuery<OvertimeRate> q,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'weekend');
+    });
+  }
+
+  QueryBuilder<OvertimePolicy, OvertimePolicy, QAfterFilterCondition>
+  workplaceHoliday(FilterQuery<OvertimeRate> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'workplaceHoliday');
+    });
+  }
+}

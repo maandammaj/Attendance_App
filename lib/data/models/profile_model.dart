@@ -70,3 +70,22 @@ class WorkPolicy {
   /// هل تدفع هذه الجهة أجر الإضافي أصلاً.
   bool paysOvertime = true;
 }
+
+/// أجر إضافي واحد: نوعه وقيمته.
+@embedded
+class OvertimeRate {
+  @enumerated
+  OvertimeRateKindStored kind = OvertimeRateKindStored.multiplier;
+  double value = 1.5;
+}
+
+enum OvertimeRateKindStored { multiplier, fixedPerHour, fixedPerDay }
+
+/// أجور الإضافي مفصّلة بنوع اليوم. غياب نوعٍ يعني الرجوع إلى [normal].
+@embedded
+class OvertimePolicy {
+  OvertimeRate? normal;
+  OvertimeRate? weekend;
+  OvertimeRate? publicHoliday;
+  OvertimeRate? workplaceHoliday;
+}

@@ -5,7 +5,9 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/overtime_policy_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
+import 'widgets/overtime_rate_field.dart';
 import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../schedule/widgets/schedule_presets.dart';
@@ -48,6 +50,43 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
       text: '${widget.company?.policy.minOvertimeMinutes ?? 0}');
   late bool _paysOvertime = widget.company?.policy.paysOvertime ?? true;
 
+  late final _otPolicy =
+      widget.company?.overtimePolicy ?? OvertimePolicyEntity.fromLegacyRate(1.5);
+
+  late final _otNormal =
+      TextEditingController(text: _fmt(_otPolicy.normal.value));
+  late OvertimeRateKind _otNormalKind = _otPolicy.normal.kind;
+
+  late final _otHoliday = TextEditingController(
+      text: _fmt(_otPolicy.publicHoliday?.value ?? _otPolicy.normal.value));
+  late OvertimeRateKind _otHolidayKind =
+      _otPolicy.publicHoliday?.kind ?? _otPolicy.normal.kind;
+  late bool _otHolidayEnabled = _otPolicy.publicHoliday != null;
+
+  late final _otWeekend = TextEditingController(
+      text: _fmt(_otPolicy.weekend?.value ?? _otPolicy.normal.value));
+  late OvertimeRateKind _otWeekendKind =
+      _otPolicy.weekend?.kind ?? _otPolicy.normal.kind;
+  late bool _otWeekendEnabled = _otPolicy.weekend != null;
+
+  static String _fmt(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v';
+
+  OvertimeRateEntity _rate(
+          TextEditingController c, OvertimeRateKind kind, double fallback) =>
+      OvertimeRateEntity(
+          kind: kind, value: double.tryParse(c.text.trim()) ?? fallback);
+
+  OvertimePolicyEntity get _overtimePolicy => OvertimePolicyEntity(
+        normal: _rate(_otNormal, _otNormalKind, 1.5),
+        weekend: _otWeekendEnabled
+            ? _rate(_otWeekend, _otWeekendKind, 1.5)
+            : null,
+        publicHoliday: _otHolidayEnabled
+            ? _rate(_otHoliday, _otHolidayKind, 1.5)
+            : null,
+      );
+
   WorkPolicyEntity get _policy => WorkPolicyEntity(
         graceMinutes: int.tryParse(_grace.text.trim()) ?? 0,
         minOvertimeMinutes: int.tryParse(_minOvertime.text.trim()) ?? 0,
@@ -79,6 +118,9 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
       _overtime,
       _grace,
       _minOvertime,
+      _otNormal,
+      _otHoliday,
+      _otWeekend,
     ]) {
       c.dispose();
     }
@@ -101,6 +143,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         overtimeRate: double.tryParse(_overtime.text.trim()) ?? 1.5,
         workSchedule: _schedule,
         policy: _policy,
+        explicitOvertimePolicy: _overtimePolicy,
         adjustments: const [],
         currency: _currency,
         employmentStartDate: now,
@@ -117,6 +160,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         overtimeRate: double.tryParse(_overtime.text.trim()) ?? 1.5,
         workSchedule: _schedule,
         policy: _policy,
+        explicitOvertimePolicy: _overtimePolicy,
         currency: _currency,
         colorIndex: _colorIndex,
       ));
@@ -284,6 +328,48 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
               contentPadding: EdgeInsets.zero,
               onChanged: (v) => setState(() => _paysOvertime = v),
             ),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader(
+              title: 'أجر الإضافي',
+              subtitle: 'يختلف بحسب نوع اليوم الذي وقع فيه',
+            ),
+            OvertimeRateField(
+              label: 'يوم عمل',
+              helper: 'الأساس لكل يوم لم يُخصَّص',
+              controller: _otNormal,
+              kind: _otNormalKind,
+              onKindChanged: (k) => setState(() => _otNormalKind = k),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SwitchListTile(
+              value: _otWeekendEnabled,
+              title: const Text('معدّل خاص ليوم الراحة'),
+              contentPadding: EdgeInsets.zero,
+              onChanged: (v) => setState(() => _otWeekendEnabled = v),
+            ),
+            if (_otWeekendEnabled)
+              OvertimeRateField(
+                label: 'يوم راحة',
+                helper: 'يطبَّق على أيام غير العمل في جدولك',
+                controller: _otWeekend,
+                kind: _otWeekendKind,
+                onKindChanged: (k) => setState(() => _otWeekendKind = k),
+              ),
+            const SizedBox(height: AppSpacing.md),
+            SwitchListTile(
+              value: _otHolidayEnabled,
+              title: const Text('معدّل خاص للعطلة الرسمية'),
+              contentPadding: EdgeInsets.zero,
+              onChanged: (v) => setState(() => _otHolidayEnabled = v),
+            ),
+            if (_otHolidayEnabled)
+              OvertimeRateField(
+                label: 'عطلة رسمية',
+                helper: 'أيام مُعلَّمة عطلةً في تقويم العمل',
+                controller: _otHoliday,
+                kind: _otHolidayKind,
+                onKindChanged: (k) => setState(() => _otHolidayKind = k),
+              ),
             const SizedBox(height: AppSpacing.xl),
             const SectionHeader(
               title: 'لون التمييز',

@@ -1,4 +1,5 @@
 import '../../domain/entities/company_entity.dart';
+import '../../domain/entities/overtime_policy_entity.dart';
 
 /// كل حسابات المال تجري على جهة عمل واحدة: الراتب والجدول والبدلات كلها
 /// خصائصها هي، ولا معنى لحسابها على مستوى الشخص حين يعمل في أكثر من جهة.
@@ -16,11 +17,13 @@ class SalaryCalculator {
     return company.baseMonthlySalary / totalMonthlyHours;
   }
 
-  double get overtimeHourlyRate {
-    // إذا كان هناك سعر إضافي محدد يدوياً، نستخدمه، وإلا نحسبه كنسبة
-    if (company.overtimeRate > 2) return company.overtimeRate; // اعتباراً أن النسبة عادة 1.5 أو 2.0
-    return hourlyWage * company.overtimeRate;
-  }
+  /// أجر الساعة الإضافية في يوم عمل عادي.
+  ///
+  /// يبقى لأنه يُعرض في الواجهة ويُستعمل في التقدير الحيّ؛ الحساب المخزَّن
+  /// يمرّ بـ [calculateOvertimeValue] التي تعرف نوع اليوم.
+  double get overtimeHourlyRate => company.overtimePolicy
+      .rateFor(OvertimeDayType.normal)
+      .amountFor(minutes: 60, hourlyWage: hourlyWage);
 
   double _calculateMonthlyRequiredHours() {
     double total = 0;
@@ -32,9 +35,19 @@ class SalaryCalculator {
     return total * 4.33; 
   }
 
-  double calculateOvertimeValue(int hours, int minutes) {
-    final totalHours = hours + (minutes / 60);
-    return totalHours * overtimeHourlyRate;
+  /// قيمة الإضافي بحسب نوع اليوم الذي وقع فيه.
+  ///
+  /// نوع اليوم مُدخَل لا استنتاج: العطلة الرسمية قد تُدفع بمعدّل يختلف عن
+  /// عطلة الجهة وعن يوم الراحة، ولا سبيل لمعرفة أيّها من الساعات وحدها.
+  double calculateOvertimeValue(
+    int hours,
+    int minutes, {
+    OvertimeDayType dayType = OvertimeDayType.normal,
+  }) {
+    return company.overtimePolicy.rateFor(dayType).amountFor(
+          minutes: (hours * 60) + minutes,
+          hourlyWage: hourlyWage,
+        );
   }
 
   double calculateDeficitValue(int hours, int minutes) {
