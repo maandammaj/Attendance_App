@@ -16,6 +16,7 @@ import 'widgets/net_salary_hero.dart';
 import 'widgets/salary_composition_chart.dart';
 import 'widgets/spending_breakdown.dart';
 import 'transaction_list_screen.dart';
+import 'widgets/all_workplaces_link.dart';
 
 /// أول شاشة يراها المستخدم: أين وصل راتبه هذا الشهر، وأين يذهب.
 ///
@@ -78,6 +79,7 @@ class _Body extends ConsumerWidget {
             AppSpacing.screen, AppSpacing.sm, AppSpacing.screen, 190),
       children: [
         NetSalaryHero(data: data),
+        const AllWorkplacesLink(),
         const SizedBox(height: AppSpacing.xl),
         const SectionHeader(
           title: 'دوامك هذا الشهر',

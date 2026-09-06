@@ -190,7 +190,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 },
               ),
               const SizedBox(height: AppSpacing.xxl),
-              const SectionHeader(title: 'النظام'),
+              const SectionHeader(
+                title: 'المزيد',
+                subtitle: 'عملك ودخلك وإعدادات التطبيق',
+              ),
               const SizedBox(height: AppSpacing.sm),
               const _SystemLinks(),
             ],
@@ -208,74 +211,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
 }
 
-/// روابط الشاشات التي لا تملك تبويباً في الشريط السفلي.
-class _SystemLinks extends StatelessWidget {
-  const _SystemLinks();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        ProfileLinkTile(
-          icon: Icons.cloud_sync_outlined,
-          title: 'النسخ الاحتياطي',
-          subtitle: 'مزامنة بياناتك مع Google Drive',
-          route: AppRoutes.backup,
-        ),
-        ProfileLinkTile(
-          icon: Icons.business_outlined,
-          title: 'جهات العمل',
-          subtitle: 'أضف جهة أو بدّل بينها',
-          route: AppRoutes.companies,
-        ),
-        ProfileLinkTile(
-          icon: Icons.account_balance_wallet_rounded,
-          title: 'دخلي هذا الشهر',
-          subtitle: 'مجموع دخلك من كل جهات العمل',
-          route: AppRoutes.personalPayroll,
-        ),
-        ProfileLinkTile(
-          icon: Icons.calendar_month_rounded,
-          title: 'تقويم العمل',
-          subtitle: 'عطلات رسمية ودوام استثنائي لهذه الجهة',
-          route: AppRoutes.workCalendar,
-        ),
-        ProfileLinkTile(
-          icon: Icons.beach_access_rounded,
-          title: 'الإجازات',
-          subtitle: 'أرصدة وإجازات مسجّلة لهذه الجهة',
-          route: AppRoutes.leave,
-        ),
-        ProfileLinkTile(
-          icon: Icons.insights_rounded,
-          title: 'التقارير والتحليلات',
-          subtitle: 'رسوم بيانية وتصدير PDF و CSV',
-          route: AppRoutes.analytics,
-        ),
-        ProfileLinkTile(
-          icon: Icons.notifications_active_outlined,
-          title: 'التذكيرات الذكية',
-          subtitle: 'تذكيرات الدوام والديون والتنبيهات المالية',
-          route: AppRoutes.reminders,
-        ),
-        ProfileLinkTile(
-          icon: Icons.savings_outlined,
-          title: 'حدود الميزانية',
-          subtitle: 'حد شهري لكل فئة إنفاق',
-          route: AppRoutes.budgetLimits,
-        ),
-        ProfileLinkTile(
-          icon: Icons.history_rounded,
-          title: 'سجل التنبيهات',
-          subtitle: 'كل ما أرسله التطبيق سابقاً',
-          route: AppRoutes.notifications,
-        ),
-      ],
-    );
-  }
-}
-
-/// مدخل شاشة الجدول — التحرير الكامل صار له شاشته الخاصة.
 class _ScheduleLink extends StatelessWidget {
   const _ScheduleLink();
 
@@ -289,3 +224,122 @@ class _ScheduleLink extends StatelessWidget {
     );
   }
 }
+
+/// روابط الشاشات التي لا تملك تبويباً في الشريط السفلي.
+///
+/// مجمّعة بمعناها لا مرصوصة: صارت تسعة روابط تحت عنوان واحد بعد إضافة
+/// التقويم والإجازات والدخل، وقائمةٌ بهذا الطول بلا تجميع تجعل إيجاد الرابط
+/// مسحاً بصرياً لا قراءة.
+class _SystemLinks extends StatelessWidget {
+  const _SystemLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _LinkGroup(
+          title: 'عملي',
+          children: [
+            ProfileLinkTile(
+              icon: Icons.business_outlined,
+              title: 'جهات العمل',
+              subtitle: 'أضف جهة أو بدّل بينها',
+              route: AppRoutes.companies,
+            ),
+            ProfileLinkTile(
+              icon: Icons.calendar_month_rounded,
+              title: 'تقويم العمل',
+              subtitle: 'عطلات رسمية ودوام استثنائي لهذه الجهة',
+              route: AppRoutes.workCalendar,
+            ),
+            ProfileLinkTile(
+              icon: Icons.beach_access_rounded,
+              title: 'الإجازات',
+              subtitle: 'أرصدة وإجازات مسجّلة لهذه الجهة',
+              route: AppRoutes.leave,
+            ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.xl),
+        _LinkGroup(
+          title: 'دخلي',
+          children: [
+            ProfileLinkTile(
+              icon: Icons.account_balance_wallet_rounded,
+              title: 'دخلي هذا الشهر',
+              subtitle: 'مجموع دخلك من كل جهات العمل',
+              route: AppRoutes.personalPayroll,
+            ),
+            ProfileLinkTile(
+              icon: Icons.insights_rounded,
+              title: 'التقارير والتحليلات',
+              subtitle: 'رسوم بيانية وتصدير PDF و CSV',
+              route: AppRoutes.analytics,
+            ),
+            ProfileLinkTile(
+              icon: Icons.savings_outlined,
+              title: 'حدود الميزانية',
+              subtitle: 'حد شهري لكل فئة إنفاق',
+              route: AppRoutes.budgetLimits,
+            ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.xl),
+        _LinkGroup(
+          title: 'التطبيق',
+          children: [
+            ProfileLinkTile(
+              icon: Icons.cloud_sync_outlined,
+              title: 'النسخ الاحتياطي',
+              subtitle: 'مزامنة بياناتك مع Google Drive',
+              route: AppRoutes.backup,
+            ),
+            ProfileLinkTile(
+              icon: Icons.notifications_active_outlined,
+              title: 'التذكيرات الذكية',
+              subtitle: 'تذكيرات الدوام والديون والتنبيهات المالية',
+              route: AppRoutes.reminders,
+            ),
+            ProfileLinkTile(
+              icon: Icons.history_rounded,
+              title: 'سجل التنبيهات',
+              subtitle: 'كل ما وصلك من تنبيهات',
+              route: AppRoutes.notifications,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LinkGroup extends StatelessWidget {
+  const _LinkGroup({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+              start: AppSpacing.xs, bottom: AppSpacing.sm),
+          child: Text(
+            title,
+            style: theme.textTheme.labelMedium
+                ?.copyWith(color: palette.onSurfaceVariant),
+          ),
+        ),
+        ...children,
+      ],
+    );
+  }
+}
+
