@@ -45,6 +45,8 @@ class PersonalPayrollScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
               _TotalCard(payroll: payroll, currency: currency),
+              const SizedBox(height: AppSpacing.lg),
+              _MonthSummary(payroll: payroll),
               const SizedBox(height: AppSpacing.xl),
               SectionHeader(
                 title: 'من أين جاء',
@@ -169,6 +171,66 @@ class _TotalPart extends StatelessWidget {
   }
 }
 
+/// ملخّص الشهر: الساعات والإضافي والإجازات إلى جانب المال.
+///
+/// المال وحده لا يفسّر نفسه — 128,500 عن 184 ساعة غير 128,500 عن 90.
+class _MonthSummary extends StatelessWidget {
+  const _MonthSummary({required this.payroll});
+
+  final PersonalPayroll payroll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          children: [
+            _SummaryCell(
+              label: 'ساعات العمل',
+              value: DateHelpers.formatDurationCompact(
+                  payroll.totalWorkedMinutes),
+            ),
+            _SummaryCell(
+              label: 'الإضافي',
+              value: DateHelpers.formatDurationCompact(
+                  payroll.totalOvertimeMinutes),
+            ),
+            _SummaryCell(
+              label: 'الإجازات',
+              value: '${payroll.totalLeaveDays} يوم',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryCell extends StatelessWidget {
+  const _SummaryCell({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value, style: theme.textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text(label,
+              style: theme.textTheme.labelSmall
+                  ?.copyWith(color: palette.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+}
+
 class _WorkplaceCard extends StatelessWidget {
   const _WorkplaceCard({required this.workplace, required this.currency});
 
@@ -237,6 +299,23 @@ class _WorkplaceCard extends StatelessWidget {
                   label: 'عجز وغياب',
                   value: -workplace.deductions,
                   currency: currency),
+            if (workplace.holidayOvertimeMinutes > 0 ||
+                workplace.leaveDays > 0) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                [
+                  if (workplace.holidayOvertimeMinutes > 0)
+                    'منه ${DateHelpers.formatDurationCompact(workplace.holidayOvertimeMinutes)} '
+                        'إضافي في عطلة',
+                  if (workplace.leaveDays > 0)
+                    '${workplace.leaveDays} يوم إجازة',
+                ].join(' · '),
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(color: context.palette.onSurfaceVariant),
+              ),
+            ],
           ],
         ),
       ),

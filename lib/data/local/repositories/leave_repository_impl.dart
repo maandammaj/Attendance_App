@@ -14,7 +14,14 @@ class LeaveRepositoryImpl implements LeaveRepository {
   @override
   Future<List<LeaveEntity>> getBetween(DateTime from, DateTime to) async {
     final isar = await _db;
-    final companyId = await CompanyScope.activeId(isar);
+    return getBetweenForCompany(
+        await CompanyScope.activeId(isar), from, to);
+  }
+
+  @override
+  Future<List<LeaveEntity>> getBetweenForCompany(
+      int companyId, DateTime from, DateTime to) async {
+    final isar = await _db;
 
     // التقاطع لا الاحتواء: إجازة تبدأ قبل المدى وتنتهي داخله تخصّه أيضاً.
     final models = await isar.leaveModels

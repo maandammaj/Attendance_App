@@ -1,6 +1,7 @@
 import '../../../core/utils/salary_calculator.dart';
 import '../../entities/company_entity.dart';
 import '../../entities/payroll_entity.dart';
+import '../../entities/leave_entity.dart';
 import '../../repositories/attendance_repository.dart';
 
 /// يبني دخل المستخدم من كل جهاته في فترة واحدة.
@@ -17,6 +18,7 @@ class BuildPersonalPayrollUseCase {
     required List<CompanyEntity> companies,
     required DateTime from,
     required DateTime to,
+    List<LeaveEntity> leaves = const [],
   }) async {
     final results = <WorkplacePayroll>[];
 
@@ -29,8 +31,14 @@ class BuildPersonalPayrollUseCase {
       var overtimeValue = 0.0;
       var deficitValue = 0.0;
       var attendedDays = 0;
+      var holidayOvertime = 0;
 
       for (final record in records) {
+        // التصنيف من السجل نفسه: يُحدَّث مع كل إعادة حساب فيتبع التقويم.
+        if (record.dayType == 'holiday' || record.dayType == 'friday') {
+          holidayOvertime +=
+              (record.overtimeHours * 60) + record.overtimeMinutes;
+        }
         workedMinutes += (record.workedHours * 60) + record.workedMinutes;
         overtimeMinutes += (record.overtimeHours * 60) + record.overtimeMinutes;
         overtimeValue += record.overtimeValue;
@@ -56,10 +64,30 @@ class BuildPersonalPayrollUseCase {
         workedMinutes: workedMinutes,
         overtimeMinutes: overtimeMinutes,
         attendedDays: attendedDays,
+        leaveDays: _leaveDaysIn(leaves, company.id, from, to),
+        holidayOvertimeMinutes: holidayOvertime,
       ));
     }
 
     results.sort((a, b) => b.net.compareTo(a.net));
     return PersonalPayroll(from: from, to: to, workplaces: results);
+  }
+
+  /// أيام الإجازة الواقعة داخل الفترة، مقصوصة على حدّيها.
+  static int _leaveDaysIn(
+    List<LeaveEntity> leaves,
+    int companyId,
+    DateTime from,
+    DateTime to,
+  ) {
+    var days = 0;
+    for (final leave in leaves) {
+      if (leave.companyId != companyId) continue;
+      final start = leave.from.isBefore(from) ? from : leave.from;
+      final end = leave.to.isAfter(to) ? to : leave.to;
+      final span = end.difference(start).inDays + 1;
+      if (span > 0) days += span;
+    }
+    return days;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:attendance_budget_app/domain/entities/attendance_entity.dart';
 import 'package:attendance_budget_app/domain/entities/company_entity.dart';
+import 'package:attendance_budget_app/domain/entities/leave_entity.dart';
 import 'package:attendance_budget_app/domain/entities/profile_entity.dart';
 import 'package:attendance_budget_app/domain/repositories/attendance_repository.dart';
 import 'package:attendance_budget_app/domain/usecases/payroll/build_personal_payroll_usecase.dart';
@@ -167,6 +168,81 @@ void main() {
       expect(payroll.totalNet, 0);
       expect(payroll.topEarner, isNull);
       expect(payroll.bestHourlyReturn, isNull);
+    });
+  });
+
+  group('ملخّص الشهر', () {
+    test('الساعات والإضافي والإجازات تُجمع عبر الجهات', () async {
+      final a = _company(id: 1, name: 'أ', salary: 5000);
+      final b = _company(id: 2, name: 'ب', salary: 3000);
+
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository({
+        1: [_record(day: 1, workedMinutes: 160 * 60, overtimeMinutes: 6 * 60)],
+        2: [_record(day: 1, workedMinutes: 24 * 60, overtimeMinutes: 4 * 60)],
+      }))(
+        companies: [a, b],
+        from: from,
+        to: to,
+        leaves: [
+          LeaveEntity(
+            id: 1,
+            companyId: 1,
+            from: DateTime(2026, 9, 10),
+            to: DateTime(2026, 9, 12),
+            type: LeaveTypeEntity.annual,
+            createdAt: DateTime(2026),
+          ),
+        ],
+      );
+
+      expect(payroll.totalWorkedMinutes, 184 * 60);
+      expect(payroll.totalOvertimeMinutes, 10 * 60);
+      expect(payroll.totalLeaveDays, 3);
+    });
+
+    test('الإجازة تُقصّ على حدّي الفترة', () async {
+      final a = _company(id: 1, name: 'أ', salary: 5000);
+
+      // إجازة من 28 أغسطس إلى 3 سبتمبر — ثلاثة أيام منها في سبتمبر.
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository(const {}))(
+        companies: [a],
+        from: from,
+        to: to,
+        leaves: [
+          LeaveEntity(
+            id: 1,
+            companyId: 1,
+            from: DateTime(2026, 8, 28),
+            to: DateTime(2026, 9, 3),
+            type: LeaveTypeEntity.annual,
+            createdAt: DateTime(2026),
+          ),
+        ],
+      );
+
+      expect(payroll.totalLeaveDays, 3);
+    });
+
+    test('إجازة جهة أخرى لا تُحسب على هذه', () async {
+      final a = _company(id: 1, name: 'أ', salary: 5000);
+
+      final payroll = await BuildPersonalPayrollUseCase(_FakeRepository(const {}))(
+        companies: [a],
+        from: from,
+        to: to,
+        leaves: [
+          LeaveEntity(
+            id: 1,
+            companyId: 99,
+            from: DateTime(2026, 9, 1),
+            to: DateTime(2026, 9, 5),
+            type: LeaveTypeEntity.annual,
+            createdAt: DateTime(2026),
+          ),
+        ],
+      );
+
+      expect(payroll.workplaces.single.leaveDays, 0);
     });
   });
 }

@@ -11,6 +11,8 @@ class WorkplacePayroll {
     required this.workedMinutes,
     required this.overtimeMinutes,
     required this.attendedDays,
+    this.leaveDays = 0,
+    this.holidayOvertimeMinutes = 0,
   });
 
   final CompanyEntity company;
@@ -29,6 +31,13 @@ class WorkplacePayroll {
   final int workedMinutes;
   final int overtimeMinutes;
   final int attendedDays;
+
+  /// أيام الإجازة المأخوذة من هذه الجهة في الفترة.
+  final int leaveDays;
+
+  /// الإضافي الواقع في عطلة أو يوم راحة — يُفصل لأنه يُدفع بمعدّل آخر،
+  /// فجمعه مع إضافي أيام العمل يخفي من أين جاء المال.
+  final int holidayOvertimeMinutes;
 
   double get net => basic + overtime + adjustments - deductions;
 
@@ -73,6 +82,19 @@ class PersonalPayroll {
 
   /// إجمالي الدخل الشخصي من كل الجهات.
   double get totalNet => workplaces.fold(0.0, (sum, w) => sum + w.net);
+
+  int get totalWorkedMinutes =>
+      workplaces.fold(0, (sum, w) => sum + w.workedMinutes);
+
+  int get totalOvertimeMinutes =>
+      workplaces.fold(0, (sum, w) => sum + w.overtimeMinutes);
+
+  /// أيام الإجازة عبر كل الجهات.
+  ///
+  /// تُجمع لأن الإجازة وقت المستخدم لا وقت الجهة: يومٌ أُخذ من جهة هو يوم
+  /// من عمره. الأرصدة تبقى مفصّلة، وهذا العدد للاطّلاع لا للمحاسبة.
+  int get totalLeaveDays =>
+      workplaces.fold(0, (sum, w) => sum + w.leaveDays);
 
   int get totalPresenceMinutes =>
       workplaces.fold(0, (sum, w) => sum + w.presenceMinutes);

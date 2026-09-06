@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../domain/entities/leave_entity.dart';
 import '../../domain/entities/payroll_entity.dart';
 import '../../domain/usecases/payroll/build_personal_payroll_usecase.dart';
 import 'attendance_provider.dart';
@@ -26,9 +27,21 @@ Future<PersonalPayroll> personalPayroll(
       .where((company) => !company.isArchived)
       .toList();
 
+  // الإجازات تُقرأ للجهات كلها لا للفعّالة وحدها: هذه الشاشة تعبر الجهات.
+  final leaveRepository = ref.read(leaveRepositoryProvider);
+  final leaves = <LeaveEntity>[];
+  for (final company in companies) {
+    leaves.addAll(await leaveRepository.getBetweenForCompany(
+      company.id,
+      DateTime(year, month, 1),
+      DateTime(year, month + 1, 0),
+    ));
+  }
+
   return ref.read(buildPersonalPayrollUseCaseProvider)(
     companies: companies,
     from: DateTime(year, month, 1),
     to: DateTime(year, month + 1, 0, 23, 59, 59),
+    leaves: leaves,
   );
 }

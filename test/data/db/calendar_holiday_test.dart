@@ -127,4 +127,31 @@ void main() {
     await db.setActiveCompany(a);
     expect(await calendar.getForDate(holiday), hasLength(1));
   });
+
+  test('تعليم يوم عطلةً بعد تسجيله يُعيد تصنيفه', () async {
+    final company = await db.addCompany(
+        name: 'أ', hourlyRate: 10, hoursPerDay: 8,
+        startTime: '08:00', endTime: '16:00');
+    await db.setActiveCompany(company);
+
+    await attendance.addManualRecord(
+      date: holiday,
+      checkIn: DateTime(2026, 9, 26, 9),
+      checkOut: DateTime(2026, 9, 26, 13),
+    );
+
+    var record =
+        (await attendance.getRecordsForCompany(company, from, to)).single;
+    expect(record.dayType, isNot('holiday'));
+
+    // يُعلَّم عطلةً بعد أن سُجّل الدوام، ثم يُعاد حسابه بتعديله.
+    await calendar.mark(
+        date: holiday, kind: CalendarDayKindEntity.publicHoliday);
+    await attendance.updateRecord(record);
+
+    record = (await attendance.getRecordsForCompany(company, from, to)).single;
+    expect(record.dayType, 'holiday',
+        reason: 'بقي السجل مصنّفاً يوم عمل بعد صيرورته عطلة');
+    expect(record.overtimeHours, 4);
+  });
 }

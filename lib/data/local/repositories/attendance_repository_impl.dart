@@ -353,6 +353,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     );
 
     record
+      // نوع اليوم يُحدَّث مع كل إعادة حساب لا عند الإنشاء وحده: تعليم يوم
+      // عطلةً بعد تسجيل دوامه كان يترك السجل مصنّفاً يوم عمل، فيظهر في
+      // التقارير تحت التصنيف الخطأ.
+      ..dayType = _resolveDayType(dayConfig)
       ..isOpen = result.isOpen
       ..sessionCount = result.sessionCount
       ..checkIn = result.firstCheckIn
