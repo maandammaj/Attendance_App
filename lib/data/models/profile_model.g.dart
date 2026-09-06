@@ -3135,3 +3135,209 @@ extension WorkDayConfigQueryFilter
 
 extension WorkDayConfigQueryObject
     on QueryBuilder<WorkDayConfig, WorkDayConfig, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const WorkPolicySchema = Schema(
+  name: r'WorkPolicy',
+  id: 6035242423871311668,
+  properties: {
+    r'graceMinutes': PropertySchema(
+      id: 0,
+      name: r'graceMinutes',
+      type: IsarType.long,
+    ),
+    r'minOvertimeMinutes': PropertySchema(
+      id: 1,
+      name: r'minOvertimeMinutes',
+      type: IsarType.long,
+    ),
+    r'paysOvertime': PropertySchema(
+      id: 2,
+      name: r'paysOvertime',
+      type: IsarType.bool,
+    ),
+  },
+
+  estimateSize: _workPolicyEstimateSize,
+  serialize: _workPolicySerialize,
+  deserialize: _workPolicyDeserialize,
+  deserializeProp: _workPolicyDeserializeProp,
+);
+
+int _workPolicyEstimateSize(
+  WorkPolicy object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _workPolicySerialize(
+  WorkPolicy object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.graceMinutes);
+  writer.writeLong(offsets[1], object.minOvertimeMinutes);
+  writer.writeBool(offsets[2], object.paysOvertime);
+}
+
+WorkPolicy _workPolicyDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = WorkPolicy();
+  object.graceMinutes = reader.readLong(offsets[0]);
+  object.minOvertimeMinutes = reader.readLong(offsets[1]);
+  object.paysOvertime = reader.readBool(offsets[2]);
+  return object;
+}
+
+P _workPolicyDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension WorkPolicyQueryFilter
+    on QueryBuilder<WorkPolicy, WorkPolicy, QFilterCondition> {
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  graceMinutesEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'graceMinutes', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  graceMinutesGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'graceMinutes',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  graceMinutesLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'graceMinutes',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  graceMinutesBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'graceMinutes',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  minOvertimeMinutesEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'minOvertimeMinutes', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  minOvertimeMinutesGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'minOvertimeMinutes',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  minOvertimeMinutesLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'minOvertimeMinutes',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  minOvertimeMinutesBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'minOvertimeMinutes',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WorkPolicy, WorkPolicy, QAfterFilterCondition>
+  paysOvertimeEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'paysOvertime', value: value),
+      );
+    });
+  }
+}
+
+extension WorkPolicyQueryObject
+    on QueryBuilder<WorkPolicy, WorkPolicy, QFilterCondition> {}

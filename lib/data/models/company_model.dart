@@ -21,6 +21,9 @@ class CompanyModel {
   late double overtimeRate;
 
   late List<WorkDayConfig> workSchedule;
+
+  /// قواعد الجهة السارية على كل أيامها. مضمَّنة لا مرتبطة.
+  WorkPolicy? policy;
   late List<SalaryAdjustment> adjustments;
 
   String? currency;

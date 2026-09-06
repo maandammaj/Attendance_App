@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/company_entity.dart';
+import '../../../domain/entities/profile_entity.dart';
 import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../schedule/widgets/schedule_presets.dart';
@@ -41,6 +42,18 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
       AppConstants.defaultCurrency;
   late int _colorIndex = widget.company?.colorIndex ?? 0;
 
+  late final _grace = TextEditingController(
+      text: '${widget.company?.policy.graceMinutes ?? 0}');
+  late final _minOvertime = TextEditingController(
+      text: '${widget.company?.policy.minOvertimeMinutes ?? 0}');
+  late bool _paysOvertime = widget.company?.policy.paysOvertime ?? true;
+
+  WorkPolicyEntity get _policy => WorkPolicyEntity(
+        graceMinutes: int.tryParse(_grace.text.trim()) ?? 0,
+        minOvertimeMinutes: int.tryParse(_minOvertime.text.trim()) ?? 0,
+        paysOvertime: _paysOvertime,
+      );
+
   static const _weekOrder = <int>[
     DateTime.saturday,
     DateTime.sunday,
@@ -58,7 +71,15 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _job, _salary, _hourly, _overtime]) {
+    for (final c in [
+      _name,
+      _job,
+      _salary,
+      _hourly,
+      _overtime,
+      _grace,
+      _minOvertime,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -79,6 +100,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         hourlyRate: double.tryParse(_hourly.text.trim()) ?? 0,
         overtimeRate: double.tryParse(_overtime.text.trim()) ?? 1.5,
         workSchedule: _schedule,
+        policy: _policy,
         adjustments: const [],
         currency: _currency,
         employmentStartDate: now,
@@ -94,6 +116,7 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
         hourlyRate: double.tryParse(_hourly.text.trim()) ?? 0,
         overtimeRate: double.tryParse(_overtime.text.trim()) ?? 1.5,
         workSchedule: _schedule,
+        policy: _policy,
         currency: _currency,
         colorIndex: _colorIndex,
       ));
@@ -219,6 +242,48 @@ class _CompanyEditorScreenState extends ConsumerState<CompanyEditorScreen> {
                 onChanged: (_) =>
                     setState(() => _schedule = preset.build(_weekOrder)),
               ),
+            const SizedBox(height: AppSpacing.xl),
+            const SectionHeader(
+              title: 'قواعد الاحتساب',
+              subtitle: 'تسري على كل أيام هذه الجهة',
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _grace,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'سماح التأخّر',
+                      suffixText: 'دقيقة',
+                      helperText: 'تأخّر دونه لا يُخصم',
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: TextFormField(
+                    controller: _minOvertime,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'أقلّ إضافي',
+                      suffixText: 'دقيقة',
+                      helperText: 'إضافي دونه لا يُحتسب',
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SwitchListTile(
+              value: _paysOvertime,
+              title: const Text('تدفع هذه الجهة أجر الإضافي'),
+              subtitle: const Text(
+                  'عند الإطفاء تبقى الساعات ظاهرة في التقرير بلا أجر'),
+              contentPadding: EdgeInsets.zero,
+              onChanged: (v) => setState(() => _paysOvertime = v),
+            ),
             const SizedBox(height: AppSpacing.xl),
             const SectionHeader(
               title: 'لون التمييز',

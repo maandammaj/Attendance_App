@@ -398,6 +398,11 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       baseMonthlySalary: company.baseMonthlySalary,
       hourlyRate: company.hourlyRate,
       overtimeRate: company.overtimeRate,
+      policy: WorkPolicyEntity(
+        graceMinutes: company.policy?.graceMinutes ?? 0,
+        minOvertimeMinutes: company.policy?.minOvertimeMinutes ?? 0,
+        paysOvertime: company.policy?.paysOvertime ?? true,
+      ),
       workSchedule: company.workSchedule
           .map((w) => WorkDayConfigEntity(
                 dayOfWeek: w.dayOfWeek,

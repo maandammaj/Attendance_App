@@ -10,6 +10,9 @@ class CompanyEntity {
   final double hourlyRate;
   final double overtimeRate;
   final List<WorkDayConfigEntity> workSchedule;
+
+  /// قواعد هذه الجهة. غيابها يعني الافتراضي المحايد.
+  final WorkPolicyEntity policy;
   final List<SalaryAdjustmentEntity> adjustments;
   final String? currency;
   final DateTime? employmentStartDate;
@@ -26,6 +29,7 @@ class CompanyEntity {
     required this.hourlyRate,
     required this.overtimeRate,
     required this.workSchedule,
+    this.policy = const WorkPolicyEntity(),
     required this.adjustments,
     this.currency,
     this.employmentStartDate,
@@ -66,6 +70,7 @@ class CompanyEntity {
     double? hourlyRate,
     double? overtimeRate,
     List<WorkDayConfigEntity>? workSchedule,
+    WorkPolicyEntity? policy,
     List<SalaryAdjustmentEntity>? adjustments,
     String? currency,
     DateTime? employmentStartDate,
@@ -80,6 +85,7 @@ class CompanyEntity {
       hourlyRate: hourlyRate ?? this.hourlyRate,
       overtimeRate: overtimeRate ?? this.overtimeRate,
       workSchedule: workSchedule ?? this.workSchedule,
+      policy: policy ?? this.policy,
       adjustments: adjustments ?? this.adjustments,
       currency: currency ?? this.currency,
       employmentStartDate: employmentStartDate ?? this.employmentStartDate,

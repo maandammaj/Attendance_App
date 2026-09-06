@@ -70,13 +70,20 @@ const CompanyModelSchema = CollectionSchema(
       name: r'overtimeRate',
       type: IsarType.double,
     ),
-    r'updatedAt': PropertySchema(
+    r'policy': PropertySchema(
       id: 11,
+      name: r'policy',
+      type: IsarType.object,
+
+      target: r'WorkPolicy',
+    ),
+    r'updatedAt': PropertySchema(
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'workSchedule': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'workSchedule',
       type: IsarType.objectList,
 
@@ -107,6 +114,7 @@ const CompanyModelSchema = CollectionSchema(
   links: {},
   embeddedSchemas: {
     r'WorkDayConfig': WorkDayConfigSchema,
+    r'WorkPolicy': WorkPolicySchema,
     r'SalaryAdjustment': SalaryAdjustmentSchema,
   },
 
@@ -142,6 +150,18 @@ int _companyModelEstimateSize(
   }
   bytesCount += 3 + object.jobTitle.length * 3;
   bytesCount += 3 + object.name.length * 3;
+  {
+    final value = object.policy;
+    if (value != null) {
+      bytesCount +=
+          3 +
+          WorkPolicySchema.estimateSize(
+            value,
+            allOffsets[WorkPolicy]!,
+            allOffsets,
+          );
+    }
+  }
   bytesCount += 3 + object.workSchedule.length * 3;
   {
     final offsets = allOffsets[WorkDayConfig]!;
@@ -179,9 +199,15 @@ void _companyModelSerialize(
   writer.writeString(offsets[8], object.jobTitle);
   writer.writeString(offsets[9], object.name);
   writer.writeDouble(offsets[10], object.overtimeRate);
-  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeObject<WorkPolicy>(
+    offsets[11],
+    allOffsets,
+    WorkPolicySchema.serialize,
+    object.policy,
+  );
+  writer.writeDateTime(offsets[12], object.updatedAt);
   writer.writeObjectList<WorkDayConfig>(
-    offsets[12],
+    offsets[13],
     allOffsets,
     WorkDayConfigSchema.serialize,
     object.workSchedule,
@@ -214,10 +240,15 @@ CompanyModel _companyModelDeserialize(
   object.jobTitle = reader.readString(offsets[8]);
   object.name = reader.readString(offsets[9]);
   object.overtimeRate = reader.readDouble(offsets[10]);
-  object.updatedAt = reader.readDateTime(offsets[11]);
+  object.policy = reader.readObjectOrNull<WorkPolicy>(
+    offsets[11],
+    WorkPolicySchema.deserialize,
+    allOffsets,
+  );
+  object.updatedAt = reader.readDateTime(offsets[12]);
   object.workSchedule =
       reader.readObjectList<WorkDayConfig>(
-        offsets[12],
+        offsets[13],
         WorkDayConfigSchema.deserialize,
         allOffsets,
         WorkDayConfig(),
@@ -263,8 +294,15 @@ P _companyModelDeserializeProp<P>(
     case 10:
       return (reader.readDouble(offset)) as P;
     case 11:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readObjectOrNull<WorkPolicy>(
+            offset,
+            WorkPolicySchema.deserialize,
+            allOffsets,
+          ))
+          as P;
     case 12:
+      return (reader.readDateTime(offset)) as P;
+    case 13:
       return (reader.readObjectList<WorkDayConfig>(
                 offset,
                 WorkDayConfigSchema.deserialize,
@@ -1416,6 +1454,24 @@ extension CompanyModelQueryFilter
   }
 
   QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  policyIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'policy'),
+      );
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
+  policyIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'policy'),
+      );
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition>
   updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1530,6 +1586,14 @@ extension CompanyModelQueryObject
   adjustmentsElement(FilterQuery<SalaryAdjustment> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'adjustments');
+    });
+  }
+
+  QueryBuilder<CompanyModel, CompanyModel, QAfterFilterCondition> policy(
+    FilterQuery<WorkPolicy> q,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'policy');
     });
   }
 
@@ -1993,6 +2057,12 @@ extension CompanyModelQueryProperty
   QueryBuilder<CompanyModel, double, QQueryOperations> overtimeRateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'overtimeRate');
+    });
+  }
+
+  QueryBuilder<CompanyModel, WorkPolicy?, QQueryOperations> policyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'policy');
     });
   }
 

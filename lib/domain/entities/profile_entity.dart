@@ -111,3 +111,37 @@ class WorkDayConfigEntity {
     );
   }
 }
+
+/// سياسة العمل لجهة واحدة.
+///
+/// القيم الافتراضية تُبقي الحساب كما كان قبل وجود السياسة: بلا سماح، وبلا
+/// حدٍّ أدنى للإضافي، والإضافي مدفوع. فجهة قائمة لا تتغيّر أرقامها بمجرّد
+/// إضافة الحقل.
+class WorkPolicyEntity {
+  const WorkPolicyEntity({
+    this.graceMinutes = 0,
+    this.minOvertimeMinutes = 0,
+    this.paysOvertime = true,
+  });
+
+  /// تأخّرٌ لا يُحاسَب عليه، بالدقائق.
+  final int graceMinutes;
+
+  /// أقلّ إضافي يُعتدّ به.
+  final int minOvertimeMinutes;
+
+  /// هل تدفع هذه الجهة أجر الإضافي.
+  final bool paysOvertime;
+
+  WorkPolicyEntity copyWith({
+    int? graceMinutes,
+    int? minOvertimeMinutes,
+    bool? paysOvertime,
+  }) {
+    return WorkPolicyEntity(
+      graceMinutes: graceMinutes ?? this.graceMinutes,
+      minOvertimeMinutes: minOvertimeMinutes ?? this.minOvertimeMinutes,
+      paysOvertime: paysOvertime ?? this.paysOvertime,
+    );
+  }
+}

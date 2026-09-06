@@ -10,6 +10,8 @@ import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
 import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
+import 'widgets/profile_identity_card.dart';
+import 'widgets/profile_link_tile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -112,16 +114,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         data: (profile) => Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            // الحشوة السفلية تفرغ لشريط التنقل العائم: كانت 20 فقط، فآخر
+            // مدخل («سجل التنبيهات») كان يُحجب خلفه.
+            padding: EdgeInsetsDirectional.fromSTEB(
+              AppSpacing.screen,
+              AppSpacing.lg,
+              AppSpacing.screen,
+              context.navBarClearance,
+            ),
             children: [
+              ProfileIdentityCard(
+                fullName: profile?.fullName ?? 'المستخدم',
+                jobTitle: company?.jobTitle ?? 'المسمى الوظيفي',
+                companyName: company?.name,
+              ),
+              const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'البيانات الأساسية'),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               TextFormField(
                 controller: _nameCtl,
                 decoration: const InputDecoration(labelText: 'الاسم الكامل', prefixIcon: Icon(Icons.person_outline)),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'الرجاء إدخال الاسم' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Row(
                 children: [
                   Expanded(
@@ -131,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       keyboardType: TextInputType.number,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _currency,
@@ -144,11 +159,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'جدول الدوام'),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               const _ScheduleLink(),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
               AppButton(
                 label: 'حفظ كافة الإعدادات',
                 icon: Icons.save_rounded,
@@ -174,11 +189,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
               const SectionHeader(title: 'النظام'),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               const _SystemLinks(),
-              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -200,88 +214,45 @@ class _SystemLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.cloud_sync_outlined,
           title: 'النسخ الاحتياطي',
           subtitle: 'مزامنة بياناتك مع Google Drive',
           route: AppRoutes.backup,
         ),
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.business_outlined,
           title: 'جهات العمل',
           subtitle: 'أضف جهة أو بدّل بينها',
           route: AppRoutes.companies,
         ),
-        _LinkTile(
-          icon: Icons.event_note_rounded,
-          title: 'جدول الدوام',
-          subtitle: 'أيام العمل وأوقات الورديات',
-          route: '/work-schedule',
-        ),
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.insights_rounded,
           title: 'التقارير والتحليلات',
           subtitle: 'رسوم بيانية وتصدير PDF و CSV',
-          route: '/analytics',
+          route: AppRoutes.analytics,
         ),
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.notifications_active_outlined,
           title: 'التذكيرات الذكية',
           subtitle: 'تذكيرات الدوام والديون والتنبيهات المالية',
-          route: '/reminders',
+          route: AppRoutes.reminders,
         ),
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.savings_outlined,
           title: 'حدود الميزانية',
           subtitle: 'حد شهري لكل فئة إنفاق',
-          route: '/budget-limits',
+          route: AppRoutes.budgetLimits,
         ),
-        _LinkTile(
+        ProfileLinkTile(
           icon: Icons.history_rounded,
           title: 'سجل التنبيهات',
           subtitle: 'كل ما أرسله التطبيق سابقاً',
-          route: '/notification-history',
+          route: AppRoutes.notifications,
         ),
       ],
-    );
-  }
-}
-
-class _LinkTile extends StatelessWidget {
-  const _LinkTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsetsDirectional.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-          child: Icon(icon, color: theme.colorScheme.primary),
-        ),
-        title: Text(title),
-        subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-        onTap: () => Navigator.pushNamed(context, route),
-      ),
     );
   }
 }
@@ -292,22 +263,11 @@ class _ScheduleLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      child: ListTile(
-        contentPadding:
-            const EdgeInsetsDirectional.fromSTEB(16, 6, 12, 6),
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-          child: Icon(Icons.event_note_rounded,
-              color: theme.colorScheme.primary),
-        ),
-        title: const Text('تخصيص أيام وأوقات الدوام'),
-        subtitle: Text('قوالب جاهزة، نوافذ ورديات، وورديات ليلية',
-            style: theme.textTheme.bodySmall),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-        onTap: () => Navigator.pushNamed(context, '/work-schedule'),
-      ),
+    return const ProfileLinkTile(
+      icon: Icons.event_note_rounded,
+      title: 'تخصيص أيام وأوقات الدوام',
+      subtitle: 'قوالب جاهزة، نوافذ ورديات، وورديات ليلية',
+      route: AppRoutes.workSchedule,
     );
   }
 }

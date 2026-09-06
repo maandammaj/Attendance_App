@@ -92,9 +92,24 @@ class AttendanceCalculationService {
       requiredMinutes: dayConfig.requiredMinutes,
     );
 
+    final policy = company.policy;
+
     var deficitMinutes = details.deficitMinutes;
     // يوم بلا جلسات مغلقة ولا جلسة مفتوحة لا عجز عليه إلا إن أُعلن غياباً.
     if (closed.isEmpty && !isOpen && !isAbsent) deficitMinutes = 0;
+
+    // السماح يُطبَّق على عجز اليوم كاملاً لا على التأخّر وحده: السجل يحفظ
+    // الجلسات لا سبب النقص، فلا سبيل للتمييز بين من تأخّر عشر دقائق ومن
+    // انصرف قبل الموعد بعشر. القاعدة معلنة صراحةً هنا كي لا تُفهم كسهو.
+    if (deficitMinutes > 0 && deficitMinutes <= policy.graceMinutes) {
+      deficitMinutes = 0;
+    }
+
+    // الدقائق تبقى كما هي في التقرير حتى حين لا تُدفع: أن يرى المستخدم أنه
+    // عمل ساعتين إضافيتين بلا أجر معلومةٌ صحيحة، وإخفاؤها تزييف.
+    var overtimeMinutes = details.overtimeMinutes;
+    if (overtimeMinutes < policy.minOvertimeMinutes) overtimeMinutes = 0;
+    final payableOvertimeMinutes = policy.paysOvertime ? overtimeMinutes : 0;
 
     return DayCalculation(
       isOpen: isOpen,
@@ -108,10 +123,10 @@ class AttendanceCalculationService {
       requiredMinutes: dayConfig.requiredMinutes,
       presenceMinutes: presenceMinutes,
       officialMinutes: details.officialMinutes,
-      overtimeMinutes: details.overtimeMinutes,
+      overtimeMinutes: overtimeMinutes,
       deficitMinutes: deficitMinutes,
       overtimeValue: calculator.calculateOvertimeValue(
-          details.overtimeMinutes ~/ 60, details.overtimeMinutes % 60),
+          payableOvertimeMinutes ~/ 60, payableOvertimeMinutes % 60),
       deficitValue: calculator.calculateDeficitValue(
           deficitMinutes ~/ 60, deficitMinutes % 60),
     );

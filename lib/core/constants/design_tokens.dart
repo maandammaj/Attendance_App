@@ -248,6 +248,21 @@ class AppSpacing {
   static const double bottomFabInset = 172;
 }
 
+extension AppScaffoldInsets on BuildContext {
+  /// ما يحجبه شريط التنقل العائم فعلياً أسفل الشاشة.
+  ///
+  /// [AppSpacing.bottomNavInset] ارتفاع الشريط وهامشه فقط، لكن
+  /// `NavigationBar` يضيف حشوة المنطقة الآمنة (شريط الإيماءات) إلى ارتفاعه
+  /// — فالثابت وحده يترك آخر عنصر في القائمة تحت الشريط على أي جهاز له
+  /// شريط إيماءات. تُقاس على الجهاز لا تُخمَّن.
+  double get navBarClearance =>
+      AppSpacing.bottomNavInset + MediaQuery.paddingOf(this).bottom;
+
+  /// نفسه مع زر عائم فوق الشريط.
+  double get navBarFabClearance =>
+      AppSpacing.bottomFabInset + MediaQuery.paddingOf(this).bottom;
+}
+
 /// أحجام الأيقونات كـ tokens بدل قيم عشوائية.
 class AppIconSize {
   AppIconSize._();

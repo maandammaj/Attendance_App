@@ -197,6 +197,17 @@ class BackupService {
     ..currency = j['currency'] as String?
     ..updatedAt = _dateOr(j['updatedAt']);
 
+  static Map<String, dynamic> _policyToJson(WorkPolicy p) => {
+        'graceMinutes': p.graceMinutes,
+        'minOvertimeMinutes': p.minOvertimeMinutes,
+        'paysOvertime': p.paysOvertime,
+      };
+
+  static WorkPolicy _policyFromJson(Map<String, dynamic> j) => WorkPolicy()
+    ..graceMinutes = j['graceMinutes'] as int? ?? 0
+    ..minOvertimeMinutes = j['minOvertimeMinutes'] as int? ?? 0
+    ..paysOvertime = j['paysOvertime'] as bool? ?? true;
+
   static Map<String, dynamic> _companyToJson(CompanyModel m) => {
         'id': m.id,
         'name': m.name,
@@ -205,6 +216,7 @@ class BackupService {
         'hourlyRate': m.hourlyRate,
         'overtimeRate': m.overtimeRate,
         'workSchedule': m.workSchedule.map(_workDayToJson).toList(),
+        'policy': m.policy == null ? null : _policyToJson(m.policy!),
         'adjustments': m.adjustments.map(_adjustmentToJson).toList(),
         'currency': m.currency,
         'employmentStartDate': _iso(m.employmentStartDate),
@@ -225,6 +237,11 @@ class BackupService {
       for (final d in (j['workSchedule'] as List? ?? []))
         _workDayFromJson(Map<String, dynamic>.from(d as Map)),
     ]
+    // نسخة أقدم من إضافة السياسة تُستعاد بالافتراضي المحايد، فتبقى أرقامها
+    // كما كانت يوم أُخذت النسخة.
+    ..policy = j['policy'] == null
+        ? null
+        : _policyFromJson(Map<String, dynamic>.from(j['policy'] as Map))
     ..adjustments = [
       for (final a in (j['adjustments'] as List? ?? []))
         _adjustmentFromJson(Map<String, dynamic>.from(a as Map)),

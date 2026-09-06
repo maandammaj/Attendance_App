@@ -159,6 +159,11 @@ class CompanyRepositoryImpl implements CompanyRepository {
       baseMonthlySalary: m.baseMonthlySalary,
       hourlyRate: m.hourlyRate,
       overtimeRate: m.overtimeRate,
+      policy: WorkPolicyEntity(
+        graceMinutes: m.policy?.graceMinutes ?? 0,
+        minOvertimeMinutes: m.policy?.minOvertimeMinutes ?? 0,
+        paysOvertime: m.policy?.paysOvertime ?? true,
+      ),
       workSchedule: m.workSchedule
           .map((w) => WorkDayConfigEntity(
                 dayOfWeek: w.dayOfWeek,
@@ -195,6 +200,10 @@ class CompanyRepositoryImpl implements CompanyRepository {
       ..baseMonthlySalary = e.baseMonthlySalary
       ..hourlyRate = e.hourlyRate
       ..overtimeRate = e.overtimeRate
+      ..policy = (WorkPolicy()
+        ..graceMinutes = e.policy.graceMinutes
+        ..minOvertimeMinutes = e.policy.minOvertimeMinutes
+        ..paysOvertime = e.policy.paysOvertime)
       ..workSchedule = e.workSchedule
           .map((w) => WorkDayConfig()
             ..dayOfWeek = w.dayOfWeek

@@ -10,6 +10,7 @@ import '../../../domain/usecases/debt/get_debts_summary_usecase.dart';
 import '../../providers/debt_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/common/above_nav_fab_location.dart';
+import '../../widgets/common/amount_indicator.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/state_switcher.dart';
 import '../../widgets/debt_item_card.dart';
@@ -106,7 +107,7 @@ class _DebtSummaryCard extends StatelessWidget {
     final net = summary.netDebtPosition;
 
     return Container(
-      margin: const EdgeInsets.all(AppSpacing.lg),
+      margin: const EdgeInsets.all(AppSpacing.screen),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: palette.surface,
@@ -118,7 +119,7 @@ class _DebtSummaryCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _Indicator(
+                child: AmountIndicator(
                   label: 'عليك',
                   amount: summary.remainingOwe,
                   color: palette.negative,
@@ -128,7 +129,7 @@ class _DebtSummaryCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: _Indicator(
+                child: AmountIndicator(
                   label: 'لك',
                   amount: summary.remainingOwed,
                   color: palette.positive,
@@ -159,61 +160,6 @@ class _DebtSummaryCard extends StatelessWidget {
   }
 }
 
-class _Indicator extends StatelessWidget {
-  const _Indicator({
-    required this.label,
-    required this.amount,
-    required this.color,
-    required this.icon,
-    required this.currency,
-  });
-
-  final String label;
-  final double amount;
-  final Color color;
-  final IconData icon;
-  final String currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = context.palette;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadius.field),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: AppIconSize.sm, color: color),
-              const SizedBox(width: 6),
-              Text(label, style: theme.textTheme.bodySmall),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(
-              '${amount.toStringAsFixed(0)} $currency',
-              // الرقم بلون الحبر؛ الأيقونة والخلفية تحملان الدلالة، فلا
-              // يتنافس اللون مع القراءة.
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: palette.onSurface)
-                  .merge(tabularFigures),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DebtList extends ConsumerWidget {
   const _DebtList({required this.debts, required this.currency});
 
@@ -231,8 +177,14 @@ class _DebtList extends ConsumerWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsetsDirectional.fromSTEB(
-            AppSpacing.screen, AppSpacing.sm, AppSpacing.screen, 96),
+      // الزر العائم مرفوع فوق شريط التنقل، فيشغل 172 لا 96 — والقيمة
+      // السابقة كانت تترك آخر دين تحته.
+      padding: EdgeInsetsDirectional.fromSTEB(
+            AppSpacing.screen,
+            AppSpacing.sm,
+            AppSpacing.screen,
+            context.navBarFabClearance,
+          ),
       itemCount: debts.length,
       itemBuilder: (context, index) => _DebtRow(
         debt: debts[index],
