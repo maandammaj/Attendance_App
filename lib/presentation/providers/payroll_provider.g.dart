@@ -77,7 +77,7 @@ final class PersonalPayrollProvider
   }
 }
 
-String _$personalPayrollHash() => r'897c2d3da2ba85154ea363ed9f129486ce235502';
+String _$personalPayrollHash() => r'7d1fb785d28ce9b6ca2aff904d055a2fa52fbc96';
 
 /// دخل المستخدم من كل جهاته في شهر.
 ///
@@ -112,4 +112,97 @@ final class PersonalPayrollFamily extends $Family
 
   @override
   String toString() => r'personalPayrollProvider';
+}
+
+/// رؤى شخصية عن الشهر مقارنةً بما قبله.
+
+@ProviderFor(personalInsights)
+final personalInsightsProvider = PersonalInsightsFamily._();
+
+/// رؤى شخصية عن الشهر مقارنةً بما قبله.
+
+final class PersonalInsightsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<PersonalInsight>>,
+          List<PersonalInsight>,
+          FutureOr<List<PersonalInsight>>
+        >
+    with
+        $FutureModifier<List<PersonalInsight>>,
+        $FutureProvider<List<PersonalInsight>> {
+  /// رؤى شخصية عن الشهر مقارنةً بما قبله.
+  PersonalInsightsProvider._({
+    required PersonalInsightsFamily super.from,
+    required ({int year, int month}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'personalInsightsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$personalInsightsHash();
+
+  @override
+  String toString() {
+    return r'personalInsightsProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<PersonalInsight>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<PersonalInsight>> create(Ref ref) {
+    final argument = this.argument as ({int year, int month});
+    return personalInsights(ref, year: argument.year, month: argument.month);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PersonalInsightsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$personalInsightsHash() => r'1b1fb36d7bb6d5a9f35c00785e96654c5010cf3d';
+
+/// رؤى شخصية عن الشهر مقارنةً بما قبله.
+
+final class PersonalInsightsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<PersonalInsight>>,
+          ({int year, int month})
+        > {
+  PersonalInsightsFamily._()
+    : super(
+        retry: null,
+        name: r'personalInsightsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// رؤى شخصية عن الشهر مقارنةً بما قبله.
+
+  PersonalInsightsProvider call({required int year, required int month}) =>
+      PersonalInsightsProvider._(
+        argument: (year: year, month: month),
+        from: this,
+      );
+
+  @override
+  String toString() => r'personalInsightsProvider';
 }

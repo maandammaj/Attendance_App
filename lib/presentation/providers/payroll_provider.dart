@@ -3,7 +3,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/leave_entity.dart';
 import '../../domain/entities/payroll_entity.dart';
+import '../../domain/entities/personal_insight_entity.dart';
 import '../../domain/usecases/payroll/build_personal_payroll_usecase.dart';
+import '../../domain/usecases/reports/build_personal_insights_usecase.dart';
 import 'attendance_provider.dart';
 import 'company_provider.dart';
 
@@ -43,5 +45,35 @@ Future<PersonalPayroll> personalPayroll(
     from: DateTime(year, month, 1),
     to: DateTime(year, month + 1, 0, 23, 59, 59),
     leaves: leaves,
+  );
+}
+
+final buildPersonalInsightsUseCaseProvider =
+    Provider((ref) => const BuildPersonalInsightsUseCase());
+
+/// رؤى شخصية عن الشهر مقارنةً بما قبله.
+@riverpod
+Future<List<PersonalInsight>> personalInsights(
+  Ref ref, {
+  required int year,
+  required int month,
+}) async {
+  final current =
+      await ref.watch(personalPayrollProvider(year: year, month: month).future);
+
+  // الشهر السابق بحدوده الصحيحة: يناير يسبقه ديسمبر من السنة الماضية.
+  final previousMonth = DateTime(year, month - 1);
+  final previous = await ref.watch(personalPayrollProvider(
+    year: previousMonth.year,
+    month: previousMonth.month,
+  ).future);
+
+  final balances =
+      await ref.watch(leaveBalancesProvider(year: year).future);
+
+  return ref.read(buildPersonalInsightsUseCaseProvider)(
+    current: current,
+    previous: previous,
+    leaveBalances: balances,
   );
 }

@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/date_helpers.dart';
 import '../../../domain/entities/payroll_entity.dart';
+import '../../../domain/entities/personal_insight_entity.dart';
 import '../../providers/payroll_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/common/empty_state.dart';
@@ -54,10 +55,8 @@ class PersonalPayrollScreen extends ConsumerWidget {
               ),
               for (final workplace in payroll.workplaces)
                 _WorkplaceCard(workplace: workplace, currency: currency),
-              if (payroll.workplaces.length > 1) ...[
-                const SizedBox(height: AppSpacing.md),
-                _HourlyInsight(payroll: payroll, currency: currency),
-              ],
+              const SizedBox(height: AppSpacing.md),
+              _Insights(year: now.year, month: now.month),
             ],
           );
         },
@@ -358,44 +357,59 @@ class _Line extends StatelessWidget {
   }
 }
 
-/// أي جهة تُعيد أكثر مقابل الساعة — قرارٌ لا يظهر من الصافي وحده.
-class _HourlyInsight extends StatelessWidget {
-  const _HourlyInsight({required this.payroll, required this.currency});
+/// رؤى الشهر — ما يستحق أن يُقال عن الفرق بينه وبين ما قبله.
+class _Insights extends ConsumerWidget {
+  const _Insights({required this.year, required this.month});
 
-  final PersonalPayroll payroll;
-  final String currency;
+  final int year;
+  final int month;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final insightsAsync =
+        ref.watch(personalInsightsProvider(year: year, month: month));
+
+    // الصمت هو الحالة الطبيعية: شهر بلا فرق مادّي لا يستحق بطاقة فارغة
+    // تقول «لا جديد».
+    final insights = insightsAsync.value ?? const <PersonalInsight>[];
+    if (insights.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'ما يستحق الانتباه'),
+        for (final insight in insights) _InsightTile(insight: insight),
+      ],
+    );
+  }
+}
+
+class _InsightTile extends StatelessWidget {
+  const _InsightTile({required this.insight});
+
+  final PersonalInsight insight;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
-    final best = payroll.bestHourlyReturn;
-    final top = payroll.topEarner;
-    if (best == null || top == null || best.presenceMinutes == 0) {
-      return const SizedBox.shrink();
-    }
 
-    final sameWorkplace = best.company.id == top.company.id;
+    final (color, icon) = switch (insight.tone) {
+      InsightTone.positive => (palette.positive, Icons.trending_up_rounded),
+      InsightTone.negative => (palette.negative, Icons.trending_down_rounded),
+      InsightTone.neutral => (palette.info, Icons.lightbulb_outline_rounded),
+    };
 
     return Card(
-      color: palette.info.withValues(alpha: 0.08),
+      margin: const EdgeInsetsDirectional.only(bottom: AppSpacing.md),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: [
-            Icon(Icons.lightbulb_outline_rounded,
-                color: palette.info, size: AppIconSize.md),
+            Icon(icon, color: color, size: AppIconSize.md),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: Text(
-                sameWorkplace
-                    ? '«${best.company.name}» الأعلى دخلاً والأعلى عائداً للساعة '
-                        '(${best.netPerHour.toStringAsFixed(0)} $currency لكل ساعة).'
-                    : '«${top.company.name}» تعطيك دخلاً أكبر، لكن '
-                        '«${best.company.name}» تعطيك ${best.netPerHour.toStringAsFixed(0)} $currency '
-                        'لكل ساعة مقابل ${top.netPerHour.toStringAsFixed(0)}.',
-                style: theme.textTheme.bodySmall,
-              ),
+              child: Text(insight.message, style: theme.textTheme.bodySmall),
             ),
           ],
         ),
