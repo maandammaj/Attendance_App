@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Isar native library, downloaded on demand by tests
+libisar.dylib
+libisar_android*.so
+libisar_windows.dll
+libisar_linux.so

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/ui_helpers.dart';
 import '../../../domain/entities/debt_entity.dart';
@@ -6,6 +7,7 @@ import '../../providers/debt_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/app_button.dart';
+import '../../../core/constants/currencies.dart';
 
 class AddDebtBottomSheet extends ConsumerStatefulWidget {
   const AddDebtBottomSheet({super.key});
@@ -32,9 +34,10 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final debtState = ref.watch(debtControllerProvider);
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     // الاستماع لحالة الحفظ والتعامل مع النجاح أو الفشل
     ref.listen<AsyncValue<void>>(
@@ -74,19 +77,19 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                     ButtonSegment(
                       value: 'owe',
                       label: Text('عليك'),
-                      icon: Icon(Icons.arrow_upward),
+                      icon: Icon(Icons.arrow_upward_rounded),
                     ),
                     ButtonSegment(
                       value: 'owed',
                       label: Text('لك'),
-                      icon: Icon(Icons.arrow_downward),
+                      icon: Icon(Icons.arrow_downward_rounded),
                     ),
                   ],
                   selected: {_debtType},
                   onSelectionChanged: (set) => setState(() => _debtType = set.first),
                   style: SegmentedButton.styleFrom(
-                    selectedBackgroundColor: _debtType == 'owe' ? Colors.red.shade100 : Colors.green.shade100,
-                    selectedForegroundColor: _debtType == 'owe' ? Colors.red.shade900 : Colors.green.shade900,
+                    selectedBackgroundColor: _debtType == 'owe' ? palette.negative.withValues(alpha: 0.12) : palette.positive.withValues(alpha: 0.12),
+                    selectedForegroundColor: _debtType == 'owe' ? palette.negative : palette.positive,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -117,7 +120,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'الاسم / الجهة',
-                    prefixIcon: Icon(Icons.person_outline),
+                    prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'الرجاء إدخال الاسم' : null,
                 ),
@@ -126,7 +129,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   controller: _amountController,
                   decoration: InputDecoration(
                     labelText: 'المبلغ الإجمالي',
-                    prefixIcon: const Icon(Icons.attach_money_outlined),
+                    prefixIcon: const Icon(Icons.payments_outlined),
                     suffixText: currency,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -146,7 +149,7 @@ class _AddDebtBottomSheetState extends ConsumerState<AddDebtBottomSheet> {
                   label: 'حفظ الدين',
                   icon: Icons.save_rounded,
                   isLoading: debtState.isLoading,
-                  backgroundColor: _debtType == 'owe' ? Colors.red.shade700 : Colors.blue.shade700,
+                  backgroundColor: _debtType == 'owe' ? palette.negative : palette.info,
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       final amount = double.parse(_amountController.text);

@@ -30,7 +30,7 @@ class UIHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.white),
+            const Icon(Icons.error_outline_rounded, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.bold))),
           ],
@@ -49,7 +49,7 @@ class UIHelpers {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.info_outline, color: Colors.white),
+            const Icon(Icons.info_outline_rounded, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],

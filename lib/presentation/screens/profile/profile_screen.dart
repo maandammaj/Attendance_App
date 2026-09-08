@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../config/routes.dart';
+import '../../../core/constants/design_tokens.dart';
 import '../../../core/utils/ui_helpers.dart';
+import '../../widgets/common/section_header.dart';
+import '../../widgets/common/state_switcher.dart';
 import '../../widgets/app_button.dart';
+import '../../../domain/entities/company_entity.dart';
 import '../../../domain/entities/profile_entity.dart';
+import '../../providers/company_provider.dart';
 import '../../providers/profile_provider.dart';
+import 'widgets/profile_identity_card.dart';
+import 'widgets/profile_link_tile.dart';
+import '../../../core/constants/currencies.dart';
+import '../../widgets/common/currency_field.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -19,7 +29,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _baseSalaryCtl;
   late TextEditingController _hourlyCtl;
   late TextEditingController _overtimeCtl;
-  String? _currency = 'ر.ي';
+  String? _currency = AppCurrency.fallback.code;
   List<WorkDayConfigEntity> _schedule = [];
   List<SalaryAdjustmentEntity> _adjustments = [];
 
@@ -45,25 +55,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
-  ProfileEntity _buildProfile(int id) {
-    final now = DateTime.now();
-    return ProfileEntity(
-      id: id,
-      fullName: _nameCtl.text.trim().isEmpty ? 'المستخدم' : _nameCtl.text.trim(),
-      jobTitle: _jobCtl.text.trim().isEmpty ? 'المسمى الوظيفي' : _jobCtl.text.trim(),
-      baseMonthlySalary: double.tryParse(_baseSalaryCtl.text) ?? 0.0,
-      hourlyRate: double.tryParse(_hourlyCtl.text) ?? 0.0,
+  /// الاسم يخص الشخص، وبقية الحقول تخص الجهة — يُحفظان في كيانين.
+  ProfileEntity _buildProfile(ProfileEntity current) {
+    return current.copyWith(
+      fullName:
+          _nameCtl.text.trim().isEmpty ? 'المستخدم' : _nameCtl.text.trim(),
+      currency: _currency,
+    );
+  }
+
+  CompanyEntity _buildCompany(CompanyEntity current) {
+    return current.copyWith(
+      jobTitle: _jobCtl.text.trim().isEmpty
+          ? 'المسمى الوظيفي'
+          : _jobCtl.text.trim(),
+      baseMonthlySalary: double.tryParse(_baseSalaryCtl.text) ?? 0,
+      hourlyRate: double.tryParse(_hourlyCtl.text) ?? 0,
       overtimeRate: double.tryParse(_overtimeCtl.text) ?? 1.5,
       workSchedule: _schedule,
       adjustments: _adjustments,
       currency: _currency,
-      updatedAt: now,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final company = ref.watch(activeCompanyProvider).value;
     final profileState = ref.watch(profileControllerProvider);
 
     profileAsync.whenData((profile) {
@@ -71,13 +89,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _inited = true;
         if (profile != null) {
           _nameCtl.text = profile.fullName;
-          _jobCtl.text = profile.jobTitle;
-          _baseSalaryCtl.text = profile.baseMonthlySalary.toString();
-          _hourlyCtl.text = profile.hourlyRate.toString();
-          _overtimeCtl.text = profile.overtimeRate.toString();
-          _currency = profile.currency ?? 'ر.ي';
-          _schedule = profile.workSchedule;
-          _adjustments = profile.adjustments;
+          _jobCtl.text = company?.jobTitle ?? '';
+          _baseSalaryCtl.text = (company?.baseMonthlySalary ?? 0).toStringAsFixed(0);
+          _hourlyCtl.text = (company?.hourlyRate ?? 0).toStringAsFixed(0);
+          _overtimeCtl.text = (company?.overtimeRate ?? 1.5).toString();
+          _currency = AppCurrency.codeOf(profile.currency);
+          _schedule = company?.workSchedule ?? const [];
+          _adjustments = company?.adjustments ?? const [];
         } else {
           _schedule = List.generate(7, (i) => WorkDayConfigEntity(
             dayOfWeek: i + 1,
@@ -98,16 +116,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         data: (profile) => Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            // الحشوة السفلية تفرغ لشريط التنقل العائم: كانت 20 فقط، فآخر
+            // مدخل («سجل التنبيهات») كان يُحجب خلفه.
+            padding: EdgeInsetsDirectional.fromSTEB(
+              AppSpacing.screen,
+              AppSpacing.lg,
+              AppSpacing.screen,
+              context.navBarClearance,
+            ),
             children: [
-              _buildSectionHeader('البيانات الأساسية'),
-              const SizedBox(height: 16),
+              ProfileIdentityCard(
+                fullName: profile?.fullName ?? 'المستخدم',
+                jobTitle: company?.jobTitle ?? 'المسمى الوظيفي',
+                companyName: company?.name,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const SectionHeader(title: 'البيانات الأساسية'),
+              const SizedBox(height: AppSpacing.lg),
               TextFormField(
                 controller: _nameCtl,
-                decoration: const InputDecoration(labelText: 'الاسم الكامل', prefixIcon: Icon(Icons.person_outline)),
+                decoration: const InputDecoration(labelText: 'الاسم الكامل', prefixIcon: Icon(Icons.person_outline_rounded)),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'الرجاء إدخال الاسم' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Row(
                 children: [
                   Expanded(
@@ -117,33 +148,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       keyboardType: TextInputType.number,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: DropdownButtonFormField<String>(
+                    child: CurrencyField(
                       value: _currency,
-                      decoration: const InputDecoration(labelText: 'العملة'),
-                      items: ['ر.ي', 'SAR', 'USD', 'EGP', 'AED']
-                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _currency = v),
+                      onChanged: (code) => setState(() => _currency = code),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('إعدادات الورديات'),
-              const Text('قم بضبط مواعيد العمل الرسمية لكل يوم بدقة', style: TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 8),
-              ..._schedule.map((day) => _buildDayTile(day)).toList(),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xl),
+              const SectionHeader(title: 'جدول الدوام'),
+              const SizedBox(height: AppSpacing.sm),
+              const _ScheduleLink(),
+              const SizedBox(height: AppSpacing.xxl),
               AppButton(
                 label: 'حفظ كافة الإعدادات',
                 icon: Icons.save_rounded,
                 isLoading: profileState is AsyncLoading,
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
-                    final newProfile = _buildProfile(profile?.id ?? 0);
-                    await ref.read(profileControllerProvider.notifier).saveProfile(newProfile);
+                    await ref
+                        .read(profileControllerProvider.notifier)
+                        .saveProfile(_buildProfile(profile!));
+                    if (company != null) {
+                      await ref
+                          .read(companyControllerProvider.notifier)
+                          .save(_buildCompany(company));
+                    }
                     if (mounted) {
                       final state = ref.read(profileControllerProvider);
                       if (state is! AsyncError) {
@@ -155,145 +187,99 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: AppSpacing.xxl),
+              const SectionHeader(
+                title: 'المزيد',
+                subtitle: 'عملك ودخلك وإعدادات التطبيق',
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const _SystemLinks(),
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('خطأ: $e')),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+        loading: () => const Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Column(children: [Skeleton(height: 72), Skeleton(height: 72), Skeleton(height: 140)]),
         ),
+        error: (e, _) => Center(child: Text('تعذّر التحميل: $e')),
       ),
     );
   }
+}
 
-  Widget _buildDayTile(WorkDayConfigEntity day) {
-    final dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
-    final name = dayNames[day.dayOfWeek - 1];
+/// روابط الشاشات التي لا تملك تبويباً في الشريط السفلي.
+///
+/// لكل مقصد لونه من خانات [AppPalette.categorical] — وهي الخانات نفسها
+/// المتحقَّق من تمايزها تحت عمى الألوان ومن تباينها مقابل السطح. تُسند
+/// بترتيب ثابت ولا تُدوَّر.
+class _SystemLinks extends StatelessWidget {
+  const _SystemLinks();
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-      ),
-      child: ExpansionTile(
-        title: Text(name, style: TextStyle(fontWeight: day.isWorkingDay ? FontWeight.bold : FontWeight.normal)),
-        leading: Icon(day.isWorkingDay ? Icons.work_outline : Icons.weekend_outlined, 
-                      color: day.isWorkingDay ? Colors.blue : Colors.grey),
-        trailing: Switch(
-          value: day.isWorkingDay,
-          onChanged: (v) {
-            setState(() {
-              final idx = _schedule.indexOf(day);
-              _schedule[idx] = WorkDayConfigEntity(
-                dayOfWeek: day.dayOfWeek,
-                isWorkingDay: v,
-                requiredHours: day.requiredHours,
-                requiredMinutes: day.requiredMinutes,
-                isHoliday: !v,
-                startTime: day.startTime,
-                endTime: day.endTime,
-              );
-            });
-          },
+  @override
+  Widget build(BuildContext context) {
+    final categorical = context.palette.categorical;
+
+    return Column(
+      children: [
+        ProfileLinkTile(
+          icon: Icons.cloud_sync_rounded,
+          title: 'النسخ الاحتياطي',
+          subtitle: 'مزامنة بياناتك مع Google Drive',
+          route: AppRoutes.backup,
+          tint: categorical[0],
         ),
-        children: [
-          if (day.isWorkingDay)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildTimePickerField(
-                      label: 'بداية الوردية',
-                      value: day.startTime ?? '08:00',
-                      onTap: () async {
-                        final time = await _selectTime(day.startTime ?? '08:00');
-                        if (time != null) {
-                          setState(() {
-                            final idx = _schedule.indexOf(day);
-                            _schedule[idx] = WorkDayConfigEntity(
-                              dayOfWeek: day.dayOfWeek,
-                              isWorkingDay: true,
-                              requiredHours: day.requiredHours,
-                              requiredMinutes: day.requiredMinutes,
-                              isHoliday: false,
-                              startTime: time,
-                              endTime: day.endTime,
-                            );
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTimePickerField(
-                      label: 'نهاية الوردية',
-                      value: day.endTime ?? '16:00',
-                      onTap: () async {
-                        final time = await _selectTime(day.endTime ?? '16:00');
-                        if (time != null) {
-                          setState(() {
-                            final idx = _schedule.indexOf(day);
-                            _schedule[idx] = WorkDayConfigEntity(
-                              dayOfWeek: day.dayOfWeek,
-                              isWorkingDay: true,
-                              requiredHours: day.requiredHours,
-                              requiredMinutes: day.requiredMinutes,
-                              isHoliday: false,
-                              startTime: day.startTime,
-                              endTime: time,
-                            );
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimePickerField({required String label, required String value, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ProfileLinkTile(
+          icon: Icons.apartment_rounded,
+          title: 'جهات العمل',
+          subtitle: 'أضف جهة أو بدّل بينها',
+          route: AppRoutes.companies,
+          tint: categorical[1],
         ),
-        child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-      ),
+        ProfileLinkTile(
+          icon: Icons.insights_rounded,
+          title: 'التقارير والتحليلات',
+          subtitle: 'رسوم بيانية وتصدير PDF و CSV',
+          route: AppRoutes.analytics,
+          tint: categorical[2],
+        ),
+        ProfileLinkTile(
+          icon: Icons.notifications_active_rounded,
+          title: 'التذكيرات الذكية',
+          subtitle: 'تذكيرات الدوام والديون والتنبيهات المالية',
+          route: AppRoutes.reminders,
+          tint: categorical[3],
+        ),
+        ProfileLinkTile(
+          icon: Icons.savings_rounded,
+          title: 'حدود الميزانية',
+          subtitle: 'حد شهري لكل فئة إنفاق',
+          route: AppRoutes.budgetLimits,
+          tint: categorical[4],
+        ),
+        ProfileLinkTile(
+          icon: Icons.history_rounded,
+          title: 'سجل التنبيهات',
+          subtitle: 'كل ما أرسله التطبيق سابقاً',
+          route: AppRoutes.notifications,
+          tint: categorical[5],
+        ),
+      ],
     );
   }
+}
 
-  Future<String?> _selectTime(String initial) async {
-    final parts = initial.split(':');
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+/// مدخل شاشة الجدول — التحرير الكامل صار له شاشته الخاصة.
+class _ScheduleLink extends StatelessWidget {
+  const _ScheduleLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return ProfileLinkTile(
+      icon: Icons.event_note_rounded,
+      title: 'تخصيص أيام وأوقات الدوام',
+      subtitle: 'قوالب جاهزة، نوافذ ورديات، وورديات ليلية',
+      route: AppRoutes.workSchedule,
+      tint: context.palette.categorical[6],
     );
-    if (picked != null) {
-      return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-    }
-    return null;
   }
 }

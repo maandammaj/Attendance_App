@@ -4,7 +4,7 @@ class CheckOutUseCase {
   final AttendanceRepository repository;
   CheckOutUseCase(this.repository);
 
-  Future<void> call(DateTime time) async {
-    return await repository.checkOut(time);
+  Future<void> call(DateTime time, {int? companyId}) async {
+    return await repository.checkOut(time, companyId: companyId);
   }
 }

@@ -18,8 +18,11 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "8.7.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.8.22" apply false
+    // الحد الأدنى الذي يفرضه Flutter 3.47. البقاء في 8.x مقصود: AGP 9
+    // يقرأ الـDSL الجديد وحده فيسقط تطبيق إضافة Flutter الحالية.
+    id("com.android.application") version "8.13.0" apply false
+    // الحد الأدنى الذي يفرضه Flutter 3.47؛ الأعلى المعروف لديه 2.4.0.
+    id("org.jetbrains.kotlin.android") version "2.3.20" apply false
 }
 
 include(":app")

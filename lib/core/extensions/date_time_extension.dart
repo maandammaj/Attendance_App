@@ -8,5 +8,6 @@ extension DateTimeExtension on DateTime {
     return year == other.year && month == other.month && day == other.day;
   }
 
-  int get dayOfWeekArabic => weekday % 7; // 0=السبت, 6=الجمعة
+  /// موقع اليوم في AppConstants.arabicDays التي تبدأ بالسبت (0=السبت … 6=الجمعة).
+  int get dayOfWeekArabic => (weekday + 1) % 7;
 }

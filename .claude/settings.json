@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(perl -0pi -e \"s{import 'dart:convert';\\\\n\\\\n}{}; s{import 'package:ecommerce_bloc/features/account_mangmant/domain/account_failure_keys\\\\.dart';\\\\n}{}\" lib/features/account_mangmant/data/datasources/account_remote_data_source.dart)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter test *)",
+      "Bash(python3 -)",
+      "Bash(cd /Users/tawseeldev/AndroidStudioProjetcs/Dart3TawseelApps/ecommerce_bloc *)",
+      "Read(//Users/tawseeldev/AndroidStudioProjetcs/Dart3TawseelApps/flutter_libs_bloc/common/lib/**)",
+      "Bash(perl -0pi -e \"s{import 'package:ecommerce_bloc/core/utils/helpers.dart';\\\\n}{}\" lib/features/racharge_balance/data/datasources/recharge_side_effects.dart)"
+    ]
+  }
+}

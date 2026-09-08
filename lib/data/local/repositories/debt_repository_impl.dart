@@ -3,24 +3,33 @@ import '../../../domain/entities/debt_entity.dart';
 import '../../../domain/repositories/debt_repository.dart';
 import '../../models/debt_model.dart';
 import '../../models/account_model.dart';
+import '../database/company_scope.dart';
 import '../database/isar_database.dart';
 
 class DebtRepositoryImpl implements DebtRepository {
   Future<Isar> get _db async => await IsarDatabase.instance;
 
+
   @override
   Future<List<DebtEntity>> getAllDebts() async {
     final isar = await _db;
-    final debts = await isar.debtModels.where().sortByCreatedAtDesc().findAll();
+    final companyId = await CompanyScope.activeId(isar);
+    final debts = await isar.debtModels
+        .filter()
+        .companyIdEqualTo(companyId)
+        .sortByCreatedAtDesc()
+        .findAll();
     return debts.map(_mapToEntity).toList();
   }
 
   @override
   Future<List<DebtEntity>> getDebtsByType(String type) async {
     final isar = await _db;
+    final companyId = await CompanyScope.activeId(isar);
     final debtType = type == 'owe' ? DebtType.owe : DebtType.owed;
     final debts = await isar.debtModels
         .filter()
+        .companyIdEqualTo(companyId)
         .debtTypeEqualTo(debtType)
         .sortByCreatedAtDesc()
         .findAll();
@@ -30,7 +39,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> addDebt(DebtEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await CompanyScope.activeId(isar);
     await isar.writeTxn(() async {
       await isar.debtModels.put(model);
     });
@@ -39,7 +48,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> updateDebt(DebtEntity entity) async {
     final isar = await _db;
-    final model = _mapToModel(entity);
+    final model = _mapToModel(entity)..companyId = await CompanyScope.activeId(isar);
     await isar.writeTxn(() async {
       await isar.debtModels.put(model);
     });
@@ -48,11 +57,16 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> addPayment(int debtId, double amount, String? note) async {
     final isar = await _db;
+    final companyId = await CompanyScope.activeId(isar);
     final debt = await isar.debtModels.get(debtId);
-    if (debt == null) throw Exception('Debt not found');
+    CompanyScope.assertOwned(
+      recordCompanyId: debt?.companyId,
+      activeCompanyId: companyId,
+      subject: 'هذا الدين',
+    );
 
     await isar.writeTxn(() async {
-      debt.paidAmount += amount;
+      debt!.paidAmount += amount;
       debt.remainingAmount = debt.totalAmount - debt.paidAmount;
       debt.lastPaymentDate = DateTime.now();
 
@@ -87,6 +101,14 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> deleteDebt(int id) async {
     final isar = await _db;
+    final companyId = await CompanyScope.activeId(isar);
+    final debt = await isar.debtModels.get(id);
+    CompanyScope.assertOwned(
+      recordCompanyId: debt?.companyId,
+      activeCompanyId: companyId,
+      subject: 'هذا الدين',
+    );
+
     await isar.writeTxn(() async {
       await isar.debtModels.delete(id);
     });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../../core/utils/ui_helpers.dart';
@@ -6,6 +7,7 @@ import '../providers/transaction_provider.dart';
 import '../providers/account_provider.dart';
 import '../providers/profile_provider.dart';
 import 'app_button.dart';
+import '../../core/constants/currencies.dart';
 
 class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionTypeEntity type;
@@ -33,6 +35,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final accountsAsync = ref.watch(allAccountsProvider);
     final transactionState = ref.watch(transactionControllerProvider);
     final isExpense = widget.type == TransactionTypeEntity.expense;
@@ -47,8 +50,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             autofocus: true,
             decoration: InputDecoration(
               labelText: 'المبلغ',
-              prefixIcon: const Icon(Icons.attach_money),
-              suffixText: ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي',
+              prefixIcon: const Icon(Icons.payments_rounded),
+              suffixText: AppCurrency.wordOf(ref.watch(profileProvider).value?.currency),
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (v) => (v == null || double.tryParse(v) == null) ? 'الرجاء إدخال مبلغ صحيح' : null,
@@ -92,8 +95,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           const SizedBox(height: 32),
           AppButton(
             label: isExpense ? 'إضافة مصروف' : 'إضافة دخل',
-            icon: isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline,
-            backgroundColor: isExpense ? Colors.red.shade600 : Colors.green.shade600,
+            icon: isExpense ? Icons.remove_circle_outline_rounded : Icons.add_circle_outline_rounded,
+            backgroundColor: isExpense ? palette.negative : palette.positive,
             isLoading: transactionState is AsyncLoading,
             onPressed: () async {
               if (_formKey.currentState!.validate()) {

@@ -4,9 +4,18 @@ import '../../data/local/repositories/attendance_repository_impl.dart';
 import '../../domain/entities/attendance_entity.dart';
 import '../../domain/usecases/attendance/check_in_usecase.dart';
 import '../../domain/usecases/attendance/check_out_usecase.dart';
+import '../../data/local/repositories/calendar_repository_impl.dart';
+import '../../data/local/repositories/leave_repository_impl.dart';
+import '../../domain/entities/calendar_day_entity.dart';
+import '../../domain/entities/leave_entity.dart';
+import '../../domain/repositories/calendar_repository.dart';
+import '../../domain/repositories/leave_repository.dart';
 import '../../domain/usecases/attendance/get_monthly_stats_usecase.dart';
 import '../../core/utils/biometric_auth.dart';
-import 'profile_provider.dart';
+import '../../domain/services/attendance_auth_policy.dart';
+import 'analytics_provider.dart';
+import 'company_provider.dart';
+import 'reminder_provider.dart';
 
 part 'attendance_provider.g.dart';
 
@@ -41,16 +50,71 @@ Future<List<AttendanceEntity>> monthlyAttendance(
   return await repo.getMonthlyRecords(year, month);
 }
 
+final calendarRepositoryProvider =
+    Provider<CalendarRepository>((ref) => CalendarRepositoryImpl());
+
+/// أيام التقويم المُعلَّمة لشهر — تُقرأ مرّة وتُمرَّر للحساب.
+@riverpod
+Future<List<CalendarDayEntity>> monthCalendar(
+  Ref ref, {
+  required int year,
+  required int month,
+}) async {
+  return ref.read(calendarRepositoryProvider).getBetween(
+        DateTime(year, month, 1),
+        DateTime(year, month + 1, 0),
+      );
+}
+
+final leaveRepositoryProvider =
+    Provider<LeaveRepository>((ref) => LeaveRepositoryImpl());
+
+/// إجازات شهر في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveEntity>> monthLeaves(
+  Ref ref, {
+  required int year,
+  required int month,
+}) async {
+  return ref.read(leaveRepositoryProvider).getBetween(
+        DateTime(year, month, 1),
+        DateTime(year, month + 1, 0),
+      );
+}
+
+/// كل إجازات سنة في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveEntity>> allLeaves(Ref ref, {required int year}) {
+  return ref.read(leaveRepositoryProvider).getBetween(
+        DateTime(year, 1, 1),
+        DateTime(year, 12, 31),
+      );
+}
+
+/// أرصدة الإجازات لسنة في الجهة الفعّالة.
+@riverpod
+Future<List<LeaveBalanceEntity>> leaveBalances(Ref ref, {required int year}) {
+  return ref.read(leaveRepositoryProvider).getBalances(year);
+}
+
 @riverpod
 Future<MonthlyStats> attendanceStats(
   Ref ref, {
   required int year,
   required int month,
 }) async {
-  final profileAsync = ref.watch(profileProvider);
-  final profile = profileAsync.valueOrNull;
+  // إبقاء حيّ صريح. هذا المزوّد يُنتظَر بـ `await` من مزوّدات أخرى، ومع
+  // الإتلاف التلقائي يُتلَف بينما المنتظِر معلّق عند `await`، ثم يُعاد إنشاؤه
+  // بمستقبل جديد فيُبطَل المنتظِر ويبدأ من جديد — حلقة إعادة بناء لا تنتهي
+  // تظهر كشاشة تحميل عالقة وGC متواصل. تُستدعى في الجسم لا كوسم، لأن تغيير
+  // الوسم يحتاج إعادة توليد، و`build_runner` معطّل على هذا الـSDK.
+  ref.keepAlive();
+  // تُنتظر الجهة لا تُقرأ فوراً: القراءة الفورية تُنتج إحصاءات أصفاراً قبل
+  // وصولها، ثم تُعاد الحسبة عند وصولها — فيرى المستخدم شهراً بلا أيام عمل
+  // ولا خصم للحظة، ويُعاد بناء كل ما يعتمد عليها.
+  final company = await ref.watch(activeCompanyProvider.future);
 
-  if (profile == null) {
+  if (company == null) {
     return MonthlyStats(
       expectedWorkingDays: 0,
       actualWorkingDays: 0,
@@ -64,11 +128,26 @@ Future<MonthlyStats> attendanceStats(
     );
   }
 
+  final calendar =
+      await ref.watch(monthCalendarProvider(year: year, month: month).future);
+  final leaves =
+      await ref.watch(monthLeavesProvider(year: year, month: month).future);
   final useCase = ref.read(getMonthlyStatsUseCaseProvider);
-  return await useCase(year, month, profile);
+  return await useCase(year, month, company,
+      calendar: calendar, leaves: leaves);
 }
 
+/// جلسة مفتوحة في أي جهة — تكشف ما نُسي في جهة غير المعروضة.
 @riverpod
+Future<AttendanceEntity?> anyOpenSession(Ref ref) async {
+  return await ref.read(attendanceRepositoryProvider).getAnyOpenSession();
+}
+
+// keepAlive: هذه المتحكّمات بعمر التطبيق لا بعمر شاشة. بدونها يُتلَف
+// المتحكّم حين تُبدَّل شاشته أثناء عملية جارية — بوابة الإعداد تفعل ذلك فور
+// إنشاء أول جهة — فتُكتب الحالة على مزوّد مُتلَف ويُرمى
+// "Bad state: Future already completed".
+@Riverpod(keepAlive: true)
 class AttendanceController extends _$AttendanceController {
   @override
   FutureOr<void> build() => null;
@@ -77,90 +156,101 @@ class AttendanceController extends _$AttendanceController {
 
   void _invalidateAll() {
     ref.invalidate(todayAttendanceProvider);
+    ref.invalidate(anyOpenSessionProvider);
     ref.invalidate(monthlyAttendanceProvider);
     ref.invalidate(attendanceStatsProvider);
+    ref.invalidate(analyticsReportProvider);
   }
 
-  Future<bool> checkIn() async {
-    if (_isProcessing) return false;
+  /// يبدأ جلسة دوام جديدة. اليوم يقبل عدة جلسات.
+  Future<AttendanceActionResult> checkIn({int? companyId}) => _run(
+        reason: 'أكّد هويتك لتسجيل الحضور',
+        successMessage: 'تم تسجيل الحضور',
+        action: (verified) async {
+          await ref.read(checkInUseCaseProvider)(
+            DateTime.now(),
+            isBiometricVerified: verified,
+            companyId: companyId,
+          );
+        },
+      );
+
+  /// ينهي الجلسة المفتوحة.
+  Future<AttendanceActionResult> checkOut() => _run(
+        reason: 'أكّد هويتك لتسجيل الانصراف',
+        successMessage: 'تم تسجيل الانصراف',
+        action: (_) async {
+          await ref.read(checkOutUseCaseProvider)(DateTime.now());
+        },
+      );
+
+  /// مسار واحد للتحقق ثم التنفيذ، حتى لا تتفرّع سياسة الأمان بين الزرّين.
+  ///
+  /// القرار كله في [AttendanceAuthPolicy]: متى تلزم البصمة، ومتى يُقبل قفل
+  /// الجهاز، ومتى يُمنع التسجيل. هنا التنفيذ فقط.
+  Future<AttendanceActionResult> _run({
+    required String reason,
+    required String successMessage,
+    required Future<void> Function(bool isBiometricVerified) action,
+  }) async {
+    if (_isProcessing) {
+      return const AttendanceActionResult.failure('العملية قيد التنفيذ');
+    }
     _isProcessing = true;
     state = const AsyncLoading();
+
     try {
+      final settings = await ref.read(reminderSettingsProvider.future);
       final auth = BiometricAuthService();
-      bool authResult = false;
-      
-      try {
-        final available = await auth.isAvailable;
-        if (available) {
-          authResult = await auth.authenticate(
-            localizedReason: 'سجل دخولك الآن',
-          );
-        } else {
-          // إذا لم تتوفر البصمة (محاكي أو ويندوز)، نعتبر التحقق ناجحاً للتسهيل في بيئة التطوير
-          // أو يمكن طلب رمز PIN. هنا سأفترض النجاح مؤقتاً للتأكد من عمل المنطق.
-          authResult = true; 
+      final capability = await auth.capability();
+      final requirement = AttendanceAuthPolicy.resolve(
+        capability: capability,
+        settings: settings,
+      );
+
+      if (requirement == AuthRequirement.blocked) {
+        state = const AsyncData(null);
+        return AttendanceActionResult.failure(
+            AttendanceAuthPolicy.blockedReason(capability));
+      }
+
+      var isVerified = false;
+      if (requirement != AuthRequirement.none) {
+        final result = await auth.authenticate(
+          reason: reason,
+          // البصمة المسجّلة لا يُقبل عنها بديل.
+          allowDeviceCredential:
+              requirement == AuthRequirement.deviceCredential,
+        );
+        if (!result.isSuccess) {
+          state = const AsyncData(null);
+          return AttendanceActionResult.failure(
+              result.message ?? 'تعذّر التحقق من هويتك');
         }
-      } catch (e) {
-        state = AsyncError('خطأ في البصمة: $e', StackTrace.current);
-        return false;
+        isVerified = true;
       }
 
-      if (!authResult) {
-        state = AsyncError('التحقق مطلوب للاستمرار', StackTrace.current);
-        return false;
-      }
-
-      final useCase = ref.read(checkInUseCaseProvider);
-      await useCase(DateTime.now());
+      await action(isVerified);
       _invalidateAll();
       state = const AsyncData(null);
-      return true;
-    } catch (e, stack) {
-      state = AsyncError(e, stack);
-      return false;
+
+      return AttendanceActionResult.success(
+        isVerified ? successMessage : '$successMessage — دون تحقق',
+        isBiometricVerified: isVerified,
+      );
+    } catch (error, stack) {
+      state = AsyncError(error, stack);
+      return AttendanceActionResult.failure(_readable(error));
     } finally {
       _isProcessing = false;
     }
   }
 
-  Future<bool> checkOut() async {
-    if (_isProcessing) return false;
-    _isProcessing = true;
-    state = const AsyncLoading();
-    try {
-      final auth = BiometricAuthService();
-      bool authResult = false;
-      
-      try {
-        final available = await auth.isAvailable;
-        if (available) {
-          authResult = await auth.authenticate(
-            localizedReason: 'سجل انصرافك الآن',
-          );
-        } else {
-          authResult = true;
-        }
-      } catch (e) {
-        state = AsyncError('خطأ في البصمة: $e', StackTrace.current);
-        return false;
-      }
-
-      if (!authResult) {
-        state = AsyncError('التحقق مطلوب للاستمرار', StackTrace.current);
-        return false;
-      }
-
-      final useCase = ref.read(checkOutUseCaseProvider);
-      await useCase(DateTime.now());
-      _invalidateAll();
-      state = const AsyncData(null);
-      return true;
-    } catch (e, stack) {
-      state = AsyncError(e, stack);
-      return false;
-    } finally {
-      _isProcessing = false;
-    }
+  static String _readable(Object error) {
+    final text = error.toString();
+    return text.startsWith('Exception: ')
+        ? text.substring('Exception: '.length)
+        : text;
   }
 
   Future<void> addManual({
@@ -208,4 +298,20 @@ class AttendanceController extends _$AttendanceController {
       state = AsyncError(e, stack);
     }
   }
+}
+
+/// نتيجة عملية حضور/انصراف، جاهزة للعرض دون أن تعرف الواجهة تفاصيل الأمان.
+class AttendanceActionResult {
+  const AttendanceActionResult.success(
+    this.message, {
+    this.isBiometricVerified = true,
+  }) : isSuccess = true;
+
+  const AttendanceActionResult.failure(this.message)
+      : isSuccess = false,
+        isBiometricVerified = false;
+
+  final bool isSuccess;
+  final String message;
+  final bool isBiometricVerified;
 }

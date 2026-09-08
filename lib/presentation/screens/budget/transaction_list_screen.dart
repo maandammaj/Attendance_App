@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/common/empty_state.dart';
+import '../../../core/constants/currencies.dart';
 
 class TransactionListScreen extends ConsumerWidget {
   const TransactionListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.palette;
     final now = DateTime.now();
     final transactions = ref.watch(monthlyTransactionsProvider(year: now.year, month: now.month));
-    final currency = ref.watch(profileProvider).valueOrNull?.currency ?? 'ر.ي';
+    final currency = AppCurrency.wordOf(ref.watch(profileProvider).value?.currency);
 
     return Scaffold(
       appBar: AppBar(title: const Text('سجل المصاريف والدخل'), centerTitle: true),
       body: transactions.when(
         data: (list) {
-          if (list.isEmpty) return const Center(child: Text('لا توجد حركات مالية هذا هذا الشهر'));
+          if (list.isEmpty) {
+            return const EmptyState(
+              icon: Icons.receipt_long_rounded,
+              title: 'لا حركات هذا الشهر',
+              message: 'كل دخل أو مصروف تسجّله يظهر هنا مرتّباً بتاريخه.',
+            );
+          }
           return ListView.builder(
             itemCount: list.length,
             padding: const EdgeInsets.all(16),
@@ -26,8 +36,8 @@ class TransactionListScreen extends ConsumerWidget {
               final isExpense = trans.type.name == 'expense';
               return Card(
                 child: ListTile(
-                  leading: Icon(isExpense ? Icons.remove_circle : Icons.add_circle, 
-                      color: isExpense ? Colors.red : Colors.green),
+                  leading: Icon(isExpense ? Icons.remove_circle_rounded : Icons.add_circle_rounded, 
+                      color: isExpense ? palette.negative : palette.positive),
                   title: Text(trans.categoryName),
                   subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(trans.date)),
                   trailing: Row(
@@ -36,7 +46,8 @@ class TransactionListScreen extends ConsumerWidget {
                       Text('${trans.amount.toStringAsFixed(2)} $currency', 
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
+              tooltip: 'حذف',
+                        icon: Icon(Icons.delete_rounded, color: palette.onSurfaceVariant, size: 20),
                         onPressed: () => _confirmDelete(context, ref, trans.id),
                       ),
                     ],
@@ -53,6 +64,7 @@ class TransactionListScreen extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, int id) {
+  final palette = context.palette;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -65,7 +77,7 @@ class TransactionListScreen extends ConsumerWidget {
               await ref.read(transactionControllerProvider.notifier).deleteTransaction(id);
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text('حذف', style: TextStyle(color: palette.negative)),
           ),
         ],
       ),

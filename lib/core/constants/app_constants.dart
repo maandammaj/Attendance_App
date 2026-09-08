@@ -5,7 +5,9 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Currency
-  static const String defaultCurrency = 'ر.ي';
+  /// الرمز المخزَّن للعملة الافتراضية. العرض لا يستخدمه مباشرة — الكلمة
+  /// العربية تأتي من `AppCurrency.wordOf`، انظر `core/constants/currencies.dart`.
+  static const String defaultCurrency = 'YER';
 
   // Biometric messages
   static const String biometricCheckInReason = 'سجل دخولك ببصمة إصبعك';
